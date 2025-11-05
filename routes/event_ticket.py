@@ -34,7 +34,7 @@ async def get_tickets_by_person_id(db: AsyncSession, person_id: UUID, event_id: 
     return tickets.all()
 
 
-@router.get("/{id}", response_model=list[EventTicketResponse])
+@router.get("/{id}", response_model=EventTicketResponse)
 @with_db
 async def get_ticket(db: AsyncSession, id: UUID):
     event_ticket = await db.get(EventTicket, id)
