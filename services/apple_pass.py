@@ -17,7 +17,7 @@ APPLE_AUTH_TOKEN = os.environ["apple_auth_token"]
 APPLE_TEAM_ID = os.environ["apple_team_id"]
 APPLE_APNS_KEY = os.environ["apple_apns_key"]
 APPLE_APNS_KEY_ID = os.environ["apple_apns_key_id"]
-APPLE_UPDATE_URL = "https://api.dropdeadisco.com/passupdates/"
+APPLE_UPDATE_URL = "https://dropdeadisco.com/api/passupdates/"
 APPLE_PASS_TYPE_ID = "pass.com.vahe.drop1"
 
 CERT_DATA = os.getenv("apple_pass_cert")
