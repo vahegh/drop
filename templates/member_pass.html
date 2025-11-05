@@ -1,0 +1,49 @@
+{% extends "base_email.html" %}
+{% from 'components/button.html' import button %}
+
+{% block content %}
+<h1 style="text-align: center">Hey {{ name }},</h1>
+<p>
+    {% if resend %}
+    Did you lose your pass?<br>
+    Not again...
+    {% elif purchase %}
+    You know, you could've come without paying, we'd let you in anyway. Still, hugs and kisses, you're the best.
+    {% else %}
+    All that hard work finally paid off... <i>you're now a Drop Dead Disco Member</i>.<br>
+    Congratulations! We're so happy to see you here!
+    {% endif %}
+</p>
+<p style="text-align: center">
+    Your stats: <br><br>
+
+    <strong>Member ID</strong><br>
+    <span style="font-size: 32px; font-weight: bold;">{{ serial_no }}</span>
+</p>
+
+<p style="text-align: center">
+    <strong>Events attended</strong><br>
+    <span style="font-size: 32px; font-weight: bold;">{{ events_attended }} out of {{ total_events }}</span>
+</p>
+<p>
+    Tap this button to see your Membership pass. Add it to your <b>Google/Apple Wallet</b> to get updates.
+</p>
+{{ button("your pass", pass_page) }}
+<p>
+    You can use this pass to <b>attend all our events</b>. Event information will automatically update as it
+    becomes available.
+</p>
+<p>
+    If you have any issues with your pass, please let us know by replying to this email or DM-ing us on Instagram <a
+        href="https://www.instagram.com/dropdeadisco/">@dropdeadisco</a>.
+</p>
+<p>
+    Thank you for being a core part of our community.
+</p>
+<p style="text-align: center">
+    <b>Note: do not share your Membership pass with anyone.</b>
+</p>
+<p style="color: #aaa; text-align: center">
+    See you on the dancefloor.
+</p>
+{% endblock %}

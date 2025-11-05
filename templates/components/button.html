@@ -1,0 +1,13 @@
+{% macro button(text, url) %}
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin: 24px auto;">
+    <tr>
+        <td align="center" bgcolor="transparent"
+            style="border-radius: 32px; border: 2px solid #df296f; min-width: 250px; ">
+            <a href="{{ url }}" target="_blank"
+                style="font-size: 16px; font-weight: normal; text-transform: uppercase; color: #df296f; text-decoration: none; padding: 6px 12px; display: inline-block;">
+                {{ text }}
+            </a>
+        </td>
+    </tr>
+</table>
+{% endmacro %}

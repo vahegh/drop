@@ -1,0 +1,22 @@
+{% extends "base_email.html" %}
+{% block content %}
+<h1 style="text-align: center">Hey {{ name }},</h1>
+<p>
+    Thank you for your interest in <b>Drop Dead Disco</b>. After carefully reviewing your application, we've decided not
+    to offer access at this time.
+</p>
+<p>
+    Some common rejection reasons include:<br>
+    - No visible posts or activity on Instagram,<br>
+    - A fake or anonymous Instagram profile,<br>
+    - Under 18 years old,<br>
+    - No spots left due to high demand.<br>
+</p>
+<p>
+    If things change down the line and you want to reapply, feel free to do so.
+</p>
+<p style="color: #aaa; text-align: center">
+    All the best,<br>
+    Drop Dead Disco
+</p>
+{% endblock %}

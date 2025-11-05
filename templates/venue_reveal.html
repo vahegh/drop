@@ -1,0 +1,33 @@
+{% extends "base_email.html" %}
+{% block content %}
+<h1 style="text-align: center">Hey {{ name }},</h1>
+<p>We have some updates on {{ event_name }} for you!<br></p>
+<h3 style="text-align: center">
+    Venue: <b>{{ venue_name }}</b><br>
+    Address: <b>{{ address }}</b><br>
+</h3>
+{% if google_maps_link and yandex_maps_link %}
+<table role="presentation" cellspacing="20" cellpadding="0" border="0" align="center">
+    <tr>
+        <td>
+            <a href="{{ google_maps_link }}">
+                <img src="https://storage.googleapis.com/dropdeadisco/images/google_maps.png" alt="Google Maps"
+                    style="width: 50px; height: 50px; object-fit: scale-down;">
+            </a>
+        </td>
+        <td>
+            <a href="{{ yandex_maps_link }}">
+                <img src="https://storage.googleapis.com/dropdeadisco/images/yandex_navi.png" alt="Yandex Maps"
+                    style="width: 50px; height: 50px; object-fit: scale-down;">
+            </a>
+        </td>
+    </tr>
+</table>
+{% endif %}
+<p>
+    <i>If you're having any trouble finding it, reply to this email, or DM us on Instagram.</i>
+</p>
+<p style="color: #aaa; text-align: center">
+    See you on the dancefloor.
+</p>
+{% endblock %}

@@ -1,0 +1,8 @@
+.env
+__pycache__/
+launch.json
+key.json
+.nicegui/
+**/*.pyc
+.vscode
+credentials

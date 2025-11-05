@@ -1,0 +1,40 @@
+{% extends "base_email.html" %}
+{% from 'components/button.html' import button %}
+{% block content %}
+<h1 style="text-align: center">Hey {{ name }},</h1>
+<p>
+    This is a kind reminder that <b>early bird</b> ticket sales for <b>{{ event_name }}</b> end today at midnight,
+    Yerevan
+    time.<br>
+</p>
+<p>
+    If you want to join us on <b>{{ event_day_of_week }}</b>, now is cheaper. Also looks better on our analytics
+    to be
+    honest...
+</p>
+
+<div style="text-align: center; margin: 30px 0; padding: 20px; background-color: #f5f5f5;">
+    <div style="font-size: 20px;">Early Bird price: <b>{{ early_bird_price }}</b></div>
+    <div style="color: #4a4a4a; margin-top: 8px;">Standard price: <b>{{ standard_price }}</b></div>
+</div>
+<p>
+    You can now buy tickets for your verified friends as well, by entering their email in the link
+    below.
+</p>
+{{ button("buy your ticket", payment_link) }}
+<h4 style="text-align: center">
+    {{ event_name }}
+</h4>
+<p>
+    Date: <b>{{ event_date }}</b><br>
+    Time: <b>{{ start_time }}</b> - <b>{{ end_time }}</b><br>
+    Location: <i><b>Yerevan. </b>Exact location will appear on your ticket <b>24 hours before</b>.</i><br>
+</p>
+<p style="text-align: center">
+    <i>Note: this link can only be used once. It expires after the purchase. <b>Do not share it with anyone
+            else.</b></i>
+</p>
+<p style="color: #aaa; text-align: center">
+    See you on the dancefloor.
+</p>
+{% endblock %}

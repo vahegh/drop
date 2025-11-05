@@ -1,0 +1,53 @@
+{% extends "base_email.html" %}
+{% from 'components/button.html' import button %}
+{% block content %}
+<h1 style="text-align: center">Hey {{ name }},</h1>
+<p>
+    {% if resend %}
+    Where is your ticket? Did you lose it? <i>You did?</i></br>
+    Come on.
+    {% elif is_approved %}
+    Thank you for trusting us so much that you give us money. We're truly speechless...
+    {% else %}
+    You're invited to our upcoming event - <b>{{ event_name }}</b>
+    {% endif %}
+</p>
+<p>
+    Tap the button below to see your ticket. <b>Add it to Google/Apple Wallet</b> to get updates.
+</p>
+{{ button("go to your ticket", pass_page) }}
+<h2 style="text-align: center">{{ event_name }}</h2>
+<p style="text-align: center">
+    <b>Here's everything you need to know:</b>
+</p>
+<p>
+    Date: <b>{{ event_date }}</b><br>
+    Start time: <b>{{ event_time }}</b><br>
+    Location: <i><b>{{ location | default('To be revealed 24 hours before the event.', true) }}</b></i><br>
+</p>
+{% if google_maps_link and yandex_maps_link %}
+<table role="presentation" cellspacing="20" cellpadding="0" border="0" align="center">
+    <tr>
+        <td>
+            <a href="{{ google_maps_link }}">
+                <img src="https://storage.googleapis.com/dropdeadisco/images/google_maps.png" alt="Google Maps"
+                    style="width: 50px; height: 50px; object-fit: scale-down;">
+            </a>
+        </td>
+        <td>
+            <a href="{{ yandex_maps_link }}">
+                <img src="https://storage.googleapis.com/dropdeadisco/images/yandex_navi.png" alt="Yandex Maps"
+                    style="width: 50px; height: 50px; object-fit: scale-down;">
+            </a>
+        </td>
+    </tr>
+</table>
+{% endif %}
+<p style="text-align: center">
+    <b>Do not share your ticket with anyone.</b>
+</p>
+
+<p style="color: #aaa; text-align: center">
+    See you on the dancefloor.
+</p>
+{% endblock %}

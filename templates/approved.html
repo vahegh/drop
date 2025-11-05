@@ -1,0 +1,29 @@
+{% extends "base_email.html" %}
+{% from 'components/button.html' import button %}
+{% block content %}
+<h1 style="text-align: center">Hey {{ name }},</h1>
+<p>
+    Your application to join <b>Drop Dead Disco</b> has been approved. <i>Welcome to the club</i>.
+</p>
+<p>
+    You now have access to purchase tickets for upcoming events.
+</p>
+{% if event_name and payment_link %}
+<p>
+    Here's your link for <b>{{ event_name }}</b>.
+</p>
+{{ button("buy your ticket", payment_link) }}
+<p style="text-align: center">
+    <i>Note: You can buy tickets for yourself and your friends, if they are also verified. Each person's ticket will be
+        sent
+        to their verified email. <b>Do not share your ticket with anyone.</b></i>
+</p>
+{% else %}
+<p>
+    We do not have an upcoming event at the moment. When a new event is announced, you will immediately be notified.
+</p>
+{% endif %}
+<p style="color: #aaa; text-align: center">
+    See you on the dancefloor.
+</p>
+{% endblock %}
