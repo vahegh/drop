@@ -9,8 +9,10 @@ from services.apple_pass import create_apple_member
 from services.google_pass import create_google_member_pass
 from services.apple_push_notifications import apple_notify_pass_devices
 from services.drive import drive_service
+from db import with_db
 
 
+@with_db
 async def get_next_serial_number(db: AsyncSession) -> int:
     existing_serials = (await db.scalars(
         select(MemberPass.serial_number).order_by(MemberPass.serial_number)
@@ -26,13 +28,14 @@ async def get_next_serial_number(db: AsyncSession) -> int:
     return existing_serials[-1] + 1
 
 
-async def create_member_pass(member_pass: MemberPass, db: AsyncSession):
+@with_db
+async def create_member_pass(db: AsyncSession, member_pass: MemberPass):
     existing = await db.scalar(select(MemberPass).where(MemberPass.person_id == member_pass.person_id))
 
     if existing:
         member_pass = existing
     else:
-        member_pass.serial_number = await get_next_serial_number(db)
+        member_pass.serial_number = await get_next_serial_number()
         db.add(member_pass)
         await db.commit()
         await db.refresh(member_pass)

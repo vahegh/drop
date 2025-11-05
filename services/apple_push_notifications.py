@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from aioapns import APNs, NotificationRequest, PushType
 from db_models import AppleDeviceRegistrations, AppleDevices
 from services.apple_pass import APPLE_APNS_KEY, APPLE_APNS_KEY_ID, APPLE_TEAM_ID, APPLE_PASS_TYPE_ID
+from db import with_db
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +32,8 @@ async def apple_send_push_notification(device_token: str):
         logger.warning(f"Error sending notification to {device_token}: {str(e)}")
 
 
-async def apple_notify_pass_devices(serial_number: str, db: AsyncSession):
+@with_db
+async def apple_notify_pass_devices(db: AsyncSession, serial_number: str):
     registrations = await db.execute(
         select(AppleDeviceRegistrations.device_id).where(
             AppleDeviceRegistrations.serial_number == serial_number)

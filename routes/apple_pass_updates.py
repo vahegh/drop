@@ -1,10 +1,9 @@
-from typing import Optional
 from datetime import datetime, timezone
 from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.dialects.postgresql import insert
 from fastapi.responses import StreamingResponse
-from fastapi import APIRouter, HTTPException, Request, Depends, Response
+from fastapi import APIRouter, HTTPException, Request, Response
 from db import with_db
 from services.cloud_storage import get_pass_file
 from services.apple_pass import APPLE_PASS_TYPE_ID, APPLE_AUTH_TOKEN

@@ -208,7 +208,7 @@ async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest):
             if holder.status == PersonStatus.member:
                 await add_ticket_to_db(event_ticket)
                 member_pass = await db.scalar(select(MemberPass).where(MemberPass.person_id == holder.id))
-                await send_member_pass(member_pass, db, purchase=True)
+                await send_member_pass(member_pass, purchase=True)
 
             else:
                 await create_event_ticket(event_ticket)

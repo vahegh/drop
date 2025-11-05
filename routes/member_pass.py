@@ -47,7 +47,7 @@ async def create_pass(db: AsyncSession, member_pass: MemberCardCreate):
         raise HTTPException(400, f"Invalid person status: {person.status}")
 
     member_pass, existing = await create_member_pass(MemberPass(**member_pass.model_dump(mode='json')))
-    await send_member_pass(member_pass, db, resend=bool(existing))
+    await send_member_pass(member_pass, resend=bool(existing))
 
     return member_pass
 

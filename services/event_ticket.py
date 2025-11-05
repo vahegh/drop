@@ -5,9 +5,11 @@ from services.apple_pass import create_apple_ticket
 from services.google_pass import create_google_ticket
 from db_models import EventTicket, Person, Event, Venue
 from services.apple_push_notifications import apple_notify_pass_devices
+from db import with_db
 
 
-async def add_ticket_to_db(ticket: EventTicket, db: AsyncSession):
+@with_db
+async def add_ticket_to_db(db: AsyncSession, ticket: EventTicket):
     existing = await db.scalar(select(EventTicket)
                                .where((EventTicket.person_id == ticket.person_id) & (EventTicket.event_id == ticket.event_id)))
     if existing:
@@ -20,7 +22,8 @@ async def add_ticket_to_db(ticket: EventTicket, db: AsyncSession):
     return ticket
 
 
-async def create_event_ticket(ticket: EventTicket, db: AsyncSession):
+@with_db
+async def create_event_ticket(db: AsyncSession, ticket: EventTicket):
     ticket = await add_ticket_to_db(ticket)
 
     person = await db.get(Person, ticket.person_id)

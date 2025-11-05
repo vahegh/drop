@@ -9,6 +9,7 @@ from routes.event import get_all_events
 from db_models import Person, Event, MemberPass, EventTicket, Venue
 from consts import (APP_BASE_URL, MEMBER_PASS_TEMPLATE, EVENT_TICKET_TEMPLATE,
                     MEMBER_PASS_SUBJECT, EVENT_TICKET_SUBJECT, TIMEZONE, MAGIC_LINK_SUBJECT, MAGIC_LINK_TEMPLATE)
+from db import with_db
 
 
 async def send_magic_link(person: Person, event_name: str, link: str):
@@ -26,7 +27,8 @@ async def send_magic_link(person: Person, event_name: str, link: str):
     await send_email(email_request)
 
 
-async def send_member_pass(member_pass: MemberPass, db: AsyncSession, purchase=False, resend=False):
+@with_db
+async def send_member_pass(db: AsyncSession, member_pass: MemberPass, purchase=False, resend=False):
     person = await db.get(Person, member_pass.person_id)
 
     context = {
@@ -52,7 +54,8 @@ async def send_member_pass(member_pass: MemberPass, db: AsyncSession, purchase=F
     await send_email(email_request)
 
 
-async def send_event_ticket(event_ticket: EventTicket, db: AsyncSession, resend=False):
+@with_db
+async def send_event_ticket(db: AsyncSession, event_ticket: EventTicket, resend=False):
     person = await db.get(Person, event_ticket.person_id)
     event = await db.get(Event, event_ticket.event_id)
 

@@ -104,7 +104,6 @@ async def register(db: AsyncSession, person: PersonCreate):
 @with_db
 async def login(db: AsyncSession, request: Request):
     form_data = await request.form()
-    print(form_data)
 
     redirect_url = form_data.get('state', None)
 
