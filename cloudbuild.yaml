@@ -46,6 +46,7 @@ steps:
       - run
       - deploy
       - drop
+
       - --image=europe-west4-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/drop/drop:$COMMIT_SHA
       - --region=europe-west4
       - --platform=managed
@@ -59,7 +60,9 @@ steps:
       - --service-account=759529195467-compute@developer.gserviceaccount.com
       - --allow-unauthenticated
       - --ingress=all
-      - --set-env-vars=TZ=Asia/Yerevan,app_base_url=https://dropdeadisco.com
+
+      - --set-env-vars=TZ=Asia/Yerevan,app_base_url=https://drop-759529195467.europe-west4.run.app
+
       - --set-secrets=storage_secret=auth_secret:latest
       - --set-secrets=maps_api_key=maps_api_key:latest
       - --set-secrets=db_conn_string=db-conn-string:latest
@@ -96,6 +99,7 @@ steps:
       - --set-secrets=auth_secret=auth_secret:latest
       - --set-secrets=google_client_id=google_client_id:latest
       - --set-secrets=google_drive_creds=google_drive_creds:latest
+
       - --labels=commit-sha=$COMMIT_SHA,managed-by=gcp-cloud-build-deploy-cloud-run
     id: 'deploy'
     waitFor: ['push']
