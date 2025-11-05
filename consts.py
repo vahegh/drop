@@ -10,8 +10,8 @@ env = os.getenv('env')
 
 TIMEZONE = ZoneInfo('Asia/Yerevan')
 
-APP_BASE_URL = "https://dropdeadisco.com"
-APP_BASE_URL_NO_PROTO = "dropdeadisco.com"
+APP_BASE_URL = os.environ['app_base_url']
+APP_BASE_URL_NO_PROTO = os.environ['app_base_url_no_proto']
 
 
 GOOGLE_MEMBER_CLASS_ID = "drop_member_pass"
@@ -42,7 +42,6 @@ idram_merchant_id = os.environ["idram_merchant_id"]
 
 DROP_SPOTIFY_URL = 'https://open.spotify.com/playlist/49t6kUgW6nB7Kcv4d357qy?si=e5527a59df38401f'
 DROP_YOUTUBE_URL = 'https://www.youtube.com/@dropdeadisco'
-app_base_url = os.environ['app_base_url']
 google_client_id = '759529195467-d4dt9f5do5iu4g4itndu2v0q9vpmip93.apps.googleusercontent.com'
 google_wallet_img_url = 'https://storage.googleapis.com/dropdeadisco/images/add_to_google.svg'
 apple_wallet_img_url = 'https://storage.googleapis.com/dropdeadisco/images/add_to_apple.svg'

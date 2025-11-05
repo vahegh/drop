@@ -61,7 +61,7 @@ steps:
       - --allow-unauthenticated
       - --ingress=all
 
-      - --set-env-vars=TZ=Asia/Yerevan,app_base_url=https://drop-759529195467.europe-west4.run.app
+      - --set-env-vars=TZ=Asia/Yerevan,app_base_url=https://dropdeadisco.com,app_base_url_no_proto=dropdeadisco.com
 
       - --set-secrets=storage_secret=auth_secret:latest
       - --set-secrets=maps_api_key=maps_api_key:latest

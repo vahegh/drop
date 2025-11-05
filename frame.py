@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from nicegui import ui, app
 from consts import (spotify_logo_path, instagram_logo_path,
                     DROP_INSTA_URL, DROP_SPOTIFY_URL, support_email, logo_white_path,
-                    DROP_YOUTUBE_URL, youtube_logo_path, app_base_url, google_client_id, logo_gray_path)
+                    DROP_YOUTUBE_URL, youtube_logo_path, APP_BASE_URL, google_client_id, logo_gray_path)
 from elements import google_button, secondary_button
 from helpers import set_user_data
 
@@ -44,7 +44,7 @@ async def frame(show_footer=True, show_signin=True):
                     data-client_id="{google_client_id}"
                     data-context="signin"
                     data-ux_mode="redirect"
-                    data-login_uri="{app_base_url}/api/auth/login"
+                    data-login_uri="{APP_BASE_URL}/api/auth/login"
                     data-auto_select="false"
                     data-itp_support="true"
                     data-use_fedcm_for_prompt="true"
