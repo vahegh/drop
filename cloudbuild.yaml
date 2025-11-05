@@ -5,7 +5,7 @@ steps:
       - '-c'
       - 'docker pull gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
     id: 'pull-cloudsdk'
-    waitFor: ['-']  # Run immediately in parallel
+    waitFor: ['-']
 
   - name: 'gcr.io/cloud-builders/docker'
     entrypoint: 'bash'
@@ -13,7 +13,7 @@ steps:
       - '-c'
       - 'docker pull europe-west4-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/drop/drop:latest || exit 0'
     id: 'pull-cache'
-    waitFor: ['-']  # Run immediately in parallel
+    waitFor: ['-']
 
   - name: 'gcr.io/cloud-builders/docker'
     env:
@@ -43,127 +43,60 @@ steps:
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
     entrypoint: gcloud
     args:
-      - 'run'
-      - 'deploy'
-      - 'drop'
-      - '--image'
-      - 'europe-west4-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/drop/drop:$COMMIT_SHA'
-      - '--region'
-      - 'europe-west4'
-      - '--platform'
-      - 'managed'
-      - '--port'
-      - '8080'
-      - '--memory'
-      - '1024Mi'
-      - '--cpu'
-      - '1'
-      - '--concurrency'
-      - '80'
-      - '--min-instances'
-      - '1'
-      - '--max-instances'
-      - '2'
-      - '--timeout'
-      - '300s'
-      - '--service-account'
-      - '759529195467-compute@developer.gserviceaccount.com'
-      - '--allow-unauthenticated'
-      - '--ingress'
-      - 'all'
-
-      - '--set-env-vars'      
-      - 'TZ=Asia/Yerevan'
-      - '--set-env-vars'      
-      - 'app_base_url=https://dropdeadisco.com'
-
-      - '--set-secrets'
-      - 'storage_secret=auth_secret:latest'
-      - '--set-secrets'
-      - 'maps_api_key=maps_api_key:latest'
-
-      - '--set-secrets'
-      - 'db_conn_string=db-conn-string:latest'
-
-      - '--set-secrets'
-      - 'telegram_bot_token=telegram_bot_token:latest'
-      - '--set-secrets'
-      - 'telegram_chat_id=telegram_chat_id:latest'
-
-      - '--set-secrets'
-      - 'vpos_base_url=vpos_base_url:latest'
-      - '--set-secrets'
-      - 'idram_payment_url=idram_payment_url:latest'
-      - '--set-secrets'
-      - 'myameria_base_url=myameria_base_url:latest'
-      - '--set-secrets'
-      - 'myameria_auth_url=myameria_auth_url:latest'
-      - '--set-secrets'
-      - 'myameria_pay_url=myameria_pay_url:latest'
-      
-      - '--set-secrets'
-      - 'apple_apns_key=apple_apns_key:latest'
-      - '--set-secrets'
-      - 'apple_apns_key_id=apple_apns_key_id:latest'
-      - '--set-secrets'
-      - 'apple_pass_cert=apple_pass_cert:latest'
-      - '--set-secrets'
-      - 'apple_pass_key=apple_pass_key:latest'
-      - '--set-secrets'
-      - 'apple_pass_wwdr=apple_pass_wwdr:latest'
-      - '--set-secrets'
-      - 'apple_auth_token=apple_auth_token:latest'
-      - '--set-secrets'
-      - 'apple_team_id=apple_team_id:latest'    
-  
-      - '--set-secrets'
-      - 'service_account_credentials=service_account_credentials:latest'
-
-      - '--set-secrets'
-      - 'vpos_client_id=vpos_client_id:latest'      
-      - '--set-secrets'
-      - 'vpos_username=vpos_username:latest'      
-      - '--set-secrets'
-      - 'vpos_password=vpos_password:latest'   
-      - '--set-secrets'
-      - 'myameria_merchant_id=myameria_merchant_id:latest'      
-      - '--set-secrets'
-      - 'myameria_client_id=myameria_client_id:latest'      
-      - '--set-secrets'
-      - 'myameria_client_secret=myameria_client_secret:latest'      
-      - '--set-secrets'
-      - 'idram_merchant_id=idram_merchant_id:latest'
-
-      - '--set-secrets'
-      - 'smtp_server=smtp_server:latest'
-      - '--set-secrets'
-      - 'smtp_sender_email=smtp_sender_email:latest'
-      - '--set-secrets'
-      - 'smtp_sender_password=smtp_sender_password:latest'
-
-      - '--set-secrets'
-      - 'ecrm_base_url=ecrm_base_url:latest'
-      - '--set-secrets'
-      - 'ecrm_crn=ecrm_crn:latest'
-      - '--set-secrets'
-      - 'tin=tin:latest'
-      - '--set-secrets'
-      - 'ecrm_cert_pem=ecrm_cert_pem:latest'
-      - '--set-secrets'
-      - 'ecrm_key_pem=ecrm_key_pem:latest'
-
-      - '--set-secrets'
-      - 'auth_secret=auth_secret:latest'
-
-      - '--set-secrets'
-      - 'google_client_id=google_client_id:latest'
-
-      - '--set-secrets'
-      - 'google_drive_creds=google_drive_creds:latest'
-
-
-      - '--labels'
-      - 'commit-sha=$COMMIT_SHA,managed-by=gcp-cloud-build-deploy-cloud-run'
+      - run
+      - deploy
+      - drop
+      - --image=europe-west4-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/drop/drop:$COMMIT_SHA
+      - --region=europe-west4
+      - --platform=managed
+      - --port=8080
+      - --memory=1024Mi
+      - --cpu=1
+      - --concurrency=80
+      - --min-instances=1
+      - --max-instances=2
+      - --timeout=300s
+      - --service-account=759529195467-compute@developer.gserviceaccount.com
+      - --allow-unauthenticated
+      - --ingress=all
+      - --set-env-vars=TZ=Asia/Yerevan,app_base_url=https://dropdeadisco.com
+      - --set-secrets=storage_secret=auth_secret:latest
+      - --set-secrets=maps_api_key=maps_api_key:latest
+      - --set-secrets=db_conn_string=db-conn-string:latest
+      - --set-secrets=telegram_bot_token=telegram_bot_token:latest
+      - --set-secrets=telegram_chat_id=telegram_chat_id:latest
+      - --set-secrets=vpos_base_url=vpos_base_url:latest
+      - --set-secrets=idram_payment_url=idram_payment_url:latest
+      - --set-secrets=myameria_base_url=myameria_base_url:latest
+      - --set-secrets=myameria_auth_url=myameria_auth_url:latest
+      - --set-secrets=myameria_pay_url=myameria_pay_url:latest
+      - --set-secrets=apple_apns_key=apple_apns_key:latest
+      - --set-secrets=apple_apns_key_id=apple_apns_key_id:latest
+      - --set-secrets=apple_pass_cert=apple_pass_cert:latest
+      - --set-secrets=apple_pass_key=apple_pass_key:latest
+      - --set-secrets=apple_pass_wwdr=apple_pass_wwdr:latest
+      - --set-secrets=apple_auth_token=apple_auth_token:latest
+      - --set-secrets=apple_team_id=apple_team_id:latest
+      - --set-secrets=service_account_credentials=service_account_credentials:latest
+      - --set-secrets=vpos_client_id=vpos_client_id:latest
+      - --set-secrets=vpos_username=vpos_username:latest
+      - --set-secrets=vpos_password=vpos_password:latest
+      - --set-secrets=myameria_merchant_id=myameria_merchant_id:latest
+      - --set-secrets=myameria_client_id=myameria_client_id:latest
+      - --set-secrets=myameria_client_secret=myameria_client_secret:latest
+      - --set-secrets=idram_merchant_id=idram_merchant_id:latest
+      - --set-secrets=smtp_server=smtp_server:latest
+      - --set-secrets=smtp_sender_email=smtp_sender_email:latest
+      - --set-secrets=smtp_sender_password=smtp_sender_password:latest
+      - --set-secrets=ecrm_base_url=ecrm_base_url:latest
+      - --set-secrets=ecrm_crn=ecrm_crn:latest
+      - --set-secrets=tin=tin:latest
+      - --set-secrets=ecrm_cert_pem=ecrm_cert_pem:latest
+      - --set-secrets=ecrm_key_pem=ecrm_key_pem:latest
+      - --set-secrets=auth_secret=auth_secret:latest
+      - --set-secrets=google_client_id=google_client_id:latest
+      - --set-secrets=google_drive_creds=google_drive_creds:latest
+      - --labels=commit-sha=$COMMIT_SHA,managed-by=gcp-cloud-build-deploy-cloud-run
     id: 'deploy'
     waitFor: ['push']
 
