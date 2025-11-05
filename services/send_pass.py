@@ -36,7 +36,7 @@ async def send_member_pass(db: AsyncSession, member_pass: MemberPass, purchase=F
         "pass_page": f"{APP_BASE_URL}/pass/{person.id}",
         "serial_no": str(member_pass.serial_number).zfill(3),
         "events_attended": str(await get_attendance(person.id)),
-        "total_events": str(len(await get_all_events(db)))
+        "total_events": str(len(await get_all_events()))
     }
 
     if purchase:
