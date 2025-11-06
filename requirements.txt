@@ -16,3 +16,4 @@ aiosmtplib
 jinja2
 tzdata
 python-dotenv
+plotly
