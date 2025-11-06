@@ -1,14 +1,12 @@
 from nicegui import ui
 from frame import frame
 from elements import page_header, section_title
-from helpers import set_user_data
 
 
 @ui.page('/about', title='About Us | Drop Dead Disco')
 async def about_page():
-    async with frame() as (main_col, _):
+    async with frame() as (main_col, logged_in):
         main_col.classes('gap-4 p-6')
-        logged_in = await set_user_data()
 
         with ui.column().classes('gap-2'):
             page_header('About Us')

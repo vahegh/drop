@@ -1,16 +1,14 @@
 from nicegui import ui, app
-from fastapi import Request, Response
-
-from fastapi.responses import RedirectResponse
+from fastapi import Request
 from datetime import timezone, datetime
 from frame import frame
 from storage_cache import get_cache
 from api_models import EventResponse, EventTicketResponse, MemberCardResponse, PersonResponse
-from elements import (event_card, section_title, page_header,
+from elements import (event_card, page_header,
                       status_icon, member_card, event_ticket,
                       image_carousel, large_google_button,
                       primary_button, section, ticket_indicator)
-from helpers import get_user_agent, set_user_data, get_album_urls
+from helpers import get_user_agent, get_album_urls
 from enums import PersonStatus
 
 
