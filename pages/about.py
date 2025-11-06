@@ -6,7 +6,7 @@ from helpers import set_user_data
 
 @ui.page('/about', title='About Us | Drop Dead Disco')
 async def about_page():
-    async with frame() as main_col:
+    async with frame() as (main_col, _):
         main_col.classes('gap-4 p-6')
         logged_in = await set_user_data()
 
