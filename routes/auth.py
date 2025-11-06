@@ -101,11 +101,10 @@ async def register(db: AsyncSession, person: PersonCreate):
 
 
 @router.post("/login")
-@with_db
-async def login(db: AsyncSession, request: Request):
+async def login(request: Request):
     form_data = await request.form()
 
-    redirect_url = form_data.get('state', None)
+    redirect_url = form_data.get('state', '/')
 
     csrf_token_cookie = request.cookies.get('g_csrf_token')
     if not csrf_token_cookie:
