@@ -124,7 +124,6 @@ async def home_page(request: Request):
                 large_google_button(ui.context.client.request.url.path)
 
         with section("The community"):
-            all_persons = await cache.get_all_persons()
             album_url = "https://photos.google.com/share/AF1QipNb8__JbXtuax9DJm21Ca666tb2o4voA1u09nj0Z04jhyNjfdzcQ-1KTMqI7N9zNA?key=MG11Qm01N1JRWGxZUElGazdvcGlzOEw4VWVobUdR"
             image_carousel(await get_album_urls(album_url))
 
