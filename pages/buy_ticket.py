@@ -41,7 +41,7 @@ async def buy_ticket_page(request: Request, event_id: UUID):
     async def send_pass(person: PersonResponse, btn: Button):
         btn.props(add='loading')
         try:
-            if person.status == PersonStatus.approved:
+            if person.status == PersonStatus.verified:
                 await client.create_event_ticket(person.id, event.id)
             elif person.status == PersonStatus.member:
                 await client.create_member_pass(person.id)
@@ -94,7 +94,7 @@ async def buy_ticket_page(request: Request, event_id: UUID):
                 if p.status == PersonStatus.member:
                     total_price += event.member_ticket_price
                     totals['members'] += 1
-                elif p.status == PersonStatus.approved:
+                elif p.status == PersonStatus.verified:
                     total_price += ticket_price
                     totals['non_members'] += 1
 
@@ -128,7 +128,7 @@ async def buy_ticket_page(request: Request, event_id: UUID):
                 save_btn.props(remove='loading')
                 return
 
-            if new_attendee.status in (PersonStatus.approved, PersonStatus.member):
+            if new_attendee.status in (PersonStatus.verified, PersonStatus.member):
                 if await client.fetch_ticket_by_person_id(new_attendee.id, event.id):
                     with ui.dialog(value=True) as dl:
                         with ui.card().classes('bg-indigo-50'):
@@ -272,7 +272,7 @@ async def buy_ticket_page(request: Request, event_id: UUID):
                 lambda: send_pass(person, send_again_btn))
             primary_button('Buy for others').on_click(create_main_page)
 
-        if person.status == PersonStatus.approved:
+        if person.status == PersonStatus.verified:
             title.text = f"You already have a ticket for {event.name}"
             subtitle.text = f"Haven't received it?"
         elif person.status == PersonStatus.member:

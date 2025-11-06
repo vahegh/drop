@@ -14,7 +14,7 @@ async def frame(show_footer=True, show_signin=True):
 
     st = app.storage.user
 
-    with ui.header().classes('items-center bg-transparent h-14 px-6 py-2 backdrop-blur-sm flex justify-between'):
+    with ui.header(bordered=True).classes('items-center bg-transparent h-14 px-6 py-2 backdrop-blur-xs flex justify-between'):
         ui.image(logo_gray_path).classes(
             'w-16 h-10 object-contain').on('click', lambda: ui.navigate.to('/'))
         ui.space()
@@ -55,7 +55,7 @@ async def frame(show_footer=True, show_signin=True):
                 google_button(ui.context.client.request.url.path)
 
     with ui.context.client.content.classes('h-full p-0 gap-0 w-full items-center justify-between') as content:
-        with ui.grid().classes('flex w-full items-center justify-center p-4') as content:
+        with ui.grid().classes('flex w-full items-center justify-center p-4 gap-8') as content:
             yield content, logged_in
 
     if show_footer:

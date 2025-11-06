@@ -3,10 +3,9 @@ import enum
 
 class PersonStatus(enum.Enum):
     pending = "pending"
-    approved = "approved"
+    verified = "verified"
     rejected = "rejected"
     member = "member"
-    free = "free"
 
 
 class PaymentStatus(enum.Enum):

@@ -58,7 +58,7 @@ async def verify_user_token(db: AsyncSession, request: Request):
         raise HTTPException(404, "No such person")
 
     if person.status == PersonStatus.rejected:
-        raise HTTPException(403, "Not approved")
+        raise HTTPException(403, "Rejected")
 
     return person
 

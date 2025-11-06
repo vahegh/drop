@@ -60,7 +60,7 @@ async def home_page(request: Request):
             attended_events = [t.event_id for t in event_tickets if t.attended_at]
             event_map = {e.id: e for e in events}
 
-            if person.status == PersonStatus.approved:
+            if person.status == PersonStatus.verified:
                 with section("Your tickets"):
                     if event_tickets:
                         sorted_tickets = sorted(
@@ -130,12 +130,18 @@ async def home_page(request: Request):
 
         with section("Stats"):
             person_counts = await get_all_person_stats()
+            member_ct = person_counts[PersonStatus.member]
+            verified_ct = person_counts[PersonStatus.verified]
+
             with ui.row().classes('w-full justify-center gap-4'):
-                for st in [PersonStatus.member, PersonStatus.approved]:
-                    with ui.row(wrap=False).classes('items-center gap-2 justify-around'):
-                        ui.label(st.value.upper()).classes('font-semibold text-gray-600')
-                        ui.label(person_counts[st]).classes(
-                            f'text-3xl font-bold text-[{status_colors.get(st)}]')
+                with ui.row(wrap=False).classes('items-center gap-2 justify-around'):
+                    ui.label("MEMBERS").classes('font-semibold text-gray-600')
+                    ui.label(member_ct).classes(
+                        f'text-3xl font-bold text-[{status_colors.get(PersonStatus.member)}]')
+                with ui.row(wrap=False).classes('items-center gap-2 justify-around'):
+                    ui.label("VERIFIED").classes('font-semibold text-gray-600')
+                    ui.label(verified_ct).classes(
+                        f'text-3xl font-bold text-[{status_colors.get(PersonStatus.verified)}]')
 
         for e in events:
             if e.ends_at >= datetime.now(timezone.utc):

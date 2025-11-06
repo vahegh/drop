@@ -104,7 +104,7 @@ async def update_person(db: AsyncSession, id: UUID, updated_person: PersonUpdate
                 body=template
             )
 
-        case PersonStatus.approved:
+        case PersonStatus.verified:
             next_event = await get_next_event()
 
             if next_event:

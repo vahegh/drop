@@ -57,7 +57,7 @@ async def persons_panel():
     categorized = {
         'pending': [],
         'members': [],
-        'approved': [],
+        'verified': [],
         'rejected': []
     }
 
@@ -66,8 +66,8 @@ async def persons_panel():
             categorized['pending'].append(p)
         elif p.status == PersonStatus.member:
             categorized['members'].append(p)
-        elif p.status in (PersonStatus.approved, PersonStatus.free):
-            categorized['approved'].append(p)
+        elif p.status in PersonStatus.verified:
+            categorized['verified'].append(p)
         elif p.status == PersonStatus.rejected:
             categorized['rejected'].append(p)
 
@@ -76,7 +76,7 @@ async def persons_panel():
 
     pending_persons = categorized['pending']
     members = categorized['members']
-    approved_persons = categorized['approved']
+    verified_persons = categorized['verified']
     rejected_persons = categorized['rejected']
 
     def render_section(title: str, person_list: list):
@@ -111,7 +111,7 @@ async def persons_panel():
     # Render sections in order
     render_section('In Review', pending_persons)
     render_section('Members', members)
-    render_section('Approved', approved_persons)
+    render_section('verified', verified_persons)
     render_section('Rejected', rejected_persons)
 
 

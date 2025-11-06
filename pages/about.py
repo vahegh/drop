@@ -66,7 +66,7 @@ You'll hear some of your favourite tracks (even ones you had forgotten about), a
 2. As soon as you sign up, we get notified and the review process begins.
 
 3. You'll be notified about your status in 24 hours.
-If approved, you'll be able to buy tickets for upcoming events.
+If verified, you'll be able to buy tickets for upcoming events.
 ''')
 
         ui.markdown('''

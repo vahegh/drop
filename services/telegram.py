@@ -23,7 +23,6 @@ async def notify_application(person: Person):
             {'text': 'Approve', 'callback_data': f'approved_{person.id}'},
             {'text': 'Reject', 'callback_data': f'rejected_{person.id}'},
             {'text': 'Member', 'callback_data': f'member_{person.id}'},
-            {'text': 'Free', 'callback_data': f'free_{person.id}'},
         ]]
     }
     tg_message = TelegramMessage(

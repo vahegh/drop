@@ -177,7 +177,7 @@ def price_row(type, price):
 #         else:
 #             email_address_input.set_visibility(False)
 #             message.text = "Check your email!"
-#             secondary_message.text = "If approved, you'll receive an email with your payment link."
+#             secondary_message.text = "If verified, you'll receive an email with your payment link."
 #             buy_btn.delete()
 
 #     with ui.dialog() as dl:
@@ -195,8 +195,7 @@ def price_row(type, price):
 
 
 status_colors = {
-    PersonStatus.approved: "#11b553",
-    PersonStatus.free: "#337fd6",
+    PersonStatus.verified: "#11b553",
     PersonStatus.member: "#754fd6",
     PersonStatus.rejected: "#d32629",
     PersonStatus.pending: "#f58302"
@@ -259,10 +258,10 @@ def event_ticket(ticket: EventTicketResponse, event: EventResponse, user_agent):
 
 
 def image_carousel(urls):
-    with ui.carousel().classes('w-full aspect-square h-auto max-w-[500px]').props('infinite autoplay="2500" swipeable animated arrows'):
+    with ui.carousel().classes('w-full h-96 aspect-square max-w-96').props('infinite autoplay="2500" swipeable animated arrows'):
         for url in urls:
             with ui.carousel_slide().classes('justify-center p-0'):
-                ui.image(f'{url}=w1440-h1440').props('fit="cover"').classes('rounded-xl w-full h-full')
+                ui.image(f'{url}=w1440-h1440').props('fit="contain"').classes('rounded-xl w-full h-full')
 
 
 def google_button(page):
@@ -296,7 +295,7 @@ def section(title: str = None, subtitle: str = None, sep=True):
             with ui.column().classes('gap-0') as heading:
                 section_title(title).classes('text-center')
                 if subtitle:
-                    ui.label(subtitle).classes('text-center')
+                    ui.label(subtitle).classes('text-center text-gray-600')
         else:
             heading = None
         yield main, heading

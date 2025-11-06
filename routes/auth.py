@@ -43,16 +43,9 @@ async def verify_person(db: AsyncSession, request: VerifyPersonRequest):
     if not event:
         raise HTTPException(404, "No such event")
 
-    match person.status:
-        case PersonStatus.approved | PersonStatus.member:
-            token = await create_jwt(person.email, str(event.id))
-            await send_magic_link(person, event.name, f"{APP_BASE_URL}/buy-ticket?token={token}")
-
-        case PersonStatus.free:
-            ticket = await create_event_ticket(EventTicket(person_id=person.id, event_id=event.id))
-            if ticket:
-                await send_event_ticket(ticket)
-
+    if person.status in (PersonStatus.verified, PersonStatus.member):
+        token = await create_jwt(person.email, str(event.id))
+        await send_magic_link(person, event.name, f"{APP_BASE_URL}/buy-ticket?token={token}")
     return
 
 

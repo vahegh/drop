@@ -134,7 +134,7 @@ async def early_bird_end(db: AsyncSession, event_id: UUID):
 
     persons = (await db.scalars(select(Person)
                                 .outerjoin(EventTicket, (EventTicket.person_id == Person.id) & (EventTicket.event_id == event_id))
-                                .where(Person.status == PersonStatus.approved)
+                                .where(Person.status == PersonStatus.verified)
                                 .where(EventTicket.id.is_(None)))).all()
     email_reqs = []
 
