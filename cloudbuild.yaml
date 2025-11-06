@@ -99,6 +99,7 @@ steps:
       - --set-secrets=auth_secret=auth_secret:latest
       - --set-secrets=google_client_id=google_client_id:latest
       - --set-secrets=google_drive_creds=google_drive_creds:latest
+      - --set-secrets=admins=admins:latest
 
       - --labels=commit-sha=$COMMIT_SHA,managed-by=gcp-cloud-build-deploy-cloud-run
     id: 'deploy'

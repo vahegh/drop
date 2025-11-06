@@ -128,7 +128,8 @@ async def login(db: AsyncSession, request: Request):
 @with_db
 async def login_user(db: AsyncSession, token, redirect_url='/'):
     try:
-        id_info = id_token.verify_oauth2_token(token, requests.Request(), aud)
+        id_info = id_token.verify_oauth2_token(
+            token, requests.Request(), aud, clock_skew_in_seconds=5)
 
     except ValueError:
         raise HTTPException(401, "Invalid ID token")

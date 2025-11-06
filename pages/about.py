@@ -1,6 +1,6 @@
 from nicegui import ui
 from frame import frame
-from elements import secondary_button, page_header, section_title
+from elements import page_header, section_title
 from helpers import set_user_data
 
 

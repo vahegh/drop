@@ -1,0 +1,252 @@
+from uuid import UUID
+from nicegui import ui
+from helpers import parse_inputs
+from consts import default_date_format, APP_BASE_URL
+from api_models import PersonUpdate, EventTicketResponse, PersonCreate, EventTicketCreate
+from elements import (primary_button, secondary_button, accented_button,
+                      status_icon, page_header, section_title,
+                      generate_form_from_model, ticket_indicator,
+                      person_card)
+from storage_cache import get_cache
+from enums import PersonStatus
+from routes.person import create_person, update_person, delete_person
+from routes.event_ticket import create_event_ticket, delete_event_ticket
+
+cache = get_cache()
+
+
+async def persons_panel():
+    events = await cache.get_all_events()
+    persons = await cache.get_all_persons()
+    tickets = await cache.get_all_event_tickets()
+
+    async def create_dialog():
+        with ui.dialog(value=True) as dialog:
+            with ui.card():
+                section_title('New Person')
+                form = generate_form_from_model(PersonCreate)
+
+                async def submit():
+                    data = await parse_inputs(form, PersonCreate)
+                    try:
+                        await create_person(PersonCreate(**data))
+                        await cache.get_all_persons(force_refresh=True)
+                        ui.navigate.reload()
+
+                    except Exception as e:
+                        ui.notify(f"Unable to create person: {str(e)}", type='negative')
+
+                accented_button('Save').on_click(submit)
+                primary_button('Cancel').on_click(dialog.close)
+
+    with ui.row():
+        ui.element('div').classes('w-[38px]')
+        page_header('People')
+        ui.icon('add', size='lg', color='secondary').on('click', create_dialog)
+
+    sorted_events = sorted(events, key=lambda e: e.starts_at)
+
+    event_ticket_person_map: dict[UUID, dict[UUID, EventTicketResponse]] = {
+        e.id: {
+            t.person_id: t for t in tickets if t.event_id == e.id
+        }
+        for e in sorted_events
+    }
+
+    # Categorize persons by status
+    categorized = {
+        'pending': [],
+        'members': [],
+        'approved': [],
+        'rejected': []
+    }
+
+    for p in persons:
+        if p.status == PersonStatus.pending:
+            categorized['pending'].append(p)
+        elif p.status == PersonStatus.member:
+            categorized['members'].append(p)
+        elif p.status in (PersonStatus.approved, PersonStatus.free):
+            categorized['approved'].append(p)
+        elif p.status == PersonStatus.rejected:
+            categorized['rejected'].append(p)
+
+    for category in categorized.values():
+        category.sort(key=lambda p: p.name.lower())
+
+    pending_persons = categorized['pending']
+    members = categorized['members']
+    approved_persons = categorized['approved']
+    rejected_persons = categorized['rejected']
+
+    def render_section(title: str, person_list: list):
+        if not person_list:
+            return
+
+        section_title(f"{title} ({len(person_list)})")
+        with ui.grid().classes('flex justify-center gap-1 p-0'):
+            with ui.card().classes(f'cursor-pointer', remove='rounded-3xl').props('bordered flat'):
+                with ui.row(wrap=False):
+                    ui.label("Name").classes('w-40 text-left')
+                    with ui.row(wrap=False).classes(remove='w-full'):
+                        for i, event in enumerate(sorted_events, 1):
+                            with ui.element('div').classes('size-4'):
+                                ui.label(str(i)).classes('text-center')
+
+            for p in person_list:
+                with person_card(p):
+                    with ui.row(wrap=False):
+                        ui.label(p.name).classes('w-48 text-left')
+                        with ui.row(wrap=False).classes(remove='w-full'):
+                            if p.status not in (PersonStatus.rejected, PersonStatus.pending):
+                                for event in sorted_events:
+                                    ticket = event_ticket_person_map.get(
+                                        event.id, {}).get(p.id)
+
+                                    if ticket:
+                                        ticket_indicator(ticket, bool(ticket.attended_at))
+                                    else:
+                                        ticket_indicator(None, False)
+
+    # Render sections in order
+    render_section('In Review', pending_persons)
+    render_section('Members', members)
+    render_section('Approved', approved_persons)
+    render_section('Rejected', rejected_persons)
+
+
+async def person_details_panel(person_id):
+    person = await cache.get_person(UUID(person_id))
+
+    async def create_dialog():
+        with ui.dialog(value=True) as dialog:
+            with ui.card().classes('w-full gap-4 p-4'):
+                section_title('Edit Person')
+                original_data = person.model_dump()
+                form = generate_form_from_model(PersonUpdate, original_data)
+
+                async def submit():
+                    data = await parse_inputs(form, PersonUpdate)
+                    changed_data = {
+                        k: v for k, v in data.items()
+                        if original_data.get(k) != v
+                    }
+
+                    if not changed_data:
+                        ui.notify("No changes made")
+                        return
+
+                    try:
+                        await update_person(person.id, PersonUpdate(**changed_data))
+                        ui.notify("Person Updated")
+                        await cache.get_all_persons(force_refresh=True)
+                        ui.navigate.reload()
+
+                    except Exception as e:
+                        ui.notify(f"Unable to update person: {str(e)}", type='negative')
+
+                accented_button('Save').on_click(submit)
+                primary_button('Cancel').on_click(dialog.close)
+
+    async def create_ticket_dialog():
+        events = await cache.get_all_events()
+        all_tickets = await cache.get_all_event_tickets()
+        person_tickets = [t for t in all_tickets if t.person_id == person.id]
+        person_event_ids = {t.event_id for t in person_tickets}
+
+        available_events = [e for e in events if e.id not in person_event_ids]
+
+        if not available_events:
+            ui.notify("No available events to create tickets for", type='warning')
+            return
+
+        with ui.dialog(value=True) as dialog:
+            with ui.card().classes('w-full gap-4 p-4'):
+                section_title('Create Ticket')
+
+                event_options = {str(e.id): f"{e.name} - {e.starts_at.astimezone().strftime(default_date_format)}"
+                                 for e in sorted(available_events, key=lambda e: e.starts_at)}
+
+                selected_event = ui.select(
+                    options=event_options,
+                    label='Select Event'
+                )
+
+                async def submit():
+                    if not selected_event.value:
+                        ui.notify("Please select an event", type='warning')
+                        return
+
+                    try:
+                        await create_event_ticket(EventTicketCreate(
+                            event_id=selected_event.value,
+                            person_id=person.id
+                        ))
+                        ui.notify("Ticket created successfully", type='positive')
+                        await cache.get_all_event_tickets(force_refresh=True)
+                        dialog.close()
+                        ui.navigate.reload()
+
+                    except Exception as e:
+                        ui.notify(f"Unable to create ticket: {str(e)}", type='negative')
+
+                accented_button('Create').on_click(submit)
+                primary_button('Cancel').on_click(dialog.close)
+
+    async def delete():
+        if await ui.run_javascript('confirm("Are you sure you want to delete this person?")', timeout=10):
+            try:
+                await delete_person(person.id)
+                ui.notify('Person deleted successfully.')
+                await cache.get_all_persons(force_refresh=True)
+                ui.navigate.to('/gagodzya/people')
+            except Exception as e:
+                ui.notify(f'Error deleting person: {str(e)}')
+
+    async def delete_ticket(id):
+        if await ui.run_javascript('confirm("Are you sure you want to delete this ticket?")', timeout=10):
+            try:
+                await delete_event_ticket(id)
+                await cache.get_all_event_tickets(force_refresh=True)
+                ui.navigate.reload()
+                ui.notify('Ticket deleted successfully.')
+            except Exception as e:
+                ui.notify(f'Error deleting ticket: {str(e)}')
+
+    page_header(f'{person.name}')
+
+    with ui.card().classes('w-full'):
+        status_icon(person.status)
+        ui.link(person.email, f"mailto:{person.email}").classes('text-lg')
+        if person.instagram_handle:
+            ui.link(f"@{person.instagram_handle}",
+                    f"https://instagram.com/{person.instagram_handle}", new_tab=True).classes('text-lg')
+
+    with ui.row():
+        primary_button('Edit').on_click(create_dialog)
+        secondary_button('Delete').on_click(delete)
+
+    all_tickets = await cache.get_all_event_tickets()
+    person_tickets = [t for t in all_tickets if t.person_id == person.id]
+
+    if person.status not in (PersonStatus.pending, PersonStatus.rejected):
+        section_title('Tickets')
+
+        events = await cache.get_all_events()
+        event_map = {e.id: e for e in events}
+
+        sorted_tickets = sorted(
+            person_tickets, key=lambda t: event_map[t.event_id].starts_at, reverse=True)
+
+        with ui.grid().classes('flex justify-center gap-2 p-0'):
+            for ticket in sorted_tickets:
+                event = event_map.get(ticket.event_id)
+                if event:
+                    with ui.card():
+                        with ui.row(wrap=False).classes('justify-between items-center w-full'):
+                            ticket_indicator(ticket, bool(ticket.attended_at))
+                            ui.label(event.name).classes('text-lg font-semibold').on('click',
+                                                                                     lambda: ui.navigate.to(f"{APP_BASE_URL}/pass/{person.id}", new_tab=True))
+                            ui.icon('delete').on('click', lambda: delete_ticket(ticket.id))
+
+        ui.button('Create Ticket', on_click=create_ticket_dialog)

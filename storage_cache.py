@@ -1,19 +1,28 @@
-from api_models import EventResponse, VenueResponse, PersonResponse
+from api_models import EventResponse, VenueResponse, PersonResponse, EventTicketResponse, MemberCardResponse, PaymentResponse
 from datetime import datetime, timedelta
 from typing import Optional
 from uuid import UUID
 from routes.event import get_event_info, get_all_events
 from routes.venue import get_venue_info, get_all_venues
-from routes.person import get_all_persons
+from routes.person import get_all_persons, get_person
+from routes.payment import get_all_payments
+from routes.event_ticket import get_all_tickets
 
 
 class CacheManager:
     _events: dict[UUID, EventResponse] = {}
     _venues: dict[UUID, VenueResponse] = {}
     _persons: dict[UUID, VenueResponse] = {}
+    _event_tickets: dict[UUID, list[EventTicketResponse]] = {}
+    _member_passes: dict[UUID, MemberCardResponse] = {}
+    _payments: dict[int, PaymentResponse] = {}
+
     _events_last_refresh: Optional[datetime] = None
     _venues_last_refresh: Optional[datetime] = None
     _persons_last_refresh: Optional[datetime] = None
+    _event_tickets_last_refresh: Optional[datetime] = None
+    _member_passes_last_refresh: Optional[datetime] = None
+    _payments_last_refresh: Optional[datetime] = None
     _ttl: timedelta = timedelta(minutes=120)
 
     async def get_event(self, event_id: UUID) -> EventResponse:
@@ -82,6 +91,47 @@ class CacheManager:
             self._persons_last_refresh = now
 
         return list(self._persons.values())
+
+    async def get_all_payments(self, force_refresh: bool = False):
+        if not self._payments or force_refresh:
+            payments = await get_all_payments()
+            self._payments = {payment.order_id: payment for payment in payments}
+
+        return list(self._payments.values())
+
+    async def get_event_tickets(self, event_id: UUID, force_refresh: bool = False):
+        """Get tickets for a specific event"""
+        if force_refresh or event_id not in self._event_tickets:
+            tickets = await get_all_tickets(event_id=event_id)
+            self._event_tickets[event_id] = tickets
+            return tickets
+
+        return self._event_tickets.get(event_id, [])
+
+    async def get_person(self, person_id: UUID) -> PersonResponse:
+        """Get a single person by ID, fetching from API if not cached"""
+        if person_id not in self._persons:
+            self._persons[person_id] = await get_person(person_id)
+        return self._persons[person_id]
+
+    async def get_all_event_tickets(self, force_refresh: bool = False) -> list[EventTicketResponse]:
+        """Get all event tickets, using cache if available and not expired"""
+        now = datetime.now()
+        cache_expired = (
+            self._event_tickets_last_refresh is None or
+            (now - self._event_tickets_last_refresh) > self._ttl
+        )
+
+        if not self._event_tickets or force_refresh or cache_expired:
+            self._event_tickets = {}
+            all_tickets = await get_all_tickets()
+            for ticket in all_tickets:
+                if ticket.event_id not in self._event_tickets:
+                    self._event_tickets[ticket.event_id] = []
+                self._event_tickets[ticket.event_id].append(ticket)
+            self._event_tickets_last_refresh = now
+
+        return [ticket for tickets in self._event_tickets.values() for ticket in tickets]
 
     @classmethod
     def clear_cache(cls):

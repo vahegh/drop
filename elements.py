@@ -1,11 +1,17 @@
-import httpx
-import asyncio
+from pydantic import BaseModel, EmailStr
+from nicegui import ui
+from typing import Type, Union
+from nicegui.elements.label import Label
+from consts import email_validation, email_non_required, email_placeholder, calendar_base_url, google_calendar_img_url
+import urllib.parse
+from datetime import datetime
+from uuid import UUID
+
 import urllib.parse
 from contextlib import contextmanager
 from nicegui import ui
-from nicegui.elements.dialog import Dialog
 from nicegui.elements.label import Label
-from api_models import EventResponse, VerifyPersonRequest, MemberCardResponse, EventTicketResponse, EventResponse, VenueResponse
+from api_models import EventResponse, MemberCardResponse, EventTicketResponse, EventResponse, VenueResponse, PersonResponse
 from enums import PersonStatus
 from consts import (email_validation, insta_validation, name_validation,
                     email_non_required, email_placeholder, calendar_base_url,
@@ -292,3 +298,49 @@ def section(title: str = None, subtitle: str = None, sep=True):
         yield main, heading
     # if sep:
     #     ui.separator()
+
+
+TYPE_TO_NICEGUI = {
+    str: lambda label: ui.input(label=label),
+    EmailStr: lambda label: rectangular_email_input(label).props(remove='readonly'),
+    int: lambda label: ui.number(label=label),
+    float: lambda label: ui.number(label=label, step=0.1),
+    bool: lambda label: ui.checkbox(text=label),
+    datetime: lambda label: ui.input(label=label).props('type="datetime-local"'),
+    UUID: lambda label: ui.input(label=label),
+    PersonStatus: lambda label: ui.select(
+        options={member: member.value for member in PersonStatus}, label=label)
+}
+
+
+def generate_form_from_model(model: Type[BaseModel], default_values={}, venues: list[VenueResponse] = None):
+    form_elements = {}
+
+    for field_name, field_info in model.model_fields.items():
+        field_type = field_info.annotation
+        if hasattr(field_type, '__origin__') and field_type.__origin__ is Union:
+            field_type = next(t for t in field_type.__args__ if t is not type(None))
+        if field_name == 'venue_id' and venues:
+            options = {str(venue.id): venue.name for venue in venues}
+            element = ui.select(options=options, label=field_name.replace('_', ' ').capitalize())
+        else:
+            component_factory = TYPE_TO_NICEGUI.get(field_type)
+            element = component_factory(field_name.replace('_', ' ').capitalize())
+
+        if field_name in default_values:
+            value = default_values[field_name]
+            if isinstance(value, UUID):
+                value = str(value)
+            elif isinstance(value, datetime):
+                value = value.astimezone().strftime('%Y-%m-%dT%H:%M')
+            element.value = value
+        form_elements[field_name] = element
+    return form_elements
+
+
+def person_card(person: PersonResponse):
+    status_color = status_colors.get(person.status)
+    card = ui.card().classes(
+        f'w-full border-l-6 border-s-[{status_color}] cursor-pointer', remove='rounded-3xl').props('bordered flat')
+    card.on('click', lambda p=person: ui.navigate.to(f'/person/{p.id}'))
+    return card

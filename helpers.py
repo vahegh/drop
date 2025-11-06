@@ -2,7 +2,7 @@ import httpx
 import re
 import os
 from api_models import *
-from typing import List
+from typing import List, Union
 from nicegui import ui
 import base64
 from nicegui import app
@@ -43,11 +43,11 @@ async def set_user_data(request):
     if request.cookies.get('access_token'):
         try:
             person = await user_info(request)
-        except HTTPException as e:
+        except HTTPException:
             if request.cookies.get('refresh_token'):
                 try:
                     await refresh(request)
-                except HTTPException as e:
+                except HTTPException:
                     return False
                 else:
                     person = await user_info(request)
@@ -97,3 +97,19 @@ def generate_qr(id):
     img.save(buffer, format='PNG')
 
     return base64.b64encode(buffer.getvalue()).decode('utf-8')
+
+
+async def parse_inputs(form, model: BaseModel):
+    data = {}
+    for field_name, element in form.items():
+        value = element.value
+        field_type = model.model_fields[field_name].annotation
+        if field_type is UUID and value:
+            value = UUID(value)
+        elif field_type is datetime and value:
+            value = datetime.fromisoformat(value.replace('T', ' '))
+        elif getattr(field_type, '__origin__', None) is Union and datetime in field_type.__args__ and value:
+            value = datetime.fromisoformat(value.replace('T', ' '))
+        data[field_name] = value
+
+    return data

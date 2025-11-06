@@ -46,7 +46,7 @@ async def get_event_info(db: AsyncSession, id: UUID):
 
 @router.post("/", response_model=EventResponse, dependencies=[Depends(validate_google_token)])
 @with_db
-async def create_event_endpoint(db: AsyncSession, event: EventCreate):
+async def create_event(db: AsyncSession, event: EventCreate):
     db_event = Event(**event.model_dump())
     db.add(db_event)
     await db.commit()

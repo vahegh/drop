@@ -7,6 +7,7 @@ from db import with_db
 from sqlalchemy.ext.asyncio import AsyncSession
 from db_models import Person
 from enums import PersonStatus
+from consts import admins
 
 TOKEN_EXPIRATION_MINUTES = 15
 auth_secret = os.environ['auth_secret']
@@ -59,4 +60,11 @@ async def verify_user_token(db: AsyncSession, request: Request):
     if person.status == PersonStatus.rejected:
         raise HTTPException(403, "Not approved")
 
+    return person
+
+
+async def verify_admin_token(request: Request):
+    person = await verify_user_token(request)
+    if person.email not in admins:
+        raise HTTPException(403, "Admin only")
     return person

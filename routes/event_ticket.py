@@ -69,7 +69,7 @@ async def create_ticket(db: AsyncSession, request: EventTicketCreate):
 
 @router.delete("/{id}")
 @with_db
-async def delete_pass(db: AsyncSession, id: UUID):
+async def delete_event_ticket(db: AsyncSession, id: UUID):
     db_ticket = await db.get(EventTicket, id)
     if not db_ticket:
         raise HTTPException(404, "Event not found")

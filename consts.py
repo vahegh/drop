@@ -8,11 +8,12 @@ if os.path.exists('.env'):
 
 env = os.getenv('env')
 
+default_date_format = "%d.%m"
 TIMEZONE = ZoneInfo('Asia/Yerevan')
 
 APP_BASE_URL = os.environ['app_base_url']
 APP_BASE_URL_NO_PROTO = os.environ['app_base_url_no_proto']
-
+admins = os.environ['admins'].split()
 
 GOOGLE_MEMBER_CLASS_ID = "drop_member_pass"
 

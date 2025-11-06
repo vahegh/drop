@@ -16,7 +16,7 @@ from routes.member_pass import router as member_router
 from routes.event_ticket import router as ticket_router
 from routes.attendance import router as attendance_router
 from routes.apple_pass_updates import router as apple_pass_updates
-from services.auth_validation import validate_google_token
+from services.auth import verify_admin_token
 from services.drive import drive_service
 
 
@@ -40,7 +40,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 env = os.getenv('env')
-bearer_auth = None if env == 'local' else [Depends(validate_google_token)]
+bearer_auth = [Depends(verify_admin_token)]
 
 app.include_router(member_router, dependencies=bearer_auth)
 app.include_router(ticket_router, dependencies=bearer_auth)
@@ -133,6 +133,7 @@ def main():
     import elements
 
     from pages import (about,
+                       admin,
                        event,
                        home,
                        unsubscribe,

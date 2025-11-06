@@ -1,7 +1,7 @@
 from uuid import UUID
 from sqlalchemy import select
+from fastapi import APIRouter, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import APIRouter, HTTPException, Depends
 from db import with_db
 from enums import PersonStatus
 from db_models import MemberPass, Person
