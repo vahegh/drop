@@ -148,17 +148,17 @@ async def login_user(db: AsyncSession, token, redirect_url='/'):
         db.add(RefreshToken(token=refresh, person_id=person.id))
         await db.commit()
 
-        response = RedirectResponse(redirect_url, 303)
+        response = RedirectResponse(redirect_url, 302)
 
         response.set_cookie(
             "access_token", access,
-            httponly=True, secure=True, samesite="strict",
+            httponly=True, secure=True, samesite="lax",
             max_age=15*60, path="/"
         )
 
         response.set_cookie(
             "refresh_token", refresh,
-            httponly=True, secure=True, samesite="strict",
+            httponly=True, secure=True, samesite="lax",
             max_age=7*24*3600, path="/"
         )
 
@@ -199,9 +199,9 @@ async def refresh(db: AsyncSession, request: Request):
     response = Response()
 
     response.set_cookie("access_token", new_access, httponly=True,
-                        secure=True, samesite="strict", max_age=15*60, path="/")
+                        secure=True, samesite="lax", max_age=15*60, path="/")
     response.set_cookie("refresh_token", new_refresh, httponly=True, secure=True,
-                        samesite="strict", max_age=7*24*3600, path="/")
+                        samesite="lax", max_age=7*24*3600, path="/")
 
     return response
 
@@ -218,13 +218,13 @@ async def logout(db: AsyncSession, token: str = None, redirect_url='/'):
         'access_token',
         secure=True,
         httponly=True,
-        samesite='strict',
+        samesite="lax",
     )
     response.delete_cookie(
         'refresh_token',
         secure=True,
         httponly=True,
-        samesite='strict',
+        samesite="lax",
     )
 
     stored = await db.scalar(select(RefreshToken).where(RefreshToken.token == token))

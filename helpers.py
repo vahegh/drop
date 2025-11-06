@@ -11,7 +11,7 @@ from qrcode.image.styledpil import StyledPilImage
 from qrcode.image.styles.moduledrawers.pil import RoundedModuleDrawer
 from qrcode.image.styles.colormasks import SolidFillColorMask
 from io import BytesIO
-from fastapi import HTTPException
+from fastapi import HTTPException, Request
 from routes.user import user_info, modify_user
 from routes.auth import login, logout, refresh
 
@@ -27,7 +27,7 @@ async def get_album_urls(album_url: str) -> List[str]:
         return list(set(urls))
 
 
-async def get_user_agent(request):
+async def get_user_agent(request: Request):
     user_agent = request.headers.get('user-agent', '').lower()
     if 'android' in user_agent:
         return "android"
@@ -37,8 +37,7 @@ async def get_user_agent(request):
         return "web"
 
 
-async def set_user_data(request):
-    request = ui.context.client.request
+async def set_user_data(request: Request):
     person = None
     if request.cookies.get('access_token'):
         try:
