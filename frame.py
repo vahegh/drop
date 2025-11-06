@@ -9,7 +9,8 @@ from helpers import set_user_data
 
 @asynccontextmanager
 async def frame(show_footer=True, show_signin=True):
-    ui.colors(primary="#FFFFFF", dark="#101010", secondary="#df296f", accent="#9D20C3")
+    ui.colors(primary="#FFFFFF", dark="#101010", secondary="#df296f",
+              accent="#9D20C3", section="#61007F")
 
     st = app.storage.user
 
@@ -54,7 +55,8 @@ async def frame(show_footer=True, show_signin=True):
                 google_button(ui.context.client.request.url.path)
 
     with ui.context.client.content.classes('h-full p-0 gap-0 w-full items-center justify-between') as content:
-        yield content, logged_in
+        with ui.grid().classes('flex w-full items-center justify-center p-4') as content:
+            yield content, logged_in
 
     if show_footer:
         with ui.footer(fixed=False, bordered=True).classes('bg-dark h-auto z-0'):

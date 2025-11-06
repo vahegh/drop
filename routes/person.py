@@ -21,6 +21,19 @@ from consts import (APP_BASE_URL, APPLICATION_SUBMITTED_TEMPLATE, APPROVED_TEMPL
 router = APIRouter(tags=["Person"], prefix="/api/person")
 
 
+@router.get('/stats-all')
+@with_db
+async def get_all_person_stats(db: AsyncSession):
+    result = await db.execute(
+        select(Person.status, func.count(Person.id).label('count'))
+        .group_by(Person.status)
+    )
+
+    stats = {row[0]: row[1] for row in result.all()}
+
+    return stats
+
+
 @router.get("/all", response_model=list[PersonResponse], dependencies=[Depends(validate_google_token)])
 @with_db
 async def get_all_persons(db: AsyncSession):
@@ -138,7 +151,7 @@ async def delete_person(db: AsyncSession, id: UUID):
     return Response("Person deleted")
 
 
-@router.get("/email/{email}", response_model=PersonResponse, dependencies=[Depends(validate_google_token)])
+@router.get("/email/{email}", response_model=PersonResponse)
 @with_db
 async def get_person_by_email(db: AsyncSession, email: str):
     existing_person = await db.scalar(select(Person).where(func.lower(Person.email) == email.lower()))

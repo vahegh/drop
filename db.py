@@ -23,7 +23,7 @@ SessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 @asynccontextmanager
 async def get_db():
-    db = SessionLocal()  # or however you create your async session
+    db = SessionLocal()
     try:
         yield db
     finally:
@@ -42,7 +42,6 @@ def with_db(
         async with get_db() as db:
             return await func(db, *args, **kwargs)
 
-    # Remove db from signature for FastAPI
     sig = inspect.signature(func)
     params = list(sig.parameters.values())[1:]
     wrapper.__signature__ = sig.replace(parameters=params)

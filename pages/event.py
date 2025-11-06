@@ -7,7 +7,7 @@ from frame import frame
 from consts import album_urls
 from helpers import get_album_urls
 from elements import (event_datetime_col, event_card, image_carousel,
-                      secondary_button, section_title, ticket_price_col, toast)
+                      secondary_button, section_title, ticket_price_col, toast, section)
 from storage_cache import get_cache
 import urllib
 
@@ -47,7 +47,6 @@ async def event_page(event_id):
             event_card(event, venue, show_venue=event_passed).classes(add='w-full')
 
             ui.label(event.description).classes('text-center')
-            ui.separator()
 
             if not event_passed:
                 async def buy_ticket():
@@ -58,27 +57,25 @@ async def event_page(event_id):
 
                 section_title("Date & time")
                 event_datetime_col(event)
-                ui.separator()
                 if album_url:
-                    section_title("Vibe")
-                    image_carousel(await get_album_urls(album_url))
-                    ui.separator()
-                section_title("Tickets")
-                ticket_price_col(event)
-                secondary_button('Get your ticket').on_click(buy_ticket)
+                    with section("Vibe"):
+                        image_carousel(await get_album_urls(album_url))
+                with section("Tickets"):
+                    ticket_price_col(event)
+                    secondary_button('Get your ticket').on_click(buy_ticket)
             else:
                 if album_url:
-                    section_title("As it happened")
-                    image_carousel(await get_album_urls(album_url))
-                    ui.separator()
+                    with section("As it happened"):
+                        image_carousel(await get_album_urls(album_url))
 
-                section_title("Location")
-                name_urlsafe = urllib.parse.quote(venue.name, safe='/', encoding=None, errors=None)
-                ui.element('iframe').props(f'''
-                    loading="lazy"
-                    allowfullscreen
-                    src="https://www.google.com/maps/embed/v1/place?q={name_urlsafe}&key={maps_api_key}"
-                ''').classes('rounded-3xl w-full max-w-[500px] aspect-square h-auto')
+                with section("Location"):
+                    name_urlsafe = urllib.parse.quote(
+                        venue.name, safe='/', encoding=None, errors=None)
+                    ui.element('iframe').props(f'''
+                        loading="lazy"
+                        allowfullscreen
+                        src="https://www.google.com/maps/embed/v1/place?q={name_urlsafe}&key={maps_api_key}"
+                    ''').classes('rounded-3xl w-full max-w-96 aspect-square h-auto')
 
         else:
             ui.image(event.image_url).classes(

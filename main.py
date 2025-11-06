@@ -40,11 +40,11 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 env = os.getenv('env')
-bearer_auth = [Depends(verify_admin_token)]
+# bearer_auth = [Depends(verify_admin_token)]
 
-app.include_router(member_router, dependencies=bearer_auth)
-app.include_router(ticket_router, dependencies=bearer_auth)
-app.include_router(payment_router, dependencies=bearer_auth)
+app.include_router(member_router)
+app.include_router(ticket_router)
+app.include_router(payment_router)
 app.include_router(person_router)
 app.include_router(event_router)
 app.include_router(venue_router)

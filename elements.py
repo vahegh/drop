@@ -127,12 +127,16 @@ def event_card(event: EventResponse, venue: VenueResponse, show_venue=False):
     return c
 
 
-def page_header(text='') -> Label:
+def page_header(text=''):
     return ui.label(text).classes('text-3xl font-semibold')
 
 
-def section_title(text='') -> Label:
+def section_title(text=''):
     return ui.label(text).classes('text-2xl font-semibold')
+
+
+def subsection_title(text=''):
+    return ui.label(text).classes('text-xl font-medium')
 
 
 def price_row(type, price):
@@ -227,8 +231,8 @@ def member_card(member_pass: MemberCardResponse, attendance: int, user_agent):
     img = generate_qr(member_pass.id)
     color = status_colors.get(PersonStatus.member)
 
-    with ui.card().props('bordered').classes(f'w-full max-w-96 gap-4 px-0 border-[{color}] aspect-4/5 justify-around'):
-        section_title('Membership pass')
+    with ui.card().props('bordered').classes(f'w-full max-w-96 gap-4 px-0 border-[{color}] justify-around'):
+        subsection_title('Membership pass')
         with ui.column().classes('w-full items-center px-6 py-0'):
             ui.image(f'data:image/png;base64,{img}').classes('w-3/4')
             with ui.row(wrap=False):
@@ -248,7 +252,7 @@ def event_ticket(ticket: EventTicketResponse, event: EventResponse, user_agent):
         with ui.column().classes('gap-4'):
             with ui.column().classes('gap-0'):
                 ui.label('Your ticket for')
-                section_title(event.name)
+                subsection_title(event.name)
             with ui.column().classes('p-4'):
                 ui.image(f'data:image/png;base64,{img}').classes('w-full')
             add_to_wallet(user_agent, ticket.google_pass_url, ticket.apple_pass_url)
@@ -276,8 +280,8 @@ def google_button(page):
 def large_google_button(page):
     return ui.element('div').classes('g_id_signin').props(f'''
                         data-type="standard"
-                        data-shape="rectangular"
-                        data-theme="outline"
+                        data-shape="pill"
+                        data-theme="filled_blue"
                         data-text="continue_with"
                         data-size="large"
                         data-locale="en-US"
@@ -287,7 +291,7 @@ def large_google_button(page):
 
 @contextmanager
 def section(title: str = None, subtitle: str = None, sep=True):
-    with ui.column().classes('gap-4 w-full items-center p-4') as main:
+    with ui.column().classes('gap-4 w-full items-center justify-start max-h-[500px] max-w-96') as main:
         if title:
             with ui.column().classes('gap-0') as heading:
                 section_title(title).classes('text-center')
@@ -296,8 +300,6 @@ def section(title: str = None, subtitle: str = None, sep=True):
         else:
             heading = None
         yield main, heading
-    # if sep:
-    #     ui.separator()
 
 
 TYPE_TO_NICEGUI = {

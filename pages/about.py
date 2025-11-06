@@ -1,6 +1,6 @@
 from nicegui import ui
 from frame import frame
-from elements import page_header, section_title
+from elements import page_header, section_title, section, large_google_button
 
 
 @ui.page('/about', title='About Us | Drop Dead Disco')
@@ -9,7 +9,7 @@ async def about_page():
         main_col.classes('gap-4 p-6')
 
         with ui.column().classes('gap-2'):
-            page_header('About Us')
+            page_header('About Us').classes('text-center')
             ui.markdown('''
 **Drop Dead Disco** is a dance music community for those who want more from a night out. 
 
@@ -73,16 +73,6 @@ If approved, you'll be able to buy tickets for upcoming events.
 If there are no planned events at the time of your approval, you're still in, and will get future event updates as they are available.
 ''')
         if not logged_in:
-            with ui.column().classes('gap-0'):
-                section_title("Wanna join the fun?")
-                ui.label("Sign up to get verified.")
-            ui.html('''
-                    <div class="g_id_signin"
-                        data-type="standard"
-                        data-shape="pill"
-                        data-theme="filled_blue"
-                        data-text="continue_with"
-                        data-size="large"
-                        data-locale="en-US"
-                        data-logo_alignment="left">
-                    </div>''', sanitize=False).classes('h-[32px]')
+            with section("Wanna join the fun?", subtitle="Sign up to get verified.") as (_, heading):
+                heading.classes(add='items-center')
+                large_google_button(ui.context.client.request.url.path)
