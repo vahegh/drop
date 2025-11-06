@@ -66,7 +66,7 @@ async def send_event_ticket(db: AsyncSession, event_ticket: EventTicket, resend=
         "pass_page": f"{APP_BASE_URL}/pass/{person.id}",
         "event_date": event_datetime_local.strftime("%A, %d %B"),
         "event_time": event_datetime_local.strftime("%H:%M"),
-        "is_approved": True if person.status == PersonStatus.verified else False
+        "is_verified": True if person.status == PersonStatus.verified else False
     }
     if resend:
         context["resend"] = True

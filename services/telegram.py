@@ -20,7 +20,7 @@ async def notify_application(person: Person):
     <b>Instagram:</b> <a href='https://www.instagram.com/{person.instagram_handle}'>@{person.instagram_handle}</a>"""
     reply_markup = {
         'inline_keyboard': [[
-            {'text': 'Approve', 'callback_data': f'approved_{person.id}'},
+            {'text': 'Approve', 'callback_data': f'verified_{person.id}'},
             {'text': 'Reject', 'callback_data': f'rejected_{person.id}'},
             {'text': 'Member', 'callback_data': f'member_{person.id}'},
         ]]
