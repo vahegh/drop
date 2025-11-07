@@ -135,8 +135,12 @@ async def login_user(db: AsyncSession, token, redirect_url='/'):
         if person.status == PersonStatus.rejected:
             raise HTTPException(401, "Rejected")
 
-        update_req = PersonUpdate(avatar_url=id_info['picture'])
-        await update_person(person.id, update_req)
+        avatar_url = id_info.get('picture')
+        print(id_info)
+
+        if avatar_url:
+            update_req = PersonUpdate(avatar_url=avatar_url)
+            await update_person(person.id, update_req)
 
         access = await create_token(str(person.id))
         refresh = await create_token(str(person.id), expires_in=7*24*60, refresh=True)
