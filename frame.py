@@ -17,16 +17,17 @@ async def frame(show_footer=True):
     person: PersonResponseFull = request.state.person
     logged_in = request.state.logged_in
     show_signin = request.url not in ['/signup']
+    await ui.context.client.connected()
 
-    with ui.header(bordered=True).classes('items-center bg-transparent h-14 px-4 py-2 backdrop-blur-xs flex justify-between'):
-        with ui.button().props('flat').classes('p-0').on('click', lambda: ui.navigate.to('/')):
+    with ui.header(bordered=True).classes('items-center bg-transparent h-14 p-2 backdrop-blur-xs flex justify-between'):
+        with ui.button().props('flat').classes('py-0 px-2').on('click', lambda: ui.navigate.to('/')):
             ui.image(logo_gray_path).classes(
-                'w-16 h-10 object-contain')
+                'w-14 h-8')
         ui.space()
 
         if logged_in:
-            with ui.button().props('round flat outline').classes('p-0') as btn:
-                ui.image(person.avatar_url).classes('size-10 rounded-full')
+            with ui.button().props('round flat').classes('p-0') as btn:
+                ui.image(person.avatar_url).classes('w-8 rounded-full')
                 with ui.menu().props() as menu:
                     with ui.column().classes('items-center w-full p-4'):
                         ui.image(person.avatar_url).classes(
@@ -40,17 +41,17 @@ async def frame(show_footer=True):
 
         else:
             if show_signin:
-                ui.html(f'''
-                <div id="g_id_onload"
-                    data-client_id="{google_client_id}"
-                    data-context="signin"
-                    data-ux_mode="redirect"
-                    data-login_uri="{APP_BASE_URL}/api/auth/login"
-                    data-auto_select="false"
-                    data-itp_support="true"
-                    data-use_fedcm_for_prompt="true"
-                    data-use_fedcm_for_button="true">
-                </div>''', sanitize=False)
+                ui.run_javascript(f'''
+                    google.accounts.id.initialize({{
+                        client_id: '759529195467-d4dt9f5do5iu4g4itndu2v0q9vpmip93.apps.googleusercontent.com',
+                        ux_mode: 'redirect',
+                        login_uri: '{APP_BASE_URL}/api/auth/login',
+                        auto_select: false,
+                        itp_support: true,
+                        use_fedcm_for_prompt: true,
+                        use_fedcm_for_button: true
+                    }});
+                    google.accounts.id.prompt();''')
 
                 google_button(request.url.path)
 

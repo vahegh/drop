@@ -1,5 +1,5 @@
 from fastapi import Request
-from consts import favicon_path
+from consts import favicon_path, APP_BASE_URL
 from helpers import is_cloud_run
 import logging
 import os
@@ -106,9 +106,6 @@ head_html = '''
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;900&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet">
 
-<meta name="google-signin-client_id" content="759529195467-d4dt9f5do5iu4g4itndu2v0q9vpmip93.apps.googleusercontent.com">
-<script src="https://accounts.google.com/gsi/client?hl=en"></script>
-
 <style>
     * { font-family: 'Montserrat' }
 
@@ -138,6 +135,11 @@ head_html = '''
         transition: transform 0.05s cubic-bezier(0.25,0.8,0.5,1);
     }
 </style>
+'''
+
+google_signin_html = f'''
+<meta name="google-signin-client_id" content="759529195467-d4dt9f5do5iu4g4itndu2v0q9vpmip93.apps.googleusercontent.com">
+<script src="https://accounts.google.com/gsi/client?hl=en" async defer></script>
 '''
 
 if not is_cloud_run():
@@ -171,6 +173,7 @@ def main():
 
     ui.add_head_html(head_html, shared=True)
     ui.add_head_html(gtag_html, shared=True)
+    ui.add_head_html(google_signin_html, shared=True)
 
     import elements
 

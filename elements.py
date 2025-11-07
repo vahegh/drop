@@ -196,7 +196,7 @@ def price_row(type, price):
 
 status_colors = {
     PersonStatus.verified: "#11b553",
-    PersonStatus.member: "#754fd6",
+    PersonStatus.member: "#6233da",
     PersonStatus.rejected: "#d32629",
     PersonStatus.pending: "#f58302"
 }
@@ -232,17 +232,17 @@ def member_card(member_pass: MemberCardResponse, attendance: int, user_agent):
 
     with ui.card().props('bordered').classes(f'w-full max-w-96 gap-4 px-0 justify-around border-[{color}]'):
         subsection_title('Membership pass')
-        with ui.column().classes('w-full items-center px-6 py-0'):
-            ui.image(f'data:image/png;base64,{img}').classes('w-3/4 ')
-            ui.label(f"Member since {member_pass.created_at.strftime("%B %Y")}".upper()).classes(
-                f'text-[{color}] font-semibold')
+        with ui.column().classes('w-full items-center px-6 py-0 gap-2'):
             with ui.row(wrap=False):
                 with ui.column().classes(replace='gap-0'):
-                    ui.label("ID")
+                    ui.label("Member ID")
                     ui.label(str(member_pass.serial_number).zfill(3)).classes('font-bold text-lg')
                 with ui.column().classes(replace='gap-0'):
                     ui.label("Events")
                     ui.label(attendance).classes('text-right font-bold text-lg')
+            ui.image(f'data:image/png;base64,{img}').classes('w-3/4')
+            ui.label(f"Member since {member_pass.created_at.strftime("%B %Y")}".upper()).classes(
+                f'text-[{color}] font-semibold')
 
         add_to_wallet(user_agent, member_pass.google_pass_url, member_pass.apple_pass_url)
 
@@ -273,31 +273,37 @@ def image_carousel(urls):
     with ui.carousel().classes('w-full h-96 aspect-square max-w-96').props('infinite autoplay="2500" swipeable animated arrows'):
         for url in urls:
             with ui.carousel_slide().classes('justify-center p-0'):
-                ui.image(f'{url}=w1440-h1440').props('fit="contain"').classes('rounded-xl w-full h-full')
+                ui.image(f'{url}=w1080-h1080').props('fit="cover"').classes('rounded-xl w-full h-full')
 
 
 def google_button(page):
-    return ui.element('div').classes('g_id_signin').props(f'''
-                        data-type="standard"
-                        data-shape="pill"
-                        data-theme="outline"
-                        data-text="signin"
-                        data-size="medium"
-                        data-locale="en-US"
-                        data-logo_alignment="left"
-                        data-state="{page}"''').classes('h-[32px]')
+    div = ui.element('div').classes('h-[32px]')
+    ui.run_javascript(f"""
+                    google.accounts.id.renderButton({div.html_id}, {{
+                        type: 'standard',
+                        shape: 'pill',
+                        theme: 'outline',
+                        text: 'signin',
+                        size: 'medium',
+                        locale: 'en-US',
+                        logo_alignment: 'left',
+                        state: '{page}'
+                    }})""")
 
 
 def large_google_button(page):
-    return ui.element('div').classes('g_id_signin').props(f'''
-                        data-type="standard"
-                        data-shape="pill"
-                        data-theme="filled_blue"
-                        data-text="continue_with"
-                        data-size="large"
-                        data-locale="en-US"
-                        data-logo_alignment="left"
-                        data-state="{page}"''').classes('h-[40px]')
+    div = ui.element('div').classes('h-[40px]')
+    ui.run_javascript(f"""
+                    google.accounts.id.renderButton({div.html_id}, {{
+                        type: 'standard',
+                        shape: 'pill',
+                        theme: 'filled_blue',
+                        text: 'continue_with',
+                        size: 'large',
+                        locale: 'en-US',
+                        logo_alignment: 'left',
+                        state: '{page}'
+                    }})""")
 
 
 @contextmanager
@@ -355,3 +361,26 @@ def person_card(person: PersonResponse):
         f'w-full border-l-6 border-s-[{status_color}] cursor-pointer', remove='rounded-3xl').props('bordered flat')
     card.on('click', lambda p=person: ui.navigate.to(f'/gagodzya/person/{p.id}'))
     return card
+
+
+def past_tickets_col(event_tickets, event_map):
+    with section("Your past tickets"):
+        if event_tickets:
+            with ui.grid().classes('flex justify-center gap-2 p-0'):
+                for ticket in event_tickets:
+                    event = event_map.get(ticket.event_id)
+                    if event:
+                        with ui.card().props(remove='flat').classes('w-full max-w-96'):
+                            with ui.row(wrap=False).classes('justify-between items-center w-full'):
+                                ui.label(event.name).classes(
+                                    'text-lg font-semibold')
+                                ticket_indicator(
+                                    ticket, bool(ticket.attended_at))
+
+        else:
+            ui.markdown("""
+                                        Usually this is where you'll see your tickets for past and upcoming events.  
+
+                                        Since you don't have any, here's Colonel Hans Landa judging you silently.""")
+            ui.element('iframe').props(
+                'src="https://giphy.com/embed/9JeJxpaQlbcGC1zZNh"').classes('h-auto w-auto')
