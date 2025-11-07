@@ -27,11 +27,15 @@ async def get_all_tickets(db: AsyncSession, event_id: str = None):
 @router.get("/person/{person_id}", response_model=list[EventTicketResponse])
 @with_db
 async def get_tickets_by_person_id(db: AsyncSession, person_id: UUID, event_id: UUID = None):
+    query = select(EventTicket).where(EventTicket.person_id == person_id)
+
     if event_id:
-        tickets = await db.scalars(select(EventTicket).where((EventTicket.person_id == person_id) & (EventTicket.event_id == event_id)))
-    else:
-        tickets = await db.scalars(select(EventTicket).where(EventTicket.person_id == person_id))
-    return tickets.all()
+        query = query.where(EventTicket.event_id == event_id)
+
+    query = query.order_by(EventTicket.created_at.desc())
+
+    result = await db.scalars(query)
+    return result.all()
 
 
 @router.get("/{id}", response_model=EventTicketResponse)

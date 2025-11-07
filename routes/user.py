@@ -24,7 +24,7 @@ async def user_info(db: AsyncSession, request: Request):
     else:
         member_pass = None
 
-    event_tickets = await get_tickets_by_person_id(person.id, )
+    event_tickets = await get_tickets_by_person_id(person.id)
     attendance = len([e for e in event_tickets if e.attended_at])
 
     response = PersonResponseFull(
