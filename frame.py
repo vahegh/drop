@@ -50,8 +50,7 @@ async def frame(show_footer=True):
                         itp_support: true,
                         use_fedcm_for_prompt: true,
                         use_fedcm_for_button: true
-                    }});
-                    google.accounts.id.prompt();''')
+                    }});''')
 
                 google_button(request.url.path)
 
