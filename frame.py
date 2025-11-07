@@ -27,11 +27,19 @@ async def frame(show_footer=True):
 
         if logged_in:
             with ui.button().props('round flat').classes('p-0') as btn:
-                ui.image(person.avatar_url).classes('w-8 rounded-full')
+                if person.avatar_url:
+                    ui.image(person.avatar_url).classes('w-8 rounded-full')
+                else:
+                    ui.icon('account_circle', size='lg')
+
                 with ui.menu().props() as menu:
                     with ui.column().classes('items-center w-full p-4'):
-                        ui.image(person.avatar_url).classes(
-                            'size-20 rounded-full')
+                        if person.avatar_url:
+                            ui.image(person.avatar_url).classes(
+                                'size-20 rounded-full')
+                        else:
+                            ui.icon('account_circle', size='xl')
+
                         section_title(person.name).classes('text-center')
                         b = secondary_button('Logout')
                         b.on_click(lambda: b.props(add='loading'))
