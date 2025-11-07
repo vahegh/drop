@@ -353,5 +353,5 @@ def person_card(person: PersonResponse):
     status_color = status_colors.get(person.status)
     card = ui.card().classes(
         f'w-full border-l-6 border-s-[{status_color}] cursor-pointer', remove='rounded-3xl').props('bordered flat')
-    card.on('click', lambda p=person: ui.navigate.to(f'/person/{p.id}'))
+    card.on('click', lambda p=person: ui.navigate.to(f'/gagodzya/person/{p.id}'))
     return card

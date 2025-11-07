@@ -53,7 +53,6 @@ async def persons_panel():
         for e in sorted_events
     }
 
-    # Categorize persons by status
     categorized = {
         'pending': [],
         'members': [],
@@ -66,7 +65,7 @@ async def persons_panel():
             categorized['pending'].append(p)
         elif p.status == PersonStatus.member:
             categorized['members'].append(p)
-        elif p.status in PersonStatus.verified:
+        elif p.status == PersonStatus.verified:
             categorized['verified'].append(p)
         elif p.status == PersonStatus.rejected:
             categorized['rejected'].append(p)
