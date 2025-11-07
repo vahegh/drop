@@ -29,8 +29,8 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
         past_events: list[EventResponse] = []
 
         cache = get_cache()
-        events = await cache.get_all_events()
-        await cache.get_all_venues()
+        events = await cache.fetch_all_events()
+        await cache.fetch_all_venues()
 
         if logged_in:
             person: PersonResponseFull = request.state.person
@@ -45,7 +45,7 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
 
             with ui.grid().classes('flex w-full justify-center p-4 gap-8'):
                 user_agent = await get_user_agent(request)
-                next_event = await cache.get_next_event()
+                next_event = await cache.fetch_next_event()
 
                 event_tickets = person.event_tickets
                 event_map = {e.id: e for e in events}
@@ -141,7 +141,7 @@ We don't tell you the location beforehand, and every guest has to pass **verific
         section_title("Previous events").classes('w-full text-center')
         with ui.grid().classes('flex w-full justify-center p-4 gap-4'):
             for e in past_events:
-                venue = await cache.get_venue(e.venue_id)
+                venue = await cache.fetch_venue(e.venue_id)
                 event_card(e, venue, show_venue=True).on(
                     'click', lambda i, e=e: ui.navigate.to(f'/event/{e.id}'))
 

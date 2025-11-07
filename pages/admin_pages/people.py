@@ -16,9 +16,9 @@ cache = get_cache()
 
 
 async def persons_panel():
-    events = await cache.get_all_events()
-    persons = await cache.get_all_persons()
-    tickets = await cache.get_all_event_tickets()
+    events = await cache.fetch_all_events()
+    persons = await cache.fetch_all_persons()
+    tickets = await cache.fetch_all_event_tickets()
 
     async def create_dialog():
         with ui.dialog(value=True) as dialog:
@@ -30,7 +30,7 @@ async def persons_panel():
                     data = await parse_inputs(form, PersonCreate)
                     try:
                         await create_person(PersonCreate(**data))
-                        await cache.get_all_persons(force_refresh=True)
+                        await cache.fetch_all_persons(force_refresh=True)
                         ui.navigate.reload()
 
                     except Exception as e:
@@ -115,13 +115,13 @@ async def persons_panel():
 
 
 async def person_details_panel(person_id):
-    person = await cache.get_person(UUID(person_id))
+    person = await cache.fetch_person(UUID(person_id))
 
     async def create_dialog():
         with ui.dialog(value=True) as dialog:
             with ui.card().classes('w-full gap-4 p-4'):
                 section_title('Edit Person')
-                original_data = person.model_dump()
+                original_data = person.__dict__
                 form = generate_form_from_model(PersonUpdate, original_data)
 
                 async def submit():
@@ -138,7 +138,7 @@ async def person_details_panel(person_id):
                     try:
                         await update_person(person.id, PersonUpdate(**changed_data))
                         ui.notify("Person Updated")
-                        await cache.get_all_persons(force_refresh=True)
+                        await cache.fetch_all_persons(force_refresh=True)
                         ui.navigate.reload()
 
                     except Exception as e:
@@ -148,8 +148,8 @@ async def person_details_panel(person_id):
                 primary_button('Cancel').on_click(dialog.close)
 
     async def create_ticket_dialog():
-        events = await cache.get_all_events()
-        all_tickets = await cache.get_all_event_tickets()
+        events = await cache.fetch_all_events()
+        all_tickets = await cache.fetch_all_event_tickets()
         person_tickets = [t for t in all_tickets if t.person_id == person.id]
         person_event_ids = {t.event_id for t in person_tickets}
 
@@ -182,7 +182,7 @@ async def person_details_panel(person_id):
                             person_id=person.id
                         ))
                         ui.notify("Ticket created successfully", type='positive')
-                        await cache.get_all_event_tickets(force_refresh=True)
+                        await cache.fetch_all_event_tickets(force_refresh=True)
                         dialog.close()
                         ui.navigate.reload()
 
@@ -197,7 +197,7 @@ async def person_details_panel(person_id):
             try:
                 await delete_person(person.id)
                 ui.notify('Person deleted successfully.')
-                await cache.get_all_persons(force_refresh=True)
+                await cache.fetch_all_persons(force_refresh=True)
                 ui.navigate.to('/gagodzya/people')
             except Exception as e:
                 ui.notify(f'Error deleting person: {str(e)}')
@@ -206,7 +206,7 @@ async def person_details_panel(person_id):
         if await ui.run_javascript('confirm("Are you sure you want to delete this ticket?")', timeout=10):
             try:
                 await delete_event_ticket(id)
-                await cache.get_all_event_tickets(force_refresh=True)
+                await cache.fetch_all_event_tickets(force_refresh=True)
                 ui.navigate.reload()
                 ui.notify('Ticket deleted successfully.')
             except Exception as e:
@@ -225,13 +225,13 @@ async def person_details_panel(person_id):
         primary_button('Edit').on_click(create_dialog)
         secondary_button('Delete').on_click(delete)
 
-    all_tickets = await cache.get_all_event_tickets()
+    all_tickets = await cache.fetch_all_event_tickets()
     person_tickets = [t for t in all_tickets if t.person_id == person.id]
 
     if person.status not in (PersonStatus.pending, PersonStatus.rejected):
         section_title('Tickets')
 
-        events = await cache.get_all_events()
+        events = await cache.fetch_all_events()
         event_map = {e.id: e for e in events}
 
         sorted_tickets = sorted(
@@ -248,4 +248,4 @@ async def person_details_panel(person_id):
                                                                                      lambda: ui.navigate.to(f"{APP_BASE_URL}/pass/{person.id}", new_tab=True))
                             ui.icon('delete').on('click', lambda: delete_ticket(ticket.id))
 
-        ui.button('Create Ticket', on_click=create_ticket_dialog)
+        primary_button('Create Ticket').on_click(lambda: create_ticket_dialog())

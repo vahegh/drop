@@ -30,7 +30,7 @@ async def buy_ticket_page(request: Request, event_id: UUID):
         drive_folder_url=st['drive_folder_url']
     )
 
-    event = await cache.get_event(event_id)
+    event = await cache.fetch_event(event_id)
 
     # await client.notify_payment_page(person)
 

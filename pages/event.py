@@ -19,13 +19,13 @@ maps_api_key = os.getenv('maps_api_key')
 @ui.page('/event/{event_id}')
 async def event_page(event_id):
     cache = get_cache()
-    event = await cache.get_event(UUID(event_id))
+    event = await cache.fetch_event(UUID(event_id))
 
     if not event:
         raise HTTPException(404)
 
     ui.page_title(f'{event.name} | Drop Dead Disco')
-    venue = await cache.get_venue(event.venue_id)
+    venue = await cache.fetch_venue(event.venue_id)
 
     async with frame() as main_col:
         event_passed = event.ends_at < datetime.now(timezone.utc)

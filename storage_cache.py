@@ -25,17 +25,17 @@ class CacheManager:
     _payments_last_refresh: Optional[datetime] = None
     _ttl: timedelta = timedelta(minutes=120)
 
-    async def get_event(self, event_id: UUID) -> EventResponse:
+    async def fetch_event(self, event_id: UUID) -> EventResponse:
         if event_id not in self._events:
             self._events[event_id] = await get_event_info(event_id)
         return self._events[event_id]
 
-    async def get_venue(self, venue_id: UUID) -> VenueResponse:
+    async def fetch_venue(self, venue_id: UUID) -> VenueResponse:
         if venue_id not in self._venues:
             self._venues[venue_id] = await get_venue_info(venue_id)
         return self._venues[venue_id]
 
-    async def get_all_events(self, force_refresh: bool = False) -> list[EventResponse]:
+    async def fetch_all_events(self, force_refresh: bool = False) -> list[EventResponse]:
         now = datetime.now()
         cache_expired = (
             self._events_last_refresh is None or
@@ -49,7 +49,7 @@ class CacheManager:
 
         return list(self._events.values())
 
-    async def get_all_venues(self, force_refresh: bool = False) -> list[VenueResponse]:
+    async def fetch_all_venues(self, force_refresh: bool = False) -> list[VenueResponse]:
         now = datetime.now()
         cache_expired = (
             self._venues_last_refresh is None or
@@ -63,7 +63,7 @@ class CacheManager:
 
         return list(self._venues.values())
 
-    async def get_next_event(self) -> Optional[EventResponse]:
+    async def fetch_next_event(self) -> Optional[EventResponse]:
         if not self._events:
             await self.get_all_events()
 
@@ -78,7 +78,7 @@ class CacheManager:
 
         return min(future_events, key=lambda e: e.starts_at)
 
-    async def get_all_persons(self, force_refresh: bool = False) -> list[PersonResponse]:
+    async def fetch_all_persons(self, force_refresh: bool = False) -> list[PersonResponse]:
         now = datetime.now()
         cache_expired = (
             self._persons_last_refresh is None or
@@ -92,14 +92,14 @@ class CacheManager:
 
         return list(self._persons.values())
 
-    async def get_all_payments(self, force_refresh: bool = False):
+    async def fetch_all_payments(self, force_refresh: bool = False):
         if not self._payments or force_refresh:
             payments = await get_all_payments()
             self._payments = {payment.order_id: payment for payment in payments}
 
         return list(self._payments.values())
 
-    async def get_event_tickets(self, event_id: UUID, force_refresh: bool = False):
+    async def fetch_event_tickets(self, event_id: UUID, force_refresh: bool = False):
         """Get tickets for a specific event"""
         if force_refresh or event_id not in self._event_tickets:
             tickets = await get_all_tickets(event_id=event_id)
@@ -108,13 +108,13 @@ class CacheManager:
 
         return self._event_tickets.get(event_id, [])
 
-    async def get_person(self, person_id: UUID) -> PersonResponse:
+    async def fetch_person(self, person_id: UUID) -> PersonResponse:
         """Get a single person by ID, fetching from API if not cached"""
         if person_id not in self._persons:
             self._persons[person_id] = await get_person(person_id)
         return self._persons[person_id]
 
-    async def get_all_event_tickets(self, force_refresh: bool = False) -> list[EventTicketResponse]:
+    async def fetch_all_event_tickets(self, force_refresh: bool = False) -> list[EventTicketResponse]:
         """Get all event tickets, using cache if available and not expired"""
         now = datetime.now()
         cache_expired = (

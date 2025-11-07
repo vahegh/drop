@@ -18,8 +18,8 @@ cache = get_cache()
 
 
 async def events_panel():
-    venues = await cache.get_all_venues()
-    events = await cache.get_all_events()
+    venues = await cache.fetch_all_venues()
+    events = await cache.fetch_all_events()
 
     async def create():
         with ui.dialog(value=True) as dialog:
@@ -32,7 +32,7 @@ async def events_panel():
                     try:
                         await create_event(EventCreate(**data))
                         ui.notify("Event created")
-                        await cache.get_all_events(force_refresh=True)
+                        await cache.fetch_all_events(force_refresh=True)
                         ui.navigate.reload()
 
                     except Exception as e:
@@ -48,7 +48,7 @@ async def events_panel():
 
     section_title('Ticket Purchase Trends')
 
-    all_payments = await cache.get_all_payments()
+    all_payments = await cache.fetch_all_payments()
 
     payment_map = {p.order_id: p for p in all_payments}
 
@@ -58,7 +58,7 @@ async def events_panel():
     event_start_info = []
 
     for event in events:
-        event_tickets = await cache.get_event_tickets(event.id)
+        event_tickets = await cache.fetch_event_tickets(event.id)
 
         if not event_tickets:
             continue
@@ -170,22 +170,22 @@ async def events_panel():
 
 
 async def event_details_panel(event_id: UUID):
-    event = await cache.get_event(UUID(event_id))
-    await cache.get_all_persons(force_refresh=True)
+    event = await cache.fetch_event(UUID(event_id))
+    await cache.fetch_all_persons(force_refresh=True)
 
     async def edit_event():
         with ui.dialog(value=True) as dialog:
             with ui.card():
                 section_title('Edit Event')
-                venues = await cache.get_all_venues()
+                venues = await cache.fetch_all_venues()
                 form = generate_form_from_model(
-                    EventUpdate, default_values=event.model_dump(), venues=venues)
+                    EventUpdate, default_values=event.__dict__, venues=venues)
 
                 async def submit():
                     data = await parse_inputs(form, EventUpdate)
                     try:
                         await update_event(event.id, EventUpdate(**data))
-                        await cache.get_all_events(force_refresh=True)
+                        await cache.fetch_all_events(force_refresh=True)
                         ui.navigate.reload()
 
                     except Exception as e:
@@ -199,7 +199,7 @@ async def event_details_panel(event_id: UUID):
             try:
                 await delete_event(event.id)
                 ui.notify('Event deleted successfully.')
-                await cache.get_all_events(force_refresh=True)
+                await cache.fetch_all_events(force_refresh=True)
                 ui.navigate.to('/gagodzya/events')
             except Exception as e:
                 ui.notify(f'Error deleting event: {str(e)}')
@@ -207,12 +207,12 @@ async def event_details_panel(event_id: UUID):
     start_datetime = event.starts_at.astimezone()
     end_datetime = event.ends_at.astimezone()
 
-    tickets = await cache.get_event_tickets(event.id, force_refresh=True)
+    tickets = await cache.fetch_event_tickets(event.id, force_refresh=True)
     ticket_map = {t.person_id: t for t in tickets}
 
     total_tickets_no = len(tickets)
 
-    persons = await cache.get_all_persons()
+    persons = await cache.fetch_all_persons()
 
     interval = timedelta(minutes=5)
     time_bins = []
@@ -298,7 +298,7 @@ async def event_details_panel(event_id: UUID):
 
     with ui.grid().classes('flex justify-center gap-2 p-0'):
         for t in sorted(ticket_map.values(), key=lambda t: (t.attended_at or datetime.min.replace(tzinfo=timezone.utc))):
-            p = await cache.get_person(t.person_id)
+            p = await cache.fetch_person(t.person_id)
             with person_card(p):
                 with ui.row(wrap=False).classes('items-center'):
                     ui.label(p.name).classes(' text-center')
