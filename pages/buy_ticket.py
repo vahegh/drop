@@ -285,6 +285,6 @@ async def buy_ticket_page(request: Request, event_id: UUID):
         with main_col:
             await main_page()
 
-    async with frame(show_footer=False) as (main_col, _):
+    async with frame(show_footer=False) as main_col:
         await ui.context.client.connected()
         await main_page()

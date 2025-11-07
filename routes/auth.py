@@ -8,8 +8,8 @@ from fastapi import APIRouter, HTTPException, Response, Request
 from fastapi.responses import RedirectResponse
 from db import with_db
 from consts import APP_BASE_URL, APPLICATION_SUBMITTED_SUBJECT, APPLICATION_SUBMITTED_TEMPLATE
-from api_models import VerifyPersonRequest, ValidateTokenRequest, ValidateTokenResponse, PersonCreate
-from routes.person import get_person_by_email
+from api_models import VerifyPersonRequest, ValidateTokenRequest, ValidateTokenResponse, PersonCreate, PersonUpdate
+from routes.person import get_person_by_email, update_person
 from routes.event import get_event_info
 from routes.event_ticket import get_tickets_by_person_id
 from services.event_ticket import create_event_ticket
@@ -130,10 +130,13 @@ async def login_user(db: AsyncSession, token, redirect_url='/'):
         email = id_info['email']
         person = await db.scalar(select(Person).where(Person.email == email))
         if not person:
-            return RedirectResponse(f"/signup?token={token}&redirect_url={redirect_url}", 303)
+            return RedirectResponse(f"/signup?token={token}&redirect_url={redirect_url}", 302)
 
         if person.status == PersonStatus.rejected:
             raise HTTPException(401, "Rejected")
+
+        update_req = PersonUpdate(avatar_url=id_info['picture'])
+        await update_person(person.id, update_req)
 
         access = await create_token(str(person.id))
         refresh = await create_token(str(person.id), expires_in=7*24*60, refresh=True)
@@ -189,7 +192,7 @@ async def refresh(db: AsyncSession, request: Request):
 
     await db.commit()
 
-    response = Response()
+    response = RedirectResponse('/', 302)
 
     response.set_cookie("access_token", new_access, httponly=True,
                         secure=True, samesite="lax", max_age=15*60, path="/")
@@ -202,7 +205,7 @@ async def refresh(db: AsyncSession, request: Request):
 @router.post("/logout")
 @with_db
 async def logout(db: AsyncSession, token: str = None, redirect_url='/'):
-    response = RedirectResponse(redirect_url, 303)
+    response = RedirectResponse(redirect_url, 302)
 
     if not token:
         return response

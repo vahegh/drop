@@ -212,7 +212,7 @@ def ticket_indicator(exists: bool, used: bool):
 
 def status_icon(status: PersonStatus):
     color = status_colors[status]
-    return ui.label(status.value.upper()).classes(replace=f'text-[{color}]')
+    return ui.label(status.value.upper()).classes(replace=f'text-[{color}] font-semibold')
 
 
 def add_to_wallet(user_agent, google_url, apple_url) -> None:
@@ -230,10 +230,12 @@ def member_card(member_pass: MemberCardResponse, attendance: int, user_agent):
     img = generate_qr(member_pass.id)
     color = status_colors.get(PersonStatus.member)
 
-    with ui.card().props('bordered').classes(f'w-full max-w-96 gap-4 px-0 border-[{color}] justify-around'):
+    with ui.card().props('bordered').classes(f'w-full max-w-96 gap-4 px-0 justify-around border-[{color}]'):
         subsection_title('Membership pass')
         with ui.column().classes('w-full items-center px-6 py-0'):
-            ui.image(f'data:image/png;base64,{img}').classes('w-3/4')
+            ui.image(f'data:image/png;base64,{img}').classes('w-3/4 ')
+            ui.label(f"Member since {member_pass.created_at.strftime("%B %Y")}".upper()).classes(
+                f'text-[{color}] font-semibold')
             with ui.row(wrap=False):
                 with ui.column().classes(replace='gap-0'):
                     ui.label("ID")
@@ -246,15 +248,25 @@ def member_card(member_pass: MemberCardResponse, attendance: int, user_agent):
 
 
 def event_ticket(ticket: EventTicketResponse, event: EventResponse, user_agent):
-    with ui.card().props('bordered').classes(f'w-full max-w-96 gap-4 px-6 p-4'):
-        img = generate_qr(ticket.id)
-        with ui.column().classes('gap-4'):
-            with ui.column().classes('gap-0'):
-                ui.label('Your ticket for')
-                subsection_title(event.name)
-            with ui.column().classes('p-4'):
-                ui.image(f'data:image/png;base64,{img}').classes('w-full')
-            add_to_wallet(user_agent, ticket.google_pass_url, ticket.apple_pass_url)
+    img = generate_qr(ticket.id)
+
+    with ui.card().props('bordered').classes('w-full max-w-96 gap-4 px-0 justify-around border-black'):
+        with ui.column().classes('gap-0 items-center'):
+            ui.link(event.name, f"/event/{event.id}")
+            subsection_title("Your ticket")
+        with ui.column().classes('w-full items-center px-6 py-0'):
+            ui.image(f'data:image/png;base64,{img}').classes('w-3/4 ')
+            with ui.row(wrap=False):
+                with ui.column().classes(replace='gap-0'):
+                    ui.label("Event date")
+                    ui.label(str(event.starts_at.astimezone().strftime("%d.%m"))
+                             ).classes('font-bold text-lg')
+                with ui.column().classes(replace='gap-0'):
+                    ui.label("Start time")
+                    ui.label(event.starts_at.astimezone().strftime("%H:%M")
+                             ).classes('text-right font-bold text-lg')
+
+        add_to_wallet(user_agent, ticket.google_pass_url, ticket.apple_pass_url)
 
 
 def image_carousel(urls):
@@ -289,16 +301,14 @@ def large_google_button(page):
 
 
 @contextmanager
-def section(title: str = None, subtitle: str = None, sep=True):
-    with ui.column().classes('gap-4 w-full items-center justify-start max-h-[500px] max-w-96') as main:
+def section(title: str = None, subtitle: str = None):
+    with ui.column().classes('gap-4 w-full items-center justify-start max-w-96') as main:
         if title:
-            with ui.column().classes('gap-0') as heading:
+            with ui.column().classes('gap-0 items-center'):
                 section_title(title).classes('text-center')
                 if subtitle:
                     ui.label(subtitle).classes('text-center text-gray-600')
-        else:
-            heading = None
-        yield main, heading
+        yield main
 
 
 TYPE_TO_NICEGUI = {

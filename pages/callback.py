@@ -16,7 +16,7 @@ myameria_payment_status = Literal['success', 'failure']
 
 
 async def callback_page(confirm_request):
-    async with frame(show_footer=False) as (f, _):
+    async with frame(show_footer=False) as main_col:
         with ui.column().classes('fixed inset-0 h-full w-full'):
             status_icon = ui.icon('check', size='100px').classes(
                 'text-green-500')
@@ -48,7 +48,7 @@ async def callback_page(confirm_request):
 
                 secondary_button("go home").on_click(
                     lambda: ui.navigate.to("/"))
-                return f
+                return main_col
 
             sp.set_visibility(False)
             status_icon.set_visibility(True)
@@ -79,7 +79,7 @@ async def callback_page(confirm_request):
                 desc_label.text = confirm_response.description if confirm_response.description else ""
                 new_link_btn = secondary_button('get new link').on_click(lambda: get_new_link(
                     confirm_response.person_id, confirm_response.event_id))
-    return f
+    return main_col
 
 
 @ui.page('/ameriatransactionstate', title='Payment Confirmation | Drop Dead Disco')

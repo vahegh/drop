@@ -3,7 +3,7 @@ from nicegui import ui
 from frame import frame
 from elements import (rectangular_email_input, instagram_input,
                       page_header, accented_button, name_input)
-from api_models import PersonCreate, ValidateTokenRequest
+from api_models import PersonCreate
 
 from fastapi import HTTPException
 from routes.auth import register
@@ -16,8 +16,8 @@ async def signup_page(token):
     except jwt.DecodeError:
         raise HTTPException(401, "Invalid token")
 
-    async with frame(show_signin=False) as (col, _):
-        col.classes(add='p-4 justify-between gap-4')
+    async with frame() as main_col:
+        main_col.classes(add='p-4 justify-between gap-4')
         page_header("Sign up")
         ui.label("Welcome to Drop Dead Disco! Before we proceed, we need your Instagram profile for review. This is a one-time process.  "
                  "Please fill it in below:").classes('text-sm/6 px-3 text-gray-700')
@@ -58,8 +58,8 @@ async def signup_page(token):
                 ui.navigate.to(f'/api/auth/login-user?token={token}')
 
             else:
-                col.clear()
-                with col:
+                main_col.clear()
+                with main_col:
                     with ui.column().classes('p-8 fixed inset-0 h-svh'):
                         ui.label("Unknown error occured.").classes(
                             'text-5xl font-bold')

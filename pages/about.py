@@ -1,11 +1,12 @@
 from nicegui import ui
 from frame import frame
 from elements import page_header, section_title, section, large_google_button
+from dependencies import Depends, logged_in
 
 
 @ui.page('/about', title='About Us | Drop Dead Disco')
-async def about_page():
-    async with frame() as (main_col, logged_in):
+async def about_page(logged_in=Depends(logged_in)):
+    async with frame() as main_col:
         main_col.classes('gap-4 p-6')
 
         with ui.column().classes('gap-2'):
@@ -73,6 +74,5 @@ If verified, you'll be able to buy tickets for upcoming events.
 If there are no planned events at the time of your approval, you're still in, and will get future event updates as they are available.
 ''')
         if not logged_in:
-            with section("Wanna join the fun?", subtitle="Sign up to get verified.") as (_, heading):
-                heading.classes(add='items-center')
+            with section("Wanna join the fun?", subtitle="Sign up to get verified."):
                 large_google_button(ui.context.client.request.url.path)

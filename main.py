@@ -1,3 +1,4 @@
+from fastapi import Request
 from consts import favicon_path
 from helpers import is_cloud_run
 import logging
@@ -16,8 +17,15 @@ from routes.member_pass import router as member_router
 from routes.event_ticket import router as ticket_router
 from routes.attendance import router as attendance_router
 from routes.apple_pass_updates import router as apple_pass_updates
-from services.auth import verify_admin_token
+from starlette.middleware.base import BaseHTTPMiddleware
 from services.drive import drive_service
+from fastapi import Request, HTTPException
+from routes.auth import refresh, logout
+from routes.user import user_info, modify_user
+from api_models import PersonUpdate
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class NoWebSocketFilter(logging.Filter):
@@ -25,7 +33,42 @@ class NoWebSocketFilter(logging.Filter):
         return "WebSocket" not in record.getMessage()
 
 
-logging.basicConfig(level=logging.INFO)
+class AuthMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        access_token = request.cookies.get('access_token')
+        refresh_token = request.cookies.get('refresh_token')
+
+        request.state.logged_in = False
+        request.state.person = None
+
+        if request.url.path.startswith('/api'):
+            return await call_next(request)
+
+        if request.url.path in ['/logout', '/login', '/signup']:
+            return await call_next(request)
+
+        async def silent_refresh():
+            if refresh_token:
+                try:
+                    return await refresh(request)
+                except HTTPException:
+                    return await logout()
+            else:
+                return await call_next(request)
+
+        if access_token:
+            try:
+                person = await user_info(request)
+            except HTTPException:
+                return await silent_refresh()
+
+        else:
+            return await silent_refresh()
+
+        request.state.logged_in = True
+        request.state.person = person
+
+        return await call_next(request)
 
 
 @asynccontextmanager
@@ -37,23 +80,22 @@ async def lifespan(app: FastAPI):
     yield
     await drive_service.__aexit__(None, None, None)
 
-app = FastAPI(lifespan=lifespan)
+fastapi_app = FastAPI(lifespan=lifespan)
 
 env = os.getenv('env')
-# bearer_auth = [Depends(verify_admin_token)]
 
-app.include_router(member_router)
-app.include_router(ticket_router)
-app.include_router(payment_router)
-app.include_router(person_router)
-app.include_router(event_router)
-app.include_router(venue_router)
-app.include_router(user_router)
+fastapi_app.include_router(member_router)
+fastapi_app.include_router(ticket_router)
+fastapi_app.include_router(payment_router)
+fastapi_app.include_router(person_router)
+fastapi_app.include_router(event_router)
+fastapi_app.include_router(venue_router)
+fastapi_app.include_router(user_router)
 
-app.include_router(auth_router)
-app.include_router(tg_router)
-app.include_router(attendance_router)
-app.include_router(apple_pass_updates)
+fastapi_app.include_router(auth_router)
+fastapi_app.include_router(tg_router)
+fastapi_app.include_router(attendance_router)
+fastapi_app.include_router(apple_pass_updates)
 
 storage_secret = os.getenv('storage_secret')
 
@@ -125,7 +167,7 @@ else:
 
 
 def main():
-    from nicegui import ui
+    from nicegui import ui, app
 
     ui.add_head_html(head_html, shared=True)
     ui.add_head_html(gtag_html, shared=True)
@@ -145,13 +187,14 @@ def main():
                        errors)
 
     ui.run_with(
-        app,
+        fastapi_app,
         favicon=favicon_path,
         title="Drop Dead Disco",
         reconnect_timeout=30.0,
         dark=False,
         storage_secret=storage_secret
     )
+    app.add_middleware(AuthMiddleware)
 
 
 main()

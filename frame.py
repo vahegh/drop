@@ -1,42 +1,42 @@
 from contextlib import asynccontextmanager
-from nicegui import ui, app
+from nicegui import ui
 from consts import (spotify_logo_path, instagram_logo_path,
                     DROP_INSTA_URL, DROP_SPOTIFY_URL, support_email, logo_white_path,
                     DROP_YOUTUBE_URL, youtube_logo_path, APP_BASE_URL, google_client_id, logo_gray_path)
-from elements import google_button, secondary_button
-from helpers import set_user_data
+from elements import google_button, secondary_button, section_title
+from api_models import PersonResponseFull
 
 
 @asynccontextmanager
-async def frame(show_footer=True, show_signin=True):
+async def frame(show_footer=True):
     ui.colors(primary="#FFFFFF", dark="#101010", secondary="#df296f",
               accent="#9D20C3", section="#61007F")
 
-    st = app.storage.user
+    request = ui.context.client.request
 
-    with ui.header(bordered=True).classes('items-center bg-transparent h-14 px-6 py-2 backdrop-blur-xs flex justify-between'):
-        ui.image(logo_gray_path).classes(
-            'w-16 h-10 object-contain').on('click', lambda: ui.navigate.to('/'))
+    person: PersonResponseFull = request.state.person
+    logged_in = request.state.logged_in
+    show_signin = request.url not in ['/signup']
+
+    with ui.header(bordered=True).classes('items-center bg-transparent h-14 px-4 py-2 backdrop-blur-xs flex justify-between'):
+        with ui.button().props('flat').classes('p-0').on('click', lambda: ui.navigate.to('/')):
+            ui.image(logo_gray_path).classes(
+                'w-16 h-10 object-contain')
         ui.space()
-        logged_in = await set_user_data(ui.context.client.request)
 
         if logged_in:
-            avatar_url = st.get('avatar_url')
-            with ui.button().props('round flat outline') as btn:
-                avatar = ui.image(avatar_url).classes(
-                    'size-8 rounded-full')
-                btn.classes.clear()
-                with ui.menu().classes('items-center justify-center p-2') as menu:
-                    with ui.column().classes('items-center'):
-                        ui.image(avatar_url).classes(
+            with ui.button().props('round flat outline').classes('p-0') as btn:
+                ui.image(person.avatar_url).classes('size-10 rounded-full')
+                with ui.menu().props() as menu:
+                    with ui.column().classes('items-center w-full p-4'):
+                        ui.image(person.avatar_url).classes(
                             'size-20 rounded-full')
-                        ui.label(st['name']).classes('text-center')
+                        section_title(person.name).classes('text-center')
                         b = secondary_button('Logout')
                         b.on_click(lambda: b.props(add='loading'))
                         b.on_click(lambda: ui.navigate.to(
-                            f'/logout?redirect_url={ui.context.client.request.url}'))
-
-                avatar.on('click', menu.open)
+                            f'/logout?redirect_url={request.url}'))
+                btn.on_click(menu.toggle)
 
         else:
             if show_signin:
@@ -52,11 +52,10 @@ async def frame(show_footer=True, show_signin=True):
                     data-use_fedcm_for_button="true">
                 </div>''', sanitize=False)
 
-                google_button(ui.context.client.request.url.path)
+                google_button(request.url.path)
 
     with ui.context.client.content.classes('h-full p-0 gap-0 w-full items-center justify-between') as content:
-        with ui.grid().classes('flex w-full items-center justify-center p-4 gap-8') as content:
-            yield content, logged_in
+        yield content
 
     if show_footer:
         with ui.footer(fixed=False, bordered=True).classes('bg-dark h-auto z-0'):

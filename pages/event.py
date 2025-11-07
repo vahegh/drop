@@ -27,7 +27,7 @@ async def event_page(event_id):
     ui.page_title(f'{event.name} | Drop Dead Disco')
     venue = await cache.get_venue(event.venue_id)
 
-    async with frame() as (main_col, logged_in):
+    async with frame() as main_col:
         event_passed = event.ends_at < datetime.now(timezone.utc)
         album_url = album_urls.get(event_id)
 

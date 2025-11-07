@@ -37,45 +37,6 @@ async def get_user_agent(request: Request):
         return "web"
 
 
-async def set_user_data(request: Request):
-    person = None
-    if request.cookies.get('access_token'):
-        try:
-            person = await user_info(request)
-        except HTTPException:
-            if request.cookies.get('refresh_token'):
-                try:
-                    await refresh(request)
-                except HTTPException:
-                    return False
-                else:
-                    person = await user_info(request)
-            else:
-                return False
-    else:
-        if request.cookies.get('refresh_token'):
-            try:
-                await refresh(request)
-            except HTTPException as e:
-                ui.navigate.to('/logout')
-            else:
-                person = await user_info(request)
-        else:
-            return False
-
-    if person:
-        if not person.avatar_url:
-            avatar_url = app.storage.user.get('avatar_url')
-            if avatar_url:
-                try:
-                    person = await modify_user(PersonUpdate(avatar_url=avatar_url), request)
-                except HTTPException as e:
-                    return False
-
-        app.storage.user.update(person.model_dump(mode='json'))
-        return True
-
-
 def generate_qr(id):
     qr = qrcode.QRCode(
         version=1,

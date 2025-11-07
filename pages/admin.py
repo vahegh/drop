@@ -42,7 +42,7 @@ async def admin_page():
     }
 </style>
 ''')
-        async with frame(show_footer=False) as (main_col, _):
+        async with frame(show_footer=False) as main_col:
             main_col.classes('p-4 gap-4')
             await ui.context.client.connected()
             with ui.footer().classes('p-0'):
