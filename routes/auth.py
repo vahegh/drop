@@ -136,7 +136,7 @@ async def login_user(db: AsyncSession, token, redirect_url='/'):
             raise HTTPException(401, "Rejected")
 
         avatar_url = id_info.get('picture')
-        print(id_info)
+        logger.info(id_info)
 
         if avatar_url:
             update_req = PersonUpdate(avatar_url=avatar_url)
