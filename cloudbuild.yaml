@@ -112,9 +112,9 @@ steps:
       - |
         MESSAGE="✅ Build completed successfully for commit $COMMIT_SHA"
         
-        curl -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
+        curl -X POST "https://api.telegram.org/bot$${TELEGRAM_BOT_TOKEN}/sendMessage" \
           -H "Content-Type: application/json" \
-          -d "{\"chat_id\": \"$TELEGRAM_CHAT_ID\", \"text\": \"$MESSAGE\", \"parse_mode\": \"HTML\"}"
+          -d "{\"chat_id\": \"$${TELEGRAM_CHAT_ID}\", \"text\": \"$${MESSAGE}\", \"parse_mode\": \"HTML\"}"
     id: 'notify-telegram'
     waitFor: ['deploy']
     secretEnv: ['TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID']
