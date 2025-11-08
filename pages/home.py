@@ -18,12 +18,12 @@ from dependencies import Depends, logged_in
 
 @ui.page('/', title='Home | Drop Dead Disco', response_timeout=50)
 async def home_page(request: Request, logged_in=Depends(logged_in)):
-    video_url = app.add_static_file(local_file="static/images/bg_video.mp4")
-    ui.video(video_url, controls=False).classes(
-        'w-full object-cover h-[60vh]').props('autoplay loop muted playsinline')
-    ui.context.client.page_container.classes('relative -top-14')
-
     async with frame() as f:
+        video_url = app.add_static_file(local_file="static/images/bg_video.mp4")
+        ui.video(video_url, controls=False).classes(
+            'w-full object-cover h-[60vh]').props('autoplay loop muted playsinline')
+        ui.context.client.page_container.classes('relative -top-14')
+
         f.classes('gap-6')
         upcoming_events: list[EventResponse] = []
         past_events: list[EventResponse] = []
