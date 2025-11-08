@@ -1,5 +1,4 @@
 import os
-from uuid import UUID
 from datetime import timezone, datetime
 from nicegui import ui
 from fastapi import HTTPException
@@ -8,8 +7,10 @@ from consts import album_urls
 from helpers import get_album_urls
 from elements import (event_datetime_col, event_card, image_carousel,
                       secondary_button, section_title, ticket_price_col, toast, section)
-from storage_cache import get_cache
 import urllib
+from routes.event import get_event_info
+from routes.venue import get_venue_info
+from dependencies import Depends, logged_in
 
 PHOTO_STORAGE_DIR = "photos"
 
@@ -17,18 +18,20 @@ maps_api_key = os.getenv('maps_api_key')
 
 
 @ui.page('/event/{event_id}')
-async def event_page(event_id):
-    cache = get_cache()
-    event = await cache.fetch_event(UUID(event_id))
+async def event_page(event_id, logged_in=Depends(logged_in)):
+    event = await get_event_info(event_id)
 
     if not event:
         raise HTTPException(404)
 
     ui.page_title(f'{event.name} | Drop Dead Disco')
-    venue = await cache.fetch_venue(event.venue_id)
+    venue = await get_venue_info(event.venue_id)
 
     async with frame() as main_col:
         event_passed = event.ends_at < datetime.now(timezone.utc)
+
+        event_passed = False
+
         album_url = album_urls.get(event_id)
 
         if event_passed and not album_url:

@@ -12,7 +12,6 @@ from elements import (event_card, page_header, section_title,
 from helpers import get_user_agent, get_album_urls
 from enums import PersonStatus
 from routes.person import get_all_person_stats
-from uuid import UUID
 from dependencies import Depends, logged_in
 
 

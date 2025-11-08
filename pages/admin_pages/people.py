@@ -7,18 +7,17 @@ from elements import (primary_button, secondary_button, accented_button,
                       status_icon, page_header, section_title,
                       generate_form_from_model, ticket_indicator,
                       person_card)
-from storage_cache import get_cache
 from enums import PersonStatus
 from routes.person import create_person, update_person, delete_person
-from routes.event_ticket import create_event_ticket, delete_event_ticket
-
-cache = get_cache()
+from routes.event_ticket import create_event_ticket, delete_event_ticket, get_all_tickets
+from routes.event import get_all_events
+from routes.person import get_all_persons, get_person
 
 
 async def persons_panel():
-    events = await cache.fetch_all_events()
-    persons = await cache.fetch_all_persons()
-    tickets = await cache.fetch_all_event_tickets()
+    events = await get_all_events()
+    persons = await get_all_persons()
+    tickets = await get_all_tickets()
 
     async def create_dialog():
         with ui.dialog(value=True) as dialog:
@@ -30,7 +29,6 @@ async def persons_panel():
                     data = await parse_inputs(form, PersonCreate)
                     try:
                         await create_person(PersonCreate(**data))
-                        await cache.fetch_all_persons(force_refresh=True)
                         ui.navigate.reload()
 
                     except Exception as e:
@@ -78,19 +76,20 @@ async def persons_panel():
     verified_persons = categorized['verified']
     rejected_persons = categorized['rejected']
 
-    def render_section(title: str, person_list: list):
+    def render_section(title: str, person_list: list, header=True):
         if not person_list:
             return
 
         section_title(f"{title} ({len(person_list)})")
-        with ui.grid().classes('flex justify-center gap-1 p-0'):
-            with ui.card().classes(f'cursor-pointer', remove='rounded-3xl').props('bordered flat'):
-                with ui.row(wrap=False):
-                    ui.label("Name").classes('w-40 text-left')
-                    with ui.row(wrap=False).classes(remove='w-full'):
-                        for i, event in enumerate(sorted_events, 1):
-                            with ui.element('div').classes('size-4'):
-                                ui.label(str(i)).classes('text-center')
+        with ui.grid().classes('w-full justify-center gap-1 p-0'):
+            if header:
+                with ui.card().classes(f'cursor-pointer w-full', remove='rounded-3xl').props('bordered flat'):
+                    with ui.row(wrap=False):
+                        ui.label("Name").classes('w-40 text-left')
+                        with ui.row(wrap=False).classes(remove='w-full'):
+                            for i, event in enumerate(sorted_events, 1):
+                                with ui.element('div').classes('size-4'):
+                                    ui.label(str(i)).classes('text-center')
 
             for p in person_list:
                 with person_card(p):
@@ -99,8 +98,8 @@ async def persons_panel():
                             if p.avatar_url:
                                 ui.image(p.avatar_url).classes('size-8 rounded-full')
                             ui.label(p.name).classes('w-48 text-left')
-                        with ui.row(wrap=False).classes(remove='w-full'):
-                            if p.status not in (PersonStatus.rejected, PersonStatus.pending):
+                        if header:
+                            with ui.row(wrap=False).classes(remove='w-full'):
                                 for event in sorted_events:
                                     ticket = event_ticket_person_map.get(
                                         event.id, {}).get(p.id)
@@ -111,14 +110,14 @@ async def persons_panel():
                                         ticket_indicator(None, False)
 
     # Render sections in order
-    render_section('In Review', pending_persons)
+    render_section('In Review', pending_persons, header=False)
     render_section('Members', members)
-    render_section('verified', verified_persons)
-    render_section('Rejected', rejected_persons)
+    render_section('Verified', verified_persons)
+    render_section('Rejected', rejected_persons, header=False)
 
 
 async def person_details_panel(person_id):
-    person = await cache.fetch_person(UUID(person_id))
+    person = await get_person(person_id)
 
     async def create_dialog():
         with ui.dialog(value=True) as dialog:
@@ -141,7 +140,7 @@ async def person_details_panel(person_id):
                     try:
                         await update_person(person.id, PersonUpdate(**changed_data))
                         ui.notify("Person Updated")
-                        await cache.fetch_all_persons(force_refresh=True)
+                        await get_all_persons()
                         ui.navigate.reload()
 
                     except Exception as e:
@@ -151,8 +150,8 @@ async def person_details_panel(person_id):
                 primary_button('Cancel').on_click(dialog.close)
 
     async def create_ticket_dialog():
-        events = await cache.fetch_all_events()
-        all_tickets = await cache.fetch_all_event_tickets()
+        events = await get_all_events()
+        all_tickets = await get_all_tickets()
         person_tickets = [t for t in all_tickets if t.person_id == person.id]
         person_event_ids = {t.event_id for t in person_tickets}
 
@@ -185,7 +184,6 @@ async def person_details_panel(person_id):
                             person_id=person.id
                         ))
                         ui.notify("Ticket created successfully", type='positive')
-                        await cache.fetch_all_event_tickets(force_refresh=True)
                         dialog.close()
                         ui.navigate.reload()
 
@@ -200,7 +198,7 @@ async def person_details_panel(person_id):
             try:
                 await delete_person(person.id)
                 ui.notify('Person deleted successfully.')
-                await cache.fetch_all_persons(force_refresh=True)
+                await get_all_persons()
                 ui.navigate.to('/gagodzya/people')
             except Exception as e:
                 ui.notify(f'Error deleting person: {str(e)}')
@@ -209,7 +207,6 @@ async def person_details_panel(person_id):
         if await ui.run_javascript('confirm("Are you sure you want to delete this ticket?")', timeout=10):
             try:
                 await delete_event_ticket(id)
-                await cache.fetch_all_event_tickets(force_refresh=True)
                 ui.navigate.reload()
                 ui.notify('Ticket deleted successfully.')
             except Exception as e:
@@ -230,14 +227,14 @@ async def person_details_panel(person_id):
             primary_button('Edit').on_click(create_dialog)
             secondary_button('Delete').on_click(delete)
 
-    all_tickets = await cache.fetch_all_event_tickets()
+    all_tickets = await get_all_tickets()
     person_tickets = [t for t in all_tickets if t.person_id == person.id]
 
     if person.status not in (PersonStatus.pending, PersonStatus.rejected):
         with ui.card():
             section_title('Tickets')
 
-            events = await cache.fetch_all_events()
+            events = await get_all_events()
             event_map = {e.id: e for e in events}
 
             sorted_tickets = sorted(

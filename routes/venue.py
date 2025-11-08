@@ -30,7 +30,7 @@ async def get_venue_info(db: AsyncSession, id: UUID):
     return venue
 
 
-@router.post("/", response_model=VenueResponse, dependencies=[Depends(validate_google_token)])
+@router.post("/", response_model=VenueResponse)
 @with_db
 async def create_venue(db: AsyncSession, venue: VenueCreate):
     db_venue = Venue(
@@ -48,7 +48,7 @@ async def create_venue(db: AsyncSession, venue: VenueCreate):
     return db_venue
 
 
-@router.put("/{id}", response_model=VenueResponse, dependencies=[Depends(validate_google_token)])
+@router.put("/{id}", response_model=VenueResponse)
 @with_db
 async def update_venue(db: AsyncSession, id: UUID, venue: VenueUpdate):
     db_venue = await db.get(Venue, id)
@@ -62,7 +62,7 @@ async def update_venue(db: AsyncSession, id: UUID, venue: VenueUpdate):
     return db_venue
 
 
-@router.delete("/{id}", dependencies=[Depends(validate_google_token)])
+@router.delete("/{id}")
 @with_db
 async def delete_venue(db: AsyncSession, id: UUID):
     db_venue = await db.get(Venue, id)
@@ -73,7 +73,7 @@ async def delete_venue(db: AsyncSession, id: UUID):
     return
 
 
-@router.post("/venue-reveal", dependencies=[Depends(validate_google_token)])
+@router.post("/venue-reveal")
 @with_db
 async def venue_reveal(db: AsyncSession, event_id: UUID):
     event = await db.get(Event, event_id)

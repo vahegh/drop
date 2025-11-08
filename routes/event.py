@@ -44,7 +44,7 @@ async def get_event_info(db: AsyncSession, id: UUID):
     return event
 
 
-@router.post("/", response_model=EventResponse, dependencies=[Depends(validate_google_token)])
+@router.post("/", response_model=EventResponse)
 @with_db
 async def create_event(db: AsyncSession, event: EventCreate):
     db_event = Event(**event.model_dump())
@@ -58,7 +58,7 @@ async def create_event(db: AsyncSession, event: EventCreate):
     return db_event
 
 
-@router.put("/{id}", response_model=EventResponse, dependencies=[Depends(validate_google_token)])
+@router.put("/{id}", response_model=EventResponse)
 @with_db
 async def update_event(db: AsyncSession, id: UUID, event_update: EventUpdate):
     event = await db.get(Event, id)
@@ -102,7 +102,7 @@ async def update_event(db: AsyncSession, id: UUID, event_update: EventUpdate):
     return event
 
 
-@router.delete("/{id}", dependencies=[Depends(validate_google_token)])
+@router.delete("/{id}")
 @with_db
 async def delete_event(db: AsyncSession, id: UUID):
     db_event = await db.get(Event, id)
@@ -113,7 +113,7 @@ async def delete_event(db: AsyncSession, id: UUID):
     return
 
 
-@router.post("/early-bird-end", dependencies=[Depends(validate_google_token)])
+@router.post("/early-bird-end")
 @with_db
 async def early_bird_end(db: AsyncSession, event_id: UUID):
     event = await db.get(Event, event_id)
@@ -165,7 +165,7 @@ async def early_bird_end(db: AsyncSession, event_id: UUID):
     }
 
 
-@router.post("/event-announcement", dependencies=[Depends(validate_google_token)])
+@router.post("/event-announcement")
 @with_db
 async def event_announcement(db: AsyncSession, event_id: UUID):
     event = await db.get(Event, event_id)
@@ -214,7 +214,7 @@ async def event_announcement(db: AsyncSession, event_id: UUID):
     return {"notified": len(all_verified_without_tickets)}
 
 
-@router.post("/event-notify", dependencies=[Depends(validate_google_token)])
+@router.post("/event-notify")
 @with_db
 async def event_notify(db: AsyncSession, event_id: UUID):
     event = await db.get(Event, event_id)

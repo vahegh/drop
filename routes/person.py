@@ -34,14 +34,14 @@ async def get_all_person_stats(db: AsyncSession):
     return stats
 
 
-@router.get("/all", response_model=list[PersonResponse], dependencies=[Depends(validate_google_token)])
+@router.get("/all", response_model=list[PersonResponse])
 @with_db
 async def get_all_persons(db: AsyncSession):
     persons = await db.scalars(select(Person))
     return persons.all()
 
 
-@router.get("/{id}", response_model=PersonResponse, dependencies=[Depends(validate_google_token)])
+@router.get("/{id}", response_model=PersonResponse)
 @with_db
 async def get_person(db: AsyncSession, id: UUID):
     existing_person = await db.get(Person, id)
@@ -75,7 +75,7 @@ async def create_person(db: AsyncSession, person: PersonCreate):
     return new_person
 
 
-@router.put("/{id}", response_model=PersonResponse, dependencies=[Depends(validate_google_token)])
+@router.put("/{id}", response_model=PersonResponse)
 @with_db
 async def update_person(db: AsyncSession, id: UUID, updated_person: PersonUpdate):
     person = await db.get(Person, id)
@@ -136,7 +136,7 @@ async def update_person(db: AsyncSession, id: UUID, updated_person: PersonUpdate
     return person
 
 
-@router.delete("/{id}", dependencies=[Depends(validate_google_token)])
+@router.delete("/{id}")
 @with_db
 async def delete_person(db: AsyncSession, id: UUID):
     existing_person = await db.get(Person, id)
@@ -149,12 +149,3 @@ async def delete_person(db: AsyncSession, id: UUID):
     await db.delete(existing_person)
     await db.commit()
     return Response("Person deleted")
-
-
-@router.get("/email/{email}", response_model=PersonResponse)
-@with_db
-async def get_person_by_email(db: AsyncSession, email: str):
-    existing_person = await db.scalar(select(Person).where(func.lower(Person.email) == email.lower()))
-    if not existing_person:
-        raise HTTPException(404, "Person not found")
-    return existing_person

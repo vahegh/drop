@@ -1,25 +1,25 @@
-from uuid import UUID
 from collections import defaultdict
 from datetime import timedelta, datetime, timezone
 from nicegui import ui
 import plotly.graph_objs as go
 from plotly.graph_objs import Layout
 from enums import PaymentStatus
-from storage_cache import get_cache
 from api_models import EventUpdate, EventCreate
 from helpers import parse_inputs
 from elements import (primary_button, secondary_button, accented_button,
                       page_header, section_title, event_datetime_col,
                       ticket_price_col, generate_form_from_model, ticket_indicator,
                       person_card)
-from routes.event import create_event, update_event, delete_event
-
-cache = get_cache()
+from routes.event import create_event, update_event, delete_event, get_all_events, get_event_info
+from routes.venue import get_all_venues
+from routes.payment import get_all_payments
+from routes.event_ticket import get_all_tickets
+from routes.person import get_all_persons, get_person
 
 
 async def events_panel():
-    venues = await cache.fetch_all_venues()
-    events = await cache.fetch_all_events()
+    venues = await get_all_venues()
+    events = await get_all_events()
 
     async def create():
         with ui.dialog(value=True) as dialog:
@@ -32,7 +32,6 @@ async def events_panel():
                     try:
                         await create_event(EventCreate(**data))
                         ui.notify("Event created")
-                        await cache.fetch_all_events(force_refresh=True)
                         ui.navigate.reload()
 
                     except Exception as e:
@@ -48,7 +47,7 @@ async def events_panel():
 
     section_title('Ticket Purchase Trends')
 
-    all_payments = await cache.fetch_all_payments()
+    all_payments = await get_all_payments()
 
     payment_map = {p.order_id: p for p in all_payments}
 
@@ -58,7 +57,7 @@ async def events_panel():
     event_start_info = []
 
     for event in events:
-        event_tickets = await cache.fetch_event_tickets(event.id)
+        event_tickets = await get_all_tickets(event.id)
 
         if not event_tickets:
             continue
@@ -169,15 +168,15 @@ async def events_panel():
                 ui.label(e.starts_at.astimezone().strftime("%d %B")).classes('font-medium')
 
 
-async def event_details_panel(event_id: UUID):
-    event = await cache.fetch_event(UUID(event_id))
-    await cache.fetch_all_persons(force_refresh=True)
+async def event_details_panel(event_id):
+    event = await get_event_info(event_id)
+    await get_all_persons()
 
     async def edit_event():
         with ui.dialog(value=True) as dialog:
             with ui.card():
                 section_title('Edit Event')
-                venues = await cache.fetch_all_venues()
+                venues = await get_all_venues()
                 form = generate_form_from_model(
                     EventUpdate, default_values=event.__dict__, venues=venues)
 
@@ -185,7 +184,6 @@ async def event_details_panel(event_id: UUID):
                     data = await parse_inputs(form, EventUpdate)
                     try:
                         await update_event(event.id, EventUpdate(**data))
-                        await cache.fetch_all_events(force_refresh=True)
                         ui.navigate.reload()
 
                     except Exception as e:
@@ -199,7 +197,6 @@ async def event_details_panel(event_id: UUID):
             try:
                 await delete_event(event.id)
                 ui.notify('Event deleted successfully.')
-                await cache.fetch_all_events(force_refresh=True)
                 ui.navigate.to('/gagodzya/events')
             except Exception as e:
                 ui.notify(f'Error deleting event: {str(e)}')
@@ -207,12 +204,12 @@ async def event_details_panel(event_id: UUID):
     start_datetime = event.starts_at.astimezone()
     end_datetime = event.ends_at.astimezone()
 
-    tickets = await cache.fetch_event_tickets(event.id, force_refresh=True)
+    tickets = await get_all_tickets(event.id)
     ticket_map = {t.person_id: t for t in tickets}
 
     total_tickets_no = len(tickets)
 
-    persons = await cache.fetch_all_persons()
+    persons = await get_all_persons()
 
     interval = timedelta(minutes=5)
     time_bins = []
@@ -298,7 +295,7 @@ async def event_details_panel(event_id: UUID):
 
     with ui.grid().classes('flex justify-center gap-2 p-0'):
         for t in sorted(ticket_map.values(), key=lambda t: (t.attended_at or datetime.min.replace(tzinfo=timezone.utc))):
-            p = await cache.fetch_person(t.person_id)
+            p = await get_person(t.person_id)
             with person_card(p):
                 with ui.row(wrap=False).classes('items-center'):
                     ui.label(p.name).classes(' text-center')

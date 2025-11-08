@@ -1,13 +1,9 @@
-from uuid import UUID
 from nicegui import ui
 from helpers import parse_inputs
 from api_models import VenueCreate, VenueUpdate
 from elements import (primary_button, secondary_button, accented_button,
                       page_header, section_title, generate_form_from_model)
-from storage_cache import get_cache
-from routes.venue import create_venue, update_venue, delete_venue
-
-cache = get_cache()
+from routes.venue import create_venue, update_venue, delete_venue, get_all_venues, get_venue_info
 
 
 async def venues_panel():
@@ -22,7 +18,6 @@ async def venues_panel():
                     try:
                         await create_venue(VenueCreate(**data))
                         ui.notify("Venue created")
-                        await cache.fetch_all_venues(force_refresh=True)
 
                     except Exception as e:
                         ui.notify(f"Unable to create venue: {str(e)}", type='negative')
@@ -36,7 +31,7 @@ async def venues_panel():
 
     venues_container = ui.column().classes('w-full')
     with venues_container:
-        venues = await cache.fetch_all_venues()
+        venues = await get_all_venues()
         for v in venues:
             with ui.card().classes('w-full').props(remove='flat').on('click', lambda v=v: ui.navigate.to(f'/gagodzya/venue/{v.id}')):
                 with ui.column().classes('items-center justify-center'):
@@ -45,14 +40,13 @@ async def venues_panel():
 
 
 async def venue_details_panel(venue_id):
-    venue = await cache.fetch_venue(UUID(venue_id))
+    venue = await get_venue_info(venue_id)
 
     async def delete():
         if await ui.run_javascript('confirm("Are you sure you want to delete this venue?")', timeout=10):
             try:
                 await delete_venue(venue.id)
                 ui.notify('Venue deleted successfully.')
-                await cache.fetch_all_venues(force_refresh=True)
                 ui.navigate.to('/gagodzya/venues')
 
             except Exception as e:
@@ -68,7 +62,6 @@ async def venue_details_panel(venue_id):
                     data = await parse_inputs(form, VenueUpdate)
                     try:
                         await update_venue(venue.id, VenueUpdate(**data))
-                        await cache.fetch_all_venues(force_refresh=True)
                         ui.navigate.reload()
                     except Exception as e:
                         ui.notify(f"Unable to update venue: {str(e)}", type='negative')
