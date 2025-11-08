@@ -110,12 +110,7 @@ steps:
     args:
       - '-c'
       - |
-        STATUS="${BUILD_STATUS:-success}"
-        if [ "$STATUS" = "FAILURE" ]; then
-          MESSAGE="❌ Build FAILED for commit $COMMIT_SHA"
-        else
-          MESSAGE="✅ Build completed successfully for commit $COMMIT_SHA"
-        fi
+        MESSAGE="✅ Build completed successfully for commit $COMMIT_SHA"
         
         # Send to Telegram
         curl -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
