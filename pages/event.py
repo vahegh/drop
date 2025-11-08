@@ -30,8 +30,6 @@ async def event_page(event_id, logged_in=Depends(logged_in)):
     async with frame() as main_col:
         event_passed = event.ends_at < datetime.now(timezone.utc)
 
-        event_passed = False
-
         album_url = album_urls.get(event_id)
 
         if event_passed and not album_url:
