@@ -1,7 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from nicegui import ui
 from typing import Type, Union
-from nicegui.elements.label import Label
 from consts import email_validation, email_non_required, email_placeholder, calendar_base_url, google_calendar_img_url
 import urllib.parse
 from datetime import datetime
@@ -10,7 +9,6 @@ from uuid import UUID
 import urllib.parse
 from contextlib import contextmanager
 from nicegui import ui
-from nicegui.elements.label import Label
 from api_models import EventResponse, MemberCardResponse, EventTicketResponse, EventResponse, VenueResponse, PersonResponse
 from enums import PersonStatus
 from consts import (email_validation, insta_validation, name_validation,
@@ -373,7 +371,7 @@ def past_tickets_col(event_tickets, event_map):
                         with ui.card().props(remove='flat').classes('w-full max-w-96'):
                             with ui.row(wrap=False).classes('justify-between items-center w-full'):
                                 ui.label(event.name).classes(
-                                    'text-lg font-semibold')
+                                    'text-lg font-medium')
                                 ticket_indicator(
                                     ticket, bool(ticket.attended_at))
 

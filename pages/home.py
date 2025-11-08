@@ -95,9 +95,9 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                 large_google_button(request.url.path)
         ui.separator()
 
-        page_header("The Community")
         with ui.grid().classes('flex w-full justify-center p-2 gap-4'):
             with section():
+                page_header("The Community")
                 ui.markdown('''
 **Drop Dead Disco** is a dance music community for those who want more from a night out. 
 
@@ -107,7 +107,7 @@ We don't tell you the location beforehand, and every guest has to pass **verific
 ''').classes('text-md/5')
                 accented_button("Read More").on_click(lambda: ui.navigate.to('/about'))
 
-            with section("Stats"):
+            with section():
                 person_counts = await get_all_person_stats()
 
                 with ui.column().classes('w-full gap-4 px-4'):
