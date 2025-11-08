@@ -43,8 +43,8 @@ async def admin_page():
 </style>
 ''')
         async with frame(show_footer=False) as main_col:
-            main_col.classes('p-4 gap-4')
             await ui.context.client.connected()
+            main_col.classes('p-4 gap-4')
             with ui.footer().classes('p-0'):
                 with ui.tabs().classes(f'w-full bg-white text-primary').props('left-icon="none" right-icon="none" active-color="secondary"'):
                     ui.tab('events').classes('text-black').on('click',

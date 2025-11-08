@@ -43,7 +43,7 @@ def rectangular_email_input(required=True, **kwargs):
 
 def rounded_email_input():
     inp = ui.input(placeholder=email_placeholder, validation=email_validation).props(
-        'type=email rounded').on('blur', lambda: inp.validate()).without_auto_validation()
+        'type=email rounded').classes('w-full').on('blur', lambda: inp.validate()).without_auto_validation()
     return inp
 
 
