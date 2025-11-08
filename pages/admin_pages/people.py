@@ -95,7 +95,10 @@ async def persons_panel():
             for p in person_list:
                 with person_card(p):
                     with ui.row(wrap=False):
-                        ui.label(p.name).classes('w-48 text-left')
+                        with ui.row(wrap=False).classes('justify-start'):
+                            if p.avatar_url:
+                                ui.image(p.avatar_url).classes('size-8 rounded-full')
+                            ui.label(p.name).classes('w-48 text-left')
                         with ui.row(wrap=False).classes(remove='w-full'):
                             if p.status not in (PersonStatus.rejected, PersonStatus.pending):
                                 for event in sorted_events:
@@ -212,40 +215,43 @@ async def person_details_panel(person_id):
             except Exception as e:
                 ui.notify(f'Error deleting ticket: {str(e)}')
 
-    page_header(f'{person.name}')
+    with ui.card():
+        if person.avatar_url:
+            ui.image(person.avatar_url).classes('size-20 rounded-full')
+        page_header(f'{person.name}')
 
-    with ui.card().classes('w-full'):
         status_icon(person.status)
         ui.link(person.email, f"mailto:{person.email}").classes('text-lg')
         if person.instagram_handle:
             ui.link(f"@{person.instagram_handle}",
                     f"https://instagram.com/{person.instagram_handle}", new_tab=True).classes('text-lg')
 
-    with ui.row():
-        primary_button('Edit').on_click(create_dialog)
-        secondary_button('Delete').on_click(delete)
+        with ui.row().classes('justify-center'):
+            primary_button('Edit').on_click(create_dialog)
+            secondary_button('Delete').on_click(delete)
 
     all_tickets = await cache.fetch_all_event_tickets()
     person_tickets = [t for t in all_tickets if t.person_id == person.id]
 
     if person.status not in (PersonStatus.pending, PersonStatus.rejected):
-        section_title('Tickets')
+        with ui.card():
+            section_title('Tickets')
 
-        events = await cache.fetch_all_events()
-        event_map = {e.id: e for e in events}
+            events = await cache.fetch_all_events()
+            event_map = {e.id: e for e in events}
 
-        sorted_tickets = sorted(
-            person_tickets, key=lambda t: event_map[t.event_id].starts_at, reverse=True)
+            sorted_tickets = sorted(
+                person_tickets, key=lambda t: event_map[t.event_id].starts_at, reverse=True)
 
-        with ui.grid().classes('flex justify-center gap-2 p-0'):
-            for ticket in sorted_tickets:
-                event = event_map.get(ticket.event_id)
-                if event:
-                    with ui.card():
-                        with ui.row(wrap=False).classes('justify-between items-center w-full'):
-                            ticket_indicator(ticket, bool(ticket.attended_at))
-                            ui.label(event.name).classes('text-lg font-semibold').on('click',
-                                                                                     lambda: ui.navigate.to(f"{APP_BASE_URL}/pass/{person.id}", new_tab=True))
-                            ui.icon('delete').on('click', lambda: delete_ticket(ticket.id))
+            with ui.grid().classes('flex justify-center gap-2 p-0'):
+                for ticket in sorted_tickets:
+                    event = event_map.get(ticket.event_id)
+                    if event:
+                        with ui.card():
+                            with ui.row(wrap=False).classes('justify-between items-center w-full'):
+                                ticket_indicator(ticket, bool(ticket.attended_at))
+                                ui.label(event.name).classes('text-lg font-semibold').on('click',
+                                                                                         lambda: ui.navigate.to(f"{APP_BASE_URL}/pass/{person.id}", new_tab=True))
+                                ui.icon('delete').on('click', lambda: delete_ticket(ticket.id))
 
-        primary_button('Create Ticket').on_click(lambda: create_ticket_dialog())
+            primary_button('Create Ticket').on_click(lambda: create_ticket_dialog())
