@@ -118,8 +118,9 @@ steps:
     id: 'notify-telegram'
     waitFor: ['deploy']
     secretEnv: ['TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID']
-  options:
-    logging: CLOUD_LOGGING_ONLY
+
+options:
+  logging: CLOUD_LOGGING_ONLY
 
 availableSecrets:
   secretManager:
