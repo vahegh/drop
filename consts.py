@@ -60,7 +60,7 @@ album_urls = {
     '1470f7b7-0f21-4ef4-84e9-639ced8e692f': "https://photos.google.com/share/AF1QipPn4b0BCUT5qGC0Nqwy2jMZQS-w88tg6jKiyRbZWzkDd7VWASeavmKCJSWtDpaFlg?key=UG5WWS1pMFAyaHVPR2dSd29HWUlIRGhYRlpUaGFR",
     '6deb74b2-6f66-4eef-9f69-56e0f8e1e8bb': "https://photos.google.com/share/AF1QipPLA4siefjMD3pMl3GJsEfVjT-BqtB6eEng2aLpOoPTpYi-KlEWnBUP_t0T-WtS0Q?key=U0tJaFpxb2RybldUb1ZtWG1rRVZDd0dGaEpUSjNn",
     '4c40ff61-50b3-48c8-84eb-51debe0bf5f0': "https://photos.google.com/share/AF1QipMJresCkkmy7nlBsh4bvb1jN6QgfhF1t_vs5ZfHwLXlKcn8g3B-vln8FPkIloxpYw?key=bWtMRnVsZGlCM01KWlBLRFV2T3ROYVhZSzRESGJ3",
-    '21324509-cb82-4a6a-bab1-751d67dad583': "https://photos.google.com/u/1/share/AF1QipMFzT7sqqLQJ_C-XyUolap1k3CTA_qY2A2p7VyoBH8aqikBDKVZ22xNeQWuwMvYLw?key=NFJDZHNEUllONy1tNmRmZDRBaVUzRU9OUHV4czFR"
+    '21324509-cb82-4a6a-bab1-751d67dad583': "https://photos.google.com/share/AF1QipMFzT7sqqLQJ_C-XyUolap1k3CTA_qY2A2p7VyoBH8aqikBDKVZ22xNeQWuwMvYLw?key=NFJDZHNEUllONy1tNmRmZDRBaVUzRU9OUHV4czFR"
 }
 
 
