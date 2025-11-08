@@ -9,7 +9,8 @@ from fastapi.responses import RedirectResponse
 from db import with_db
 from consts import APP_BASE_URL, APPLICATION_SUBMITTED_SUBJECT, APPLICATION_SUBMITTED_TEMPLATE
 from api_models import VerifyPersonRequest, ValidateTokenRequest, ValidateTokenResponse, PersonCreate, PersonUpdate
-from routes.person import get_person_by_email, update_person
+from routes.person import update_person
+from services.person import get_person_by_email
 from routes.event import get_event_info
 from routes.event_ticket import get_tickets_by_person_id
 from services.event_ticket import create_event_ticket
@@ -34,10 +35,9 @@ router = APIRouter(tags=['Auth'], prefix="/api/auth")
 @router.post("/verify-person")
 @with_db
 async def verify_person(db: AsyncSession, request: VerifyPersonRequest):
-    try:
-        person = await get_person_by_email(request.email)
-    except HTTPException:
-        raise
+    person = await get_person_by_email(request.email)
+    if not person:
+        raise HTTPException(404, "No such person")
 
     event = await db.get(Event, request.event_id)
     if not event:
@@ -196,7 +196,7 @@ async def refresh(db: AsyncSession, request: Request):
 
     await db.commit()
 
-    response = RedirectResponse('/', 302)
+    response = RedirectResponse(request.url, 302)
 
     response.set_cookie("access_token", new_access, httponly=True,
                         secure=True, samesite="lax", max_age=15*60, path="/")
