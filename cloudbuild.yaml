@@ -105,5 +105,36 @@ steps:
     id: 'deploy'
     waitFor: ['push']
 
+  - name: 'gcr.io/cloud-builders/gke-deploy'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        STATUS="${BUILD_STATUS:-success}"
+        if [ "$STATUS" = "FAILURE" ]; then
+          MESSAGE="❌ Build FAILED for commit $COMMIT_SHA"
+        else
+          MESSAGE="✅ Build completed successfully for commit $COMMIT_SHA"
+        fi
+        
+        # Send to Telegram
+        curl -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+          -H "Content-Type: application/json" \
+          -d "{
+            \"chat_id\": \"${TELEGRAM_CHAT_ID}\",
+            \"text\": \"$MESSAGE\",
+            \"parse_mode\": \"HTML\"
+          }"
+    id: 'notify-telegram'
+    waitFor: ['deploy']
+    secretEnv: ['TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID']
+
 options:
   logging: CLOUD_LOGGING_ONLY
+
+availableSecrets:
+  secretManager:
+    - versionName: projects/$PROJECT_ID/secrets/telegram_bot_token/versions/latest
+      env: 'TELEGRAM_BOT_TOKEN'
+    - versionName: projects/$PROJECT_ID/secrets/telegram_chat_id/versions/latest
+      env: 'TELEGRAM_CHAT_ID'
