@@ -19,12 +19,8 @@ from dependencies import Depends, logged_in
 @ui.page('/', title='Home | Drop Dead Disco', response_timeout=50)
 async def home_page(request: Request, logged_in=Depends(logged_in)):
     async with frame() as f:
-        video_url = app.add_static_file(local_file="static/images/bg_video.mp4")
-        ui.video(video_url, controls=False).classes(
-            'w-full object-cover h-[60vh]').props('autoplay loop muted playsinline')
-        ui.context.client.page_container.classes('relative -top-14')
 
-        f.classes('gap-6')
+        f.classes('gap-2')
         upcoming_events: list[EventResponse] = []
         past_events: list[EventResponse] = []
 
@@ -32,18 +28,26 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
         events = await cache.fetch_all_events()
         await cache.fetch_all_venues()
 
+        video_url = app.add_static_file(local_file="static/images/bg_video.mp4")
+        vid = ui.video(video_url, controls=False).classes(
+            'w-full object-cover h-[80vh]').props('autoplay loop muted playsinline')
+        ui.context.client.page_container.classes('relative -top-14')
+
         if logged_in:
+            vid.classes(add='h-[20vh]', remove='h-[80vh]')
             person: PersonResponseFull = request.state.person
-            with ui.row(wrap=False).classes('flex px-4 max-w-96 justify-center'):
-                if person.avatar_url:
-                    ui.image(person.avatar_url).classes(
-                        'size-14 rounded-full flex-none')
+            with section():
+                with ui.row(wrap=False).classes('flex max-w-96'):
+                    if person.avatar_url:
+                        ui.image(person.avatar_url).classes(
+                            'size-16 rounded-full flex-none')
 
-                with ui.column().classes('gap-0').classes(''):
-                    status_icon(person.status)
-                    page_header(person.name)
+                    with ui.column().classes('gap-0 items-end'):
+                        status_icon(person.status)
+                        page_header(person.name).classes('text-right')
 
-            with ui.grid().classes('flex w-full justify-center p-4 gap-8'):
+            ui.separator()
+            with ui.grid().classes('flex w-full justify-center p-2 gap-4'):
                 user_agent = await get_user_agent(request)
                 next_event = await cache.fetch_next_event()
 
@@ -62,21 +66,20 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                     past_tickets_col(event_tickets, event_map)
 
                 elif person.status == PersonStatus.member:
-                    with section("Your pass"):
+                    with section():
                         member_card(person.member_pass, person.events_attended, user_agent)
 
                     if person.drive_folder_url:
-                        with section("Your photos"):
+                        with section():
                             svg_url = app.add_static_file(
                                 local_file='static/images/google_drive.svg')
 
-                            ui.markdown("""
-                            As a Member, you get access to **all photos** of you captured during Drop events, in full quality.  
-
-                            *note: this folder is only visible to you*""").classes('text-center')
-
+                            ui.markdown(
+                                "As a Member, you get access to **all photos of you** captured during Drop events, in full quality.").classes('text-center')
                             primary_button("Open in Google Drive", icon=f"img:{svg_url}").on_click(
                                 lambda: ui.navigate.to(person.drive_folder_url))
+                            ui.markdown(
+                                "*note: this folder is only visible to you*").classes('text-center')
 
                     past_tickets_col(event_tickets, event_map)
 
@@ -93,8 +96,8 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
         ui.separator()
 
         page_header("The Community")
-        with ui.grid().classes('flex w-full justify-center p-4 gap-8'):
-            with section("About us"):
+        with ui.grid().classes('flex w-full justify-center p-2 gap-4'):
+            with section():
                 ui.markdown('''
 **Drop Dead Disco** is a dance music community for those who want more from a night out. 
 
@@ -121,7 +124,7 @@ We don't tell you the location beforehand, and every guest has to pass **verific
                     #     ui.label(person_counts[PersonStatus.pending]).classes(
                     #         f'text-3xl font-semibold text-[{status_colors.get(PersonStatus.pending)}]')
 
-            with section("People"):
+            with section():
                 album_url = "https://photos.google.com/share/AF1QipNb8__JbXtuax9DJm21Ca666tb2o4voA1u09nj0Z04jhyNjfdzcQ-1KTMqI7N9zNA?key=MG11Qm01N1JRWGxZUElGazdvcGlzOEw4VWVobUdR"
                 image_carousel(await get_album_urls(album_url))
 
@@ -139,7 +142,7 @@ We don't tell you the location beforehand, and every guest has to pass **verific
                         'click', lambda i, e=e: ui.navigate.to(f'/event/{e.id}'))
 
         section_title("Previous events").classes('w-full text-center')
-        with ui.grid().classes('flex w-full justify-center p-4 gap-4'):
+        with ui.grid().classes('flex w-full justify-center p-2 gap-4'):
             for e in past_events:
                 venue = await cache.fetch_venue(e.venue_id)
                 event_card(e, venue, show_venue=True).on(
