@@ -1,11 +1,10 @@
-from fastapi import Request
-from consts import favicon_path, APP_BASE_URL
+from consts import favicon_path
 from helpers import is_cloud_run
 import logging
 import os
 
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from routes.auth import router as auth_router
 from routes.venue import router as venue_router
 from routes.event import router as event_router
@@ -17,12 +16,9 @@ from routes.member_pass import router as member_router
 from routes.event_ticket import router as ticket_router
 from routes.attendance import router as attendance_router
 from routes.apple_pass_updates import router as apple_pass_updates
-from starlette.middleware.base import BaseHTTPMiddleware
 from services.drive import drive_service
-from fastapi import Request, HTTPException
-from routes.auth import refresh, logout
-from routes.user import user_info, modify_user
-from api_models import PersonUpdate
+
+from dependencies import AuthMiddleware
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -31,44 +27,6 @@ logger = logging.getLogger(__name__)
 class NoWebSocketFilter(logging.Filter):
     def filter(self, record):
         return "WebSocket" not in record.getMessage()
-
-
-class AuthMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        access_token = request.cookies.get('access_token')
-        refresh_token = request.cookies.get('refresh_token')
-
-        request.state.logged_in = False
-        request.state.person = None
-
-        if request.url.path.startswith('/api'):
-            return await call_next(request)
-
-        if request.url.path in ['/logout', '/login', '/signup']:
-            return await call_next(request)
-
-        async def silent_refresh():
-            if refresh_token:
-                try:
-                    return await refresh(request)
-                except HTTPException:
-                    return await logout()
-            else:
-                return await call_next(request)
-
-        if access_token:
-            try:
-                person = await user_info(request)
-            except HTTPException:
-                return await silent_refresh()
-
-        else:
-            return await silent_refresh()
-
-        request.state.logged_in = True
-        request.state.person = person
-
-        return await call_next(request)
 
 
 @asynccontextmanager
