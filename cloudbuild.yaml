@@ -1,14 +1,6 @@
 steps:
   - name: 'gcr.io/cloud-builders/docker'
     entrypoint: 'bash'
-    args:
-      - '-c'
-      - 'docker pull europe-west4-docker.pkg.dev/cloud-builders/docker/cloud-sdk:slim'
-    id: 'pull-cloudsdk'
-    waitFor: ['-']
-
-  - name: 'gcr.io/cloud-builders/docker'
-    entrypoint: 'bash'
     args: 
       - '-c'
       - 'docker pull europe-west4-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/drop/drop:latest || exit 0'
