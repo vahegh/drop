@@ -111,7 +111,7 @@ async def login(request: Request):
     return await login_user(token, redirect_url)
 
 
-# @router.get("/login-user")
+@router.get("/login-user")
 @with_db
 async def login_user(db: AsyncSession, token, redirect_url='/'):
     try:
