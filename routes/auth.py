@@ -75,7 +75,7 @@ async def register(db: AsyncSession, person: PersonCreate):
     await db.commit()
     await notify_application(new_person)
 
-    context = {"name": person.name}
+    context = {"name": person.first_name}
     template = await generate_template(APPLICATION_SUBMITTED_TEMPLATE, context)
 
     email_request = EmailRequest(
@@ -131,7 +131,6 @@ async def login_user(db: AsyncSession, token, redirect_url='/'):
             raise HTTPException(401, "Rejected")
 
         avatar_url = id_info.get('picture')
-        logger.info(id_info)
 
         if avatar_url:
             update_req = PersonUpdate(avatar_url=avatar_url)

@@ -40,7 +40,7 @@ async def frame(show_footer=True):
                         else:
                             ui.icon('account_circle', size='xl')
 
-                        section_title(person.name).classes('text-center')
+                        section_title(person.full_name).classes('text-center')
                         b = secondary_button('Logout')
                         b.on_click(lambda: b.props(add='loading'))
                         b.on_click(lambda: ui.navigate.to(

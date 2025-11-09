@@ -36,19 +36,6 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
 
     attendees = [person]
 
-    async def send_pass(person: PersonResponse, btn: Button):
-        btn.props(add='loading')
-        try:
-            if person.status == PersonStatus.verified:
-                await create_event_ticket(person.id, event.id)
-            elif person.status == PersonStatus.member:
-                await create_member_pass(person.id)
-            toast(f"Successfully sent pass to {person.email}.")
-        except HTTPStatusError:
-            toast("Failed to resend pass. Please try again later.", type='negative')
-        finally:
-            btn.props(remove='loading')
-
     async def main_page():
         main_col.classes('gap-2')
 
@@ -178,7 +165,7 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
             event_datetime_col(event)
 
         with section():
-            with section("Attendees", subtitle="Note: you can only add people who are verified. Each ticket will be sent to the holder's email."):
+            with section("Attendees", subtitle="You can only add people who are verified. They'll see their ticket on their profile."):
 
                 attendee_list_container = ui.column().classes('gap-2 w-full')
                 add_button = secondary_button(icon='person_add').on_click(show_add_attendee_input)
@@ -255,18 +242,15 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
         main_col.classes(add='gap-5 p-5')
         ui.row()
         title = ui.label().classes('text-3xl font-bold p-4')
-        with ui.column():
-            subtitle = ui.label().classes('text-lg')
-            send_again_btn = secondary_button('Send it again').on_click(
-                lambda: send_pass(person, send_again_btn))
-            primary_button('Buy for others').on_click(create_main_page)
-
         if person.status == PersonStatus.verified:
             title.text = f"You already have a ticket for {event.name}"
-            subtitle.text = f"Haven't received it?"
         elif person.status == PersonStatus.member:
             title.text = f"You can use your Membership pass to access {event.name}"
-            subtitle.text = f"Can't find it?"
+
+        with ui.column():
+            ui.label("You can see it in your profile").classes('text-lg')
+            secondary_button('Go to your profile').on_click(lambda: ui.navigate.to('/'))
+            primary_button('Buy another ticket').on_click(create_main_page)
 
     async def create_main_page():
         attendees.clear()

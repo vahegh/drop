@@ -137,9 +137,10 @@ class DriveService:
     async def create_and_share_folder(self, person: Person):
         drive_folder = await self.find_folder_by_person_id(person.id)
         if drive_folder:
-            logger.info(f"{person.name} already has a folder: {drive_folder.name}")
+            logger.info(f"{f"{person.first_name} {person.last_name}"} already has a folder: {
+                        drive_folder.name}")
         else:
-            drive_folder = await self.create_drive_folder(person.id, person.name)
+            drive_folder = await self.create_drive_folder(person.id, f"{person.first_name} {person.last_name}")
         await self.share_folder_with_email(drive_folder.id, person.email)
 
         return f"{drive_folder.web_view_link}?authuser={person.email}"

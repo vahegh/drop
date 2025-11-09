@@ -1,21 +1,17 @@
+import logging
 from sqlalchemy import select
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import HTTPException, Request
+from sqlalchemy.ext.asyncio import AsyncSession
+from enums import PersonStatus
 from decorators import with_db
+from decorators import verify_user_token
+from db_models import Person,  MemberPass
 from api_models import PersonUpdate, PersonResponseFull
 from routes.event_ticket import get_tickets_by_person_id
-from decorators import verify_user_token
-from enums import PersonStatus
-from db_models import Person,  MemberPass
-import logging
-from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 
 
-router = APIRouter(tags=['User'], prefix="/api/user")
-
-
-# @router.get("/me")
 @with_db
 async def user_info(db: AsyncSession, request: Request):
     person = await verify_user_token(request)
@@ -29,7 +25,9 @@ async def user_info(db: AsyncSession, request: Request):
 
     response = PersonResponseFull(
         id=person.id,
-        name=person.name,
+        first_name=person.first_name,
+        last_name=person.last_name,
+        full_name=f"{person.first_name} {person.last_name}",
         email=person.email,
         instagram_handle=person.instagram_handle,
         telegram_handle=person.telegram_handle,
@@ -44,7 +42,6 @@ async def user_info(db: AsyncSession, request: Request):
     return response
 
 
-# @router.put("/me")
 @with_db
 async def modify_user(db: AsyncSession, updated_person: PersonUpdate, request: Request):
     person = await verify_user_token(request)

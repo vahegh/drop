@@ -15,7 +15,8 @@ telegram_api_url = f"https://api.telegram.org/bot{telegram_bot_token}"
 
 async def notify_application(person: Person):
     text = f"""<b>New application!</b>
-    <b>Name:</b> {person.name}
+    <b>First name:</b> {person.first_name}
+    <b>Last name:</b> {person.last_name}
     <b>Email:</b> {person.email}
     <b>Instagram:</b> <a href='https://www.instagram.com/{person.instagram_handle}'>@{person.instagram_handle}</a>"""
     reply_markup = {
@@ -34,7 +35,8 @@ async def notify_application(person: Person):
 
 async def notify_payment_page_view(person: Person):
     text = f"""<b>New payment page view!</b>
-    <b>Name:</b> {person.name}
+    <b>First name:</b> {person.first_name}
+    <b>Last name:</b> {person.last_name}
     <b>Instagram:</b> <a href='https://www.instagram.com/{person.instagram_handle}'>@{person.instagram_handle}</a>"""
     tg_message = TelegramMessage(
         chat_id=telegram_chat_id_payments,
@@ -44,7 +46,8 @@ async def notify_payment_page_view(person: Person):
 
 async def notify_payment_init(person: Person, payment: Payment, recipients: list[str]):
     text = f"""<b>Payment initialized!</b>
-    <b>Name:</b> {person.name}
+    <b>First name:</b> {person.first_name}
+    <b>Last name:</b> {person.last_name}
     <b>Instagram:</b> <a href='https://www.instagram.com/{person.instagram_handle}'>@{person.instagram_handle}</a>
     <b>Amount: {int(payment.amount)} AMD</b>
     <b>Provider:</b> {payment.provider.value}
@@ -58,7 +61,8 @@ async def notify_payment_init(person: Person, payment: Payment, recipients: list
 
 async def notify_payment_confirmed(person: Person, payment: Payment, recipients: list[str]):
     text = f"""<b>Payment confirmed!</b>
-    <b>Name:</b> {person.name}
+    <b>First name:</b> {person.first_name}
+    <b>Last name:</b> {person.last_name}
     <b>Instagram:</b> <a href='https://www.instagram.com/{person.instagram_handle}'>@{person.instagram_handle}</a>
     <b>Amount: {int(payment.amount)} AMD</b>
     <b>Provider:</b> {payment.provider.value}

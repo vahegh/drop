@@ -1,19 +1,17 @@
-import httpx
-import re
 import os
-from api_models import *
-from typing import List, Union
-from nicegui import ui
+import re
 import base64
-from nicegui import app
 import qrcode
-from qrcode.image.styledpil import StyledPilImage
-from qrcode.image.styles.moduledrawers.pil import RoundedModuleDrawer
-from qrcode.image.styles.colormasks import SolidFillColorMask
+from uuid import UUID
 from io import BytesIO
-from fastapi import HTTPException, Request
-from routes.user import user_info, modify_user
-from routes.auth import login, logout, refresh
+from datetime import datetime
+from typing import List, Union
+import httpx
+from fastapi import Request
+from pydantic import BaseModel
+from qrcode.image.styledpil import StyledPilImage
+from qrcode.image.styles.colormasks import SolidFillColorMask
+from qrcode.image.styles.moduledrawers.pil import RoundedModuleDrawer
 
 
 def is_cloud_run():

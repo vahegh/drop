@@ -40,7 +40,8 @@ class VenueResponse(BaseModel):
 
 
 class PersonCreate(BaseModel):
-    name: str
+    first_name: str
+    last_name: str
     email: EmailStr
     instagram_handle: str
     telegram_handle: Optional[str] = None
@@ -48,7 +49,8 @@ class PersonCreate(BaseModel):
 
 
 class PersonUpdate(BaseModel):
-    name: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
     email: Optional[EmailStr] = None
     instagram_handle: Optional[str] = None
     telegram_handle: Optional[str] = None
@@ -59,7 +61,8 @@ class PersonUpdate(BaseModel):
 
 class PersonResponse(BaseModel):
     id: UUID
-    name: str
+    first_name: str
+    last_name: str
     email: EmailStr
     instagram_handle: str
     telegram_handle: Optional[str]
@@ -364,7 +367,9 @@ class ValidateTokenResponse(BaseModel):
 
 class PersonResponseFull(BaseModel):
     id: UUID
-    name: str
+    first_name: str
+    last_name: str
+    full_name: str
     email: EmailStr
     instagram_handle: str
     telegram_handle: Optional[str] = None

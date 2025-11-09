@@ -55,9 +55,9 @@ async def create_member_pass(db: AsyncSession, member_pass: MemberPass):
         ends_at = next_event.ends_at.astimezone(TIMEZONE).isoformat()
         event_url = f"{APP_BASE_URL}/event/{next_event.id}"
 
-        google_url = await create_google_member_pass(pass_id, GOOGLE_MEMBER_CLASS_ID, member_id, person.name, attendance)
+        google_url = await create_google_member_pass(pass_id, GOOGLE_MEMBER_CLASS_ID, member_id, f"{person.first_name} {person.last_name}", attendance)
         apple_url = await create_apple_member(pass_id,
-                                              person.name,
+                                              f"{person.first_name} {person.last_name}",
                                               member_id,
                                               attendance,
                                               next_event.name,
@@ -68,8 +68,8 @@ async def create_member_pass(db: AsyncSession, member_pass: MemberPass):
                                               starts_at,
                                               ends_at)
     else:
-        google_url = await create_google_member_pass(pass_id, GOOGLE_MEMBER_CLASS_ID, member_id, person.name, attendance)
-        apple_url = await create_apple_member(pass_id, person.name, member_id, attendance)
+        google_url = await create_google_member_pass(pass_id, GOOGLE_MEMBER_CLASS_ID, member_id, f"{person.first_name} {person.last_name}", attendance)
+        apple_url = await create_apple_member(pass_id, f"{person.first_name} {person.last_name}", member_id, attendance)
 
     await apple_notify_pass_devices(pass_id)
 

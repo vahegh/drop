@@ -10,7 +10,6 @@ from routes.venue import router as venue_router
 from routes.event import router as event_router
 from routes.telegram import router as tg_router
 from routes.person import router as person_router
-from routes.user import router as user_router
 from routes.payment import router as payment_router
 from routes.member_pass import router as member_router
 from routes.event_ticket import router as ticket_router
@@ -48,7 +47,6 @@ fastapi_app.include_router(payment_router)
 fastapi_app.include_router(person_router)
 fastapi_app.include_router(event_router)
 fastapi_app.include_router(venue_router)
-fastapi_app.include_router(user_router)
 
 fastapi_app.include_router(auth_router)
 fastapi_app.include_router(tg_router)

@@ -13,7 +13,7 @@ from decorators import with_db
 
 # async def send_magic_link(person: Person, event_name: str, link: str):
 #     context = {
-#         "name": person.name,
+#         "name": person.first_name,
 #         "event_name": event_name,
 #         "payment_link": link
 #     }
@@ -31,7 +31,7 @@ async def send_member_pass(db: AsyncSession, member_pass: MemberPass, purchase=F
     person = await db.get(Person, member_pass.person_id)
 
     context = {
-        "name": person.name,
+        "name": person.first_name,
         "pass_page": f"{APP_BASE_URL}/pass/{person.id}",
         "serial_no": str(member_pass.serial_number).zfill(3),
         "events_attended": str(await get_attendance(person.id)),
@@ -59,7 +59,7 @@ async def send_event_ticket(db: AsyncSession, event_ticket: EventTicket):
     starts_at_local = event.starts_at.astimezone(TIMEZONE)
     ends_at_local = event.starts_at.astimezone(TIMEZONE)
     context = {
-        "name": person.name,
+        "name": person.first_name,
         "event_name": event.name,
         "homepage_url": APP_BASE_URL,
         "event_date": starts_at_local.strftime("%A, %d %B"),

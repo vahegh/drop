@@ -61,7 +61,7 @@ async def create_person(db: AsyncSession, person: PersonCreate):
     await db.commit()
     await notify_application(new_person)
 
-    context = {"name": person.name}
+    context = {"name": person.first_name}
     template = await generate_template(APPLICATION_SUBMITTED_TEMPLATE, context)
 
     email_request = EmailRequest(
@@ -89,7 +89,7 @@ async def update_person(db: AsyncSession, id: UUID, updated_person: PersonUpdate
             raise HTTPException(409, "Email already exists")
 
     email_request = None
-    context = {"name": person.name}
+    context = {"name": person.first_name}
 
     match updated_person.status:
         case None:

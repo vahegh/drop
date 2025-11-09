@@ -298,7 +298,7 @@ async def event_details_panel(event_id):
             p = await get_person(t.person_id)
             with person_card(p):
                 with ui.row(wrap=False).classes('items-center'):
-                    ui.label(p.name).classes(' text-center')
+                    ui.label(f"{p.first_name} {p.last_name}").classes('text-center')
                     ui.label(t.attended_at.astimezone().strftime(
                         "%H:%M") if t.attended_at else "").classes('text-sm ml-auto')
                     ticket_indicator(True, bool(t.attended_at))

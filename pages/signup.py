@@ -30,9 +30,6 @@ async def signup_page(token):
             insta_input = instagram_input()
 
         async def submit():
-            name, email, insta = f"{firstname_input.value.strip()} {lastname_input.value.strip()}", email_input.value.strip(
-            ), insta_input.value.strip().lstrip('@')
-
             if not all([
                 firstname_input.validate(),
                 lastname_input.validate(),
@@ -41,10 +38,16 @@ async def signup_page(token):
             ]):
                 return
 
+            first_name = firstname_input.value.strip()
+            last_name = lastname_input.value.strip()
+            email = email_input.value.strip()
+            insta = insta_input.value.strip().lstrip('@')
+
             btn.props(add='loading')
 
             payload = PersonCreate(
-                name=name,
+                first_name=first_name,
+                last_name=last_name,
                 email=email,
                 instagram_handle=insta,
                 avatar_url=token_info['picture']

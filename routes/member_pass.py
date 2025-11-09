@@ -7,7 +7,7 @@ from enums import PersonStatus
 from db_models import MemberPass, Person
 from services.send_pass import send_member_pass
 from services.member_pass import create_member_pass
-from api_models import MemberCardCreate, MemberCardResponse
+from api_models import MemberCardCreate
 
 router = APIRouter(tags=['Member Pass'], prefix="/api/member-pass")
 

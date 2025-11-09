@@ -103,7 +103,7 @@ async def venue_reveal(db: AsyncSession, event_id: UUID):
     print(p.email for p in persons)
 
     for person in persons:
-        context['name'] = person.name
+        context['name'] = person.first_name
         outgoing_email = EmailRequest(
             recipient_email=person.email,
             subject=f"Location Update For {event.name}",

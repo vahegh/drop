@@ -69,7 +69,7 @@ async def persons_panel():
             categorized['rejected'].append(p)
 
     for category in categorized.values():
-        category.sort(key=lambda p: p.name.lower())
+        category.sort(key=lambda p: p.first_name.lower())
 
     pending_persons = categorized['pending']
     members = categorized['members']
@@ -97,7 +97,7 @@ async def persons_panel():
                         with ui.row(wrap=False).classes('justify-start'):
                             if p.avatar_url:
                                 ui.image(p.avatar_url).classes('size-8 rounded-full')
-                            ui.label(p.name).classes('w-48 text-left')
+                            ui.label(f"{p.first_name} {p.last_name}").classes('w-48 text-left')
                         if header:
                             with ui.row(wrap=False).classes(remove='w-full'):
                                 for event in sorted_events:
@@ -215,7 +215,7 @@ async def person_details_panel(person_id):
     with ui.card():
         if person.avatar_url:
             ui.image(person.avatar_url).classes('size-20 rounded-full')
-        page_header(f'{person.name}')
+        page_header(f'{person.first_name} {person.last_name}')
 
         status_icon(person.status)
         ui.link(person.email, f"mailto:{person.email}").classes('text-lg')

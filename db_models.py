@@ -26,7 +26,9 @@ class Person(Base):
     __tablename__ = 'person'
     id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True,
                                      server_default=text("gen_random_uuid()"))
-    name: Mapped[str] = mapped_column(String)
+    # name: Mapped[str] = mapped_column(String)
+    first_name: Mapped[str] = mapped_column(String)
+    last_name: Mapped[str] = mapped_column(String)
     email: Mapped[str] = mapped_column(String, unique=True)
     instagram_handle: Mapped[str] = mapped_column(String, nullable=True)
     telegram_handle: Mapped[str] = mapped_column(String, nullable=True)

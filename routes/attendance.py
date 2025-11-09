@@ -57,7 +57,7 @@ async def add_attendance(db: AsyncSession, pass_id: UUID):
             }
         }
         await patch_member_object(pass_id, attendance_body)
-        await create_apple_member(str(pass_id), person.name, db_pass.serial_number, attendance)
+        await create_apple_member(str(pass_id), f"{person.first_name, person.last_name}", db_pass.serial_number, attendance)
 
     return person
 

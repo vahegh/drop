@@ -49,7 +49,7 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
 
                     with ui.column().classes('gap-0 items-end'):
                         status_icon(person.status)
-                        page_header(person.name).classes('text-right')
+                        page_header(person.full_name).classes('text-right')
 
             ui.separator()
             with ui.grid().classes('flex w-full justify-center p-2 gap-4'):

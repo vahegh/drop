@@ -26,7 +26,8 @@ async def webhook(request: Request):
         db_person = await update_person(person_id, person)
 
         message = (
-            f"<b>Name:</b> {db_person.name}\n"
+            f"<b>First name:</b> {person.first_name}\n"
+            f"<b>Last name:</b> {person.last_name}\n"
             f"<b>Email:</b> {db_person.email}\n"
             f"<b>Instagram:</b> <a href='https://www.instagram.com/{db_person.instagram_handle}'>@{db_person.instagram_handle}</a>\n"
             f"Status: {status}."

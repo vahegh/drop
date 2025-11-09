@@ -92,4 +92,4 @@ async def update_apple_ticket_info(db: AsyncSession, event_id: UUID):
             print("member, continuing")
             continue
         await create_event_ticket(t)
-        print(f"ticket updated for {person.name}")
+        print(f"ticket updated for {f"{person.first_name} {person.last_name}"}")

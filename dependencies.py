@@ -1,6 +1,6 @@
 from fastapi import Request, HTTPException, Depends
 from starlette.middleware.base import BaseHTTPMiddleware
-from routes.user import user_info
+from services.user import user_info
 from routes.auth import refresh, logout
 
 

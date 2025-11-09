@@ -35,9 +35,9 @@ async def create_event_ticket(db: AsyncSession, ticket: EventTicket):
     ends_at = event.ends_at.astimezone(TIMEZONE).isoformat()
     event_url = f"{APP_BASE_URL}/event/{event.id}"
 
-    google_url = await create_google_ticket(pass_id, event.id, person.name)
+    google_url = await create_google_ticket(pass_id, event.id, f"{person.first_name} {person.last_name}")
     apple_url = await create_apple_ticket(pass_id,
-                                          person.name,
+                                          f"{person.first_name} {person.last_name}",
                                           event.name,
                                           event_url,
                                           venue.name,
