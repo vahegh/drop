@@ -83,4 +83,4 @@ async def create_member_pass(db: AsyncSession, member_pass: MemberPass):
     await db.commit()
     await db.refresh(member_pass)
 
-    return member_pass, existing
+    return member_pass

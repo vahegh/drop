@@ -1,4 +1,7 @@
-<div style="font-family: georgia; max-width: 600px; margin: 0 auto; padding: 10px; line-height: 1.6; font-size: 16px;">
+<div style="font-family: arial; max-width: 600px; margin: 0 auto; padding: 10px; line-height: 1.6; font-size: 16px;">
+    <div style="display: none; max-height: 0px; overflow: hidden;">
+        {{ preheader_text }} <br>
+    </div>
     {% block content %}
     {% endblock %}
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" width="100%" height="40px">
@@ -6,7 +9,7 @@
             <td valign="middle" align="center">
                 <a href="https://dropdeadisco.com/">
                     <img src="https://storage.googleapis.com/dropdeadisco/images/logo_black.png"
-                        alt="Drop Dead Disco Logo" style="display:block;" width="25px">
+                        alt="Drop Dead Disco Logo" style="display:block;" width="30px">
                 </a>
             </td>
             <td valign="middle" align="center">
@@ -23,10 +26,32 @@
             </td>
             <td valign="middle" align="center">
                 <a href="https://www.youtube.com/@dropdeadisco" target="_blank">
-                    <img src="https://storage.googleapis.com/dropdeadisco/images/youtube.png" alt="Spotify"
+                    <img src="https://storage.googleapis.com/dropdeadisco/images/youtube.png" alt="Youtube"
                         style="display:block;" width="25px">
                 </a>
             </td>
         </tr>
     </table>
+    <div style="color: #686868; text-align: center; font-size: 12px;">
+
+        {% if unsubscribe_url %}
+        <p>
+            You received this email because you have an account with Drop Dead Disco.<br>
+            Don't want these?
+            <a href="{{ unsubscribe_url }}" style="text-decoration: underline;">Unsubscribe</a>
+        </p>
+        {% else %}
+        <p>
+            You received this email to notify you about your transactions or changes in your account.
+        </p>
+        {% endif %}
+
+        <p>
+            Drop Dead Disco<br>
+            Yerevan, Armenia
+        </p>
+    </div>
+
+
+
 </div>

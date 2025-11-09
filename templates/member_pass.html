@@ -2,16 +2,14 @@
 {% from 'components/button.html' import button %}
 
 {% block content %}
-<h1 style="text-align: center">Hey {{ name }},</h1>
+<h1 style="text-align: center">{{ name }},</h1>
 <p>
-    {% if resend %}
-    Did you lose your pass?<br>
-    Not again...
-    {% elif purchase %}
-    You know, you could've come without paying, we'd let you in anyway. Still, hugs and kisses, you're the best.
+    {% if purchase %}
+    Your purchase for <b>{{ event_name }}</b> is confirmed.<br>
+    Thank you for your support.
     {% else %}
-    All that hard work finally paid off... <i>you're now a Drop Dead Disco Member</i>.<br>
-    Congratulations! We're so happy to see you here!
+    You did it. <b>You're now a Drop Dead Disco Member.</b><br>
+    Welcome to the core community.
     {% endif %}
 </p>
 <p style="text-align: center">
@@ -26,15 +24,15 @@
     <span style="font-size: 32px; font-weight: bold;">{{ events_attended }} out of {{ total_events }}</span>
 </p>
 <p>
-    Tap this button to see your Membership pass. Add it to your <b>Google/Apple Wallet</b> to get updates.
+    Sign in to Drop Dead Disco to see your Membership pass. <b>Add it to Google/Apple Wallet</b> to get updates.
 </p>
-{{ button("your pass", pass_page) }}
+{{ button("see your pass", homepage_url) }}
 <p>
     You can use this pass to <b>attend all our events</b>. Event information will automatically update as it
     becomes available.
 </p>
 <p>
-    If you have any issues with your pass, please let us know by replying to this email or DM-ing us on Instagram <a
+    If you have any issues with your pass, please reply to this email or DM us on Instagram <a
         href="https://www.instagram.com/dropdeadisco/">@dropdeadisco</a>.
 </p>
 <p>

@@ -1,5 +1,6 @@
 {% extends "base_email.html" %}
 {% from 'components/button.html' import button %}
+{% from 'components/buy_for_others.html' import buy_for_others %}
 {% block content %}
 <h1 style="text-align: center">Hey {{ name }},</h1>
 <p>
@@ -9,21 +10,16 @@
 {% if description %}
 <p style="text-align: center; font-size: 14px;">{{ description }}</p>
 {% endif %}
-<p style="text-align: center"><b>Here's everything you need to know:</b></p>
 <p>
     Date: <b>{{ event_date }}</b><br>
     Time: <b>{{ start_time }}</b> - <b>{{ end_time }}</b><br>
     Early bird ticket price: <b>{{ early_bird_price }}</b> (until <b>{{ early_bird_date }}</b>)<br>
     Standard ticket price: <b>{{ standard_price }}</b><br>
     Member ticket price: <b>{{ member_price }}</b><br>
-    Location: <i><b>Yerevan. </b>Exact location will appear on your ticket <b>24 hours before</b>.</i><br>
+    Location: <i><b>Yerevan. </b>Exact location will appear on your ticket <b>one day before</b>.</i><br>
 </p>
 {{ button("info & tickets", event_url) }}
-<p style="text-align: center">
-    <i>Note: You can buy tickets for yourself and your friends, if they are also verified. Each person's ticket will be
-        sent
-        to their verified email. <b>Do not share your ticket with anyone.</b></i>
-</p>
+{{ buy_for_others() }}
 <p style="color: #aaa; text-align: center">
     See you on the dancefloor.
 </p>

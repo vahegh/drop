@@ -16,7 +16,6 @@ async def get_token():
     return credentials.token
 
 
-# DROP_HERO_IMAGE_URL = "https://storage.googleapis.com/dropdeadisco/images/DROP%20logo%20wide%20transparent.png"
 DROP_LOGO_URL = "https://storage.googleapis.com/dropdeadisco/images/ticket_logo.png"
 DROP_MEMBER_PASS_BG_COLOR = "#000000"
 DROP_EVENT_TICKET_BG_COLOR = "#FFFFFF"

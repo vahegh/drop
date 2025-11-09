@@ -1,26 +1,26 @@
 {% extends "base_email.html" %}
 {% from 'components/button.html' import button %}
+{% from 'components/buy_for_others.html' import buy_for_others %}
 {% block content %}
 <h1 style="text-align: center">Hey {{ name }},</h1>
 <p>
-    Your application to join <b>Drop Dead Disco</b> has been approved. <i>Welcome to the club</i>.
+    Your application to Drop Dead Disco has been <b>approved</b>.
 </p>
 <p>
-    You now have access to purchase tickets for upcoming events.
+    You're now part of a curated community of music lovers.
+    You can purchase tickets to all our upcoming events.
 </p>
-{% if event_name and payment_link %}
+{% if event_name and event_link %}
 <p>
-    Here's your link for <b>{{ event_name }}</b>.
+    <b>{{ event_name }}</b> is coming up. Get your ticket now by signing into your account:
 </p>
-{{ button("buy your ticket", payment_link) }}
-<p style="text-align: center">
-    <i>Note: You can buy tickets for yourself and your friends, if they are also verified. Each person's ticket will be
-        sent
-        to their verified email. <b>Do not share your ticket with anyone.</b></i>
-</p>
+{{ button("get your ticket", payment_link) }}
+{{ buy_for_others() }}
 {% else %}
 <p>
-    We do not have an upcoming event at the moment. When a new event is announced, you will immediately be notified.
+    We have no scheduled events right now, but you'll be the first to know when we announce the next one.<br>
+    Meanwhile, you can check out past events in our website, or listen to our curated playlists. Tap the logos below for
+    more.
 </p>
 {% endif %}
 <p style="color: #aaa; text-align: center">

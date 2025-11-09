@@ -7,7 +7,6 @@ from db_models import Person, MemberPass, RefreshToken
 from enums import PersonStatus
 from routes.event import get_next_event
 from services.auth import create_jwt
-from services.auth_validation import validate_google_token
 from services.send_pass import send_member_pass
 from services.telegram import notify_application
 from services.templating import generate_template
@@ -123,7 +122,7 @@ async def update_person(db: AsyncSession, id: UUID, updated_person: PersonUpdate
         case PersonStatus.member:
             member_pass = MemberPass(person_id=person.id)
             member_pass, _ = await create_member_pass(member_pass)
-            await send_member_pass(member_pass, resend=False)
+            await send_member_pass(member_pass)
 
     if email_request:
         await send_email(email_request)

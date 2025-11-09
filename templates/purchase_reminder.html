@@ -1,10 +1,11 @@
 {% extends "base_email.html" %}
 {% from 'components/button.html' import button %}
+{% from 'components/buy_for_others.html' import buy_for_others %}
 {% block content %}
 <h1 style="text-align: center">Hey {{ name }},</h1>
 <p>
-    Looking for <i>your</i> party this weekend?<br>
-    We might have something you'd want.
+    Looking for your party this weekend?<br>
+    We have something you'd want.
 </p>
 <p style="text-align: center;">
     <b>The next Drop happens tomorrow - this Saturday:</b>
@@ -13,23 +14,18 @@
 {% if description %}
 <p style="text-align: center; font-size: 14px;">{{ description }}</p>
 {% endif %}
-<p style="text-align: center"><b>Here's everything you need to know:</b></p>
 <p>
     Date: <b>{{ event_date }}</b><br>
     Time: <b>{{ start_time }}</b> - <b>{{ end_time }}</b><br>
     Standard ticket price: <b>{{ standard_price }}</b><br>
     Member ticket price: <b>{{ member_price }}</b><br>
-    Location: <i><b>Yerevan. </b>Exact location will appear on your ticket.</i><br>
+    Location: <i><b>Yerevan. </b>You can see the exact location on your ticket.</i><br>
 </p>
 <p>
     If you're reading this, then you're already verified, and can buy tickets to any of our events.<br>
 </p>
-{{ button("buy your ticket", payment_link) }}
-<p style="text-align: center">
-    <i>Note: You can buy tickets for yourself and your friends, if they are also verified. Each person's ticket will be
-        sent
-        to their verified email. <b>Do not share your ticket with anyone.</b></i>
-</p>
+{{ button("get your ticket", event_url) }}
+{{ buy_for_others() }}
 <p style="color: #aaa; text-align: center">
     See you on the dancefloor.
 </p>

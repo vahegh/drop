@@ -3,27 +3,20 @@
 {% block content %}
 <h1 style="text-align: center">Hey {{ name }},</h1>
 <p>
-    {% if resend %}
-    Where is your ticket? Did you lose it? <i>You did?</i></br>
-    Come on.
-    {% elif is_verified %}
-    Thank you for trusting us so much that you give us money. We're truly speechless...
-    {% else %}
-    You're invited to our upcoming event - <b>{{ event_name }}</b>
-    {% endif %}
+    Your ticket purchase for <b>{{ event_name }}</b> is confirmed.<br>
+    Thank you for trusting us with your money. We truly appreciate it.
 </p>
 <p>
-    Tap the button below to see your ticket. <b>Add it to Google/Apple Wallet</b> to get updates.
+    Sign in to Drop Dead Disco to see your ticket. <b>Add it to Google/Apple Wallet</b> to get updates.
 </p>
-{{ button("go to your ticket", pass_page) }}
+{{ button("see your ticket", homepage_url) }}
 <h2 style="text-align: center">{{ event_name }}</h2>
-<p style="text-align: center">
-    <b>Here's everything you need to know:</b>
-</p>
 <p>
     Date: <b>{{ event_date }}</b><br>
-    Start time: <b>{{ event_time }}</b><br>
-    Location: <i><b>{{ location | default('To be revealed 24 hours before the event.', true) }}</b></i><br>
+    Time: <b>{{ start_time }}</b> - <b>{{ end_time }}</b><br>
+    Location: <i><b>{{ location | default('Yerevan. Exact location will appear on your ticket the day before the
+            event.', true)
+            }}</b></i><br>
 </p>
 {% if google_maps_link and yandex_maps_link %}
 <table role="presentation" cellspacing="20" cellpadding="0" border="0" align="center">
@@ -43,10 +36,6 @@
     </tr>
 </table>
 {% endif %}
-<p style="text-align: center">
-    <b>Do not share your ticket with anyone.</b>
-</p>
-
 <p style="color: #aaa; text-align: center">
     See you on the dancefloor.
 </p>

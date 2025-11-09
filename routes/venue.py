@@ -9,7 +9,6 @@ from services.templating import generate_template
 from services.mailing import send_email, EmailRequest
 from api_models import VenueCreate, VenueResponse, VenueUpdate
 from db_models import Venue, EventTicket, Person, MemberPass, Event
-from services.auth_validation import validate_google_token
 
 router = APIRouter(tags=['Venue'], prefix="/api/venue")
 
