@@ -48,6 +48,5 @@ async def webhook(request: Request):
     return Response(status_code=200)
 
 
-@router.post("/payment-page-view")
 async def payment_page_view(person: PersonResponse):
     await notify_payment_page_view(Person(**person.model_dump()))

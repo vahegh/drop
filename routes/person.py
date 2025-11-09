@@ -2,7 +2,7 @@ from uuid import UUID
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import APIRouter, Depends, HTTPException, Response
-from db import with_db
+from decorators import with_db
 from db_models import Person, MemberPass, RefreshToken
 from enums import PersonStatus
 from routes.event import get_next_event
@@ -21,7 +21,7 @@ from consts import (APP_BASE_URL, APPLICATION_SUBMITTED_TEMPLATE, APPROVED_TEMPL
 router = APIRouter(tags=["Person"], prefix="/api/person")
 
 
-@router.get('/stats-all')
+# @router.get('/stats-all')
 @with_db
 async def get_all_person_stats(db: AsyncSession):
     result = await db.execute(
@@ -34,14 +34,14 @@ async def get_all_person_stats(db: AsyncSession):
     return stats
 
 
-@router.get("/all", response_model=list[PersonResponse])
+# @router.get("/all", response_model=list[PersonResponse])
 @with_db
 async def get_all_persons(db: AsyncSession):
     persons = await db.scalars(select(Person))
     return persons.all()
 
 
-@router.get("/{id}", response_model=PersonResponse)
+# @router.get("/{id}", response_model=PersonResponse)
 @with_db
 async def get_person(db: AsyncSession, id: UUID):
     existing_person = await db.get(Person, id)
@@ -50,7 +50,7 @@ async def get_person(db: AsyncSession, id: UUID):
     return existing_person
 
 
-@router.post("/", response_model=PersonResponse)
+# @router.post("/", response_model=PersonResponse)
 @with_db
 async def create_person(db: AsyncSession, person: PersonCreate):
     existing_email = await db.scalar(select(Person).where(Person.email == person.email))
@@ -75,7 +75,7 @@ async def create_person(db: AsyncSession, person: PersonCreate):
     return new_person
 
 
-@router.put("/{id}", response_model=PersonResponse)
+# @router.put("/{id}", response_model=PersonResponse)
 @with_db
 async def update_person(db: AsyncSession, id: UUID, updated_person: PersonUpdate):
     person = await db.get(Person, id)
@@ -136,7 +136,7 @@ async def update_person(db: AsyncSession, id: UUID, updated_person: PersonUpdate
     return person
 
 
-@router.delete("/{id}")
+# @router.delete("/{id}")
 @with_db
 async def delete_person(db: AsyncSession, id: UUID):
     existing_person = await db.get(Person, id)

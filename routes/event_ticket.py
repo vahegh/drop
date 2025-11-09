@@ -3,7 +3,7 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import APIRouter, HTTPException, Depends
-from db import with_db
+from decorators import with_db
 from enums import PersonStatus
 from services.send_pass import send_event_ticket
 from db_models import EventTicket, Person, Event
@@ -14,7 +14,7 @@ router = APIRouter(tags=['Event Ticket'], prefix="/api/event-ticket")
 logger = logging.getLogger(__name__)
 
 
-@router.get("/all", response_model=list[EventTicketResponse])
+# @router.get("/all", response_model=list[EventTicketResponse])
 @with_db
 async def get_all_tickets(db: AsyncSession, event_id: str = None):
     if event_id:
@@ -24,7 +24,7 @@ async def get_all_tickets(db: AsyncSession, event_id: str = None):
     return tickets.all()
 
 
-@router.get("/person/{person_id}", response_model=list[EventTicketResponse])
+# @router.get("/person/{person_id}", response_model=list[EventTicketResponse])
 @with_db
 async def get_tickets_by_person_id(db: AsyncSession, person_id: UUID, event_id: UUID = None):
     query = select(EventTicket).where(EventTicket.person_id == person_id)
@@ -38,7 +38,7 @@ async def get_tickets_by_person_id(db: AsyncSession, person_id: UUID, event_id: 
     return result.all()
 
 
-@router.get("/{id}", response_model=EventTicketResponse)
+# @router.get("/{id}", response_model=EventTicketResponse)
 @with_db
 async def get_ticket(db: AsyncSession, id: UUID):
     event_ticket = await db.get(EventTicket, id)
@@ -47,7 +47,7 @@ async def get_ticket(db: AsyncSession, id: UUID):
     return event_ticket
 
 
-@router.post("/", response_model=EventTicketResponse)
+# @router.post("/", response_model=EventTicketResponse)
 @with_db
 async def create_ticket(db: AsyncSession, request: EventTicketCreate):
     person = await db.get(Person, request.person_id)
@@ -71,7 +71,7 @@ async def create_ticket(db: AsyncSession, request: EventTicketCreate):
     return ticket
 
 
-@router.delete("/{id}")
+# @router.delete("/{id}")
 @with_db
 async def delete_event_ticket(db: AsyncSession, id: UUID):
     db_ticket = await db.get(EventTicket, id)
@@ -82,7 +82,7 @@ async def delete_event_ticket(db: AsyncSession, id: UUID):
     return
 
 
-@router.post("/update-apple-ticket-info")
+# @router.post("/update-apple-ticket-info")
 @with_db
 async def update_apple_ticket_info(db: AsyncSession, event_id: UUID):
     tickets = await db.scalars(select(EventTicket).where(EventTicket.event_id == event_id))

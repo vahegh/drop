@@ -5,7 +5,7 @@ from services.apple_pass import create_apple_ticket
 from services.google_pass import create_google_ticket
 from db_models import EventTicket, Person, Event, Venue
 from services.apple_push_notifications import apple_notify_pass_devices
-from db import with_db
+from decorators import with_db
 
 
 @with_db

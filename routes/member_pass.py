@@ -2,7 +2,7 @@ from uuid import UUID
 from sqlalchemy import select
 from fastapi import APIRouter, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from db import with_db
+from decorators import with_db
 from enums import PersonStatus
 from db_models import MemberPass, Person
 from services.send_pass import send_member_pass
@@ -12,14 +12,14 @@ from api_models import MemberCardCreate, MemberCardResponse
 router = APIRouter(tags=['Member Pass'], prefix="/api/member-pass")
 
 
-@router.get("/all", response_model=list[MemberCardResponse])
+# @router.get("/all", response_model=list[MemberCardResponse])
 @with_db
 async def get_all_member_passes(db: AsyncSession):
     passes = await db.scalars(select(MemberPass))
     return passes.all()
 
 
-@router.get("/person/{person_id}", response_model=MemberCardResponse)
+# @router.get("/person/{person_id}", response_model=MemberCardResponse)
 @with_db
 async def get_pass_by_person_id(db: AsyncSession, person_id: UUID):
     member_pass = await db.scalar(select(MemberPass).where(MemberPass.person_id == person_id))
@@ -28,7 +28,7 @@ async def get_pass_by_person_id(db: AsyncSession, person_id: UUID):
     return member_pass
 
 
-@router.get("/{id}", response_model=MemberCardResponse)
+# @router.get("/{id}", response_model=MemberCardResponse)
 @with_db
 async def get_pass(db: AsyncSession, id: UUID):
     member_pass = await db.get(MemberPass, id)
@@ -37,7 +37,7 @@ async def get_pass(db: AsyncSession, id: UUID):
     return member_pass
 
 
-@router.post("/", response_model=MemberCardResponse)
+# @router.post("/", response_model=MemberCardResponse)
 @with_db
 async def create_pass(db: AsyncSession, member_pass: MemberCardCreate):
     person = await db.get(Person, member_pass.person_id)
@@ -52,7 +52,7 @@ async def create_pass(db: AsyncSession, member_pass: MemberCardCreate):
     return member_pass
 
 
-@router.delete("/{id}")
+# @router.delete("/{id}")
 @with_db
 async def delete_pass(db: AsyncSession, id: UUID):
     db_pass = await db.get(MemberPass, id)
@@ -63,7 +63,7 @@ async def delete_pass(db: AsyncSession, id: UUID):
     return
 
 
-@router.post("/update-apple-member-pass")
+# @router.post("/update-apple-member-pass")
 @with_db
 async def update_apple_member_pass(db: AsyncSession):
     member_passes = await db.scalars(select(MemberPass))

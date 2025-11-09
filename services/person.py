@@ -1,4 +1,4 @@
-from db import with_db
+from decorators import with_db
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from db_models import Person

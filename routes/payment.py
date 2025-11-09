@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import APIRouter, Depends, HTTPException
-from db import with_db
+from decorators import with_db
 from consts import APP_BASE_URL_NO_PROTO, idram_merchant_id
 from enums import PersonStatus, PaymentStatus, PaymentProvider
 from db_models import Payment, Person, EventTicket, PaymentIntent, Event, MemberPass
@@ -20,14 +20,14 @@ router = APIRouter(tags=["Payment"], prefix="/api/payment")
 ecrm_crn = os.environ['ecrm_crn']
 
 
-@router.get("/all", response_model=list[PaymentResponse])
+# @router.get("/all", response_model=list[PaymentResponse])
 @with_db
 async def get_all_payments(db: AsyncSession):
     payments = await db.scalars(select(Payment))
     return payments.all()
 
 
-@router.post("/init-payment")
+# @router.post("/init-payment")
 @with_db
 async def init_payment(db: AsyncSession, request: PaymentCreate):
     new_payment = Payment(
@@ -84,7 +84,7 @@ async def init_payment(db: AsyncSession, request: PaymentCreate):
             raise HTTPException(404, "Payment provider not found")
 
 
-@router.post("/confirm")
+# @router.post("/confirm")
 @with_db
 async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest):
     payment = await db.scalar(select(Payment).where((Payment.order_id == transaction.order_id) & (Payment.provider == transaction.provider)))

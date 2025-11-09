@@ -1,5 +1,5 @@
 from nicegui import ui
-from services.auth import verify_admin_token
+from decorators import verify_admin_token
 from fastapi import HTTPException
 from frame import frame
 from pages.admin_pages.venues import venues_panel, venue_details_panel

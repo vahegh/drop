@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.dialects.postgresql import insert
 from fastapi.responses import StreamingResponse
 from fastapi import APIRouter, HTTPException, Request, Response
-from db import with_db
+from decorators import with_db
 from services.cloud_storage import get_pass_file
 from services.apple_pass import APPLE_PASS_TYPE_ID, APPLE_AUTH_TOKEN
 from api_models import RegistrationRequest, UpdatedPassesResponse, LogRequest
@@ -43,14 +43,14 @@ async def register_device(
         )
     )
     if existing_registration:
-        return Response(status_code=200)  # Already registered, return 200 OK
+        return Response(status_code=200)
 
     await db.execute(
         insert(AppleDevices).values(
             device_id=device_id,
             push_token=body.pushToken
         ).on_conflict_do_update(
-            constraint="apple_devices_pkey",  # Use the primary key constraint
+            constraint="apple_devices_pkey",
             set_={"push_token": body.pushToken}
         )
     )
@@ -161,5 +161,5 @@ async def get_updated_pass(
 
 @router.post("/log")
 async def log(body: LogRequest):
-    print("Logs:", body.logs)
+    print(body.logs)
     return {"status": "success"}

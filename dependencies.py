@@ -1,7 +1,7 @@
-from fastapi import Request, Depends, HTTPException
+from fastapi import Request, HTTPException, Depends
 from starlette.middleware.base import BaseHTTPMiddleware
-from routes.auth import refresh, logout
 from routes.user import user_info
+from routes.auth import refresh, logout
 
 
 def logged_in(request: Request) -> bool:

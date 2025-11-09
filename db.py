@@ -1,10 +1,7 @@
 import os
+from contextlib import asynccontextmanager
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from contextlib import asynccontextmanager, contextmanager
-from typing import TypeVar, Concatenate, overload, Callable, ParamSpec
-from functools import wraps
-import inspect
 
 db_conn_string = os.environ["db_conn_string"]
 
@@ -28,22 +25,3 @@ async def get_db():
         yield db
     finally:
         await db.close()
-
-
-P = ParamSpec('P')
-T = TypeVar('T')
-
-
-def with_db(
-    func: Callable[Concatenate[AsyncSession, P], T]
-) -> Callable[P, T]:
-    @wraps(func)
-    async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-        async with get_db() as db:
-            return await func(db, *args, **kwargs)
-
-    sig = inspect.signature(func)
-    params = list(sig.parameters.values())[1:]
-    wrapper.__signature__ = sig.replace(parameters=params)
-
-    return wrapper

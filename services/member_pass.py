@@ -9,7 +9,7 @@ from services.apple_pass import create_apple_member
 from services.google_pass import create_google_member_pass
 from services.apple_push_notifications import apple_notify_pass_devices
 from services.drive import drive_service
-from db import with_db
+from decorators import with_db
 
 
 @with_db

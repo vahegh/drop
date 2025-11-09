@@ -9,7 +9,7 @@ from routes.event import get_all_events
 from db_models import Person, Event, MemberPass, EventTicket, Venue
 from consts import (APP_BASE_URL, MEMBER_PASS_TEMPLATE, EVENT_TICKET_TEMPLATE,
                     MEMBER_PASS_SUBJECT, EVENT_TICKET_SUBJECT, TIMEZONE, MAGIC_LINK_SUBJECT, MAGIC_LINK_TEMPLATE)
-from db import with_db
+from decorators import with_db
 
 
 async def send_magic_link(person: Person, event_name: str, link: str):

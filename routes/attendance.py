@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import APIRouter, Depends, HTTPException
-from db import with_db
+from decorators import with_db
 from enums import PersonStatus
 from services.event_ticket import add_ticket_to_db
 from services.apple_pass import create_apple_member
@@ -62,7 +62,7 @@ async def add_attendance(db: AsyncSession, pass_id: UUID):
     return person
 
 
-@router.get("/attendance")
+# @router.get("/attendance")
 @with_db
 async def get_attendance(db: AsyncSession, person_id):
     attendance = await db.scalars(select(EventTicket).where((EventTicket.person_id == person_id) & (EventTicket.attended_at != None)))

@@ -20,7 +20,7 @@ from services.drive import drive_service
 
 from dependencies import AuthMiddleware
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 

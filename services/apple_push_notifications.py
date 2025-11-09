@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from aioapns import APNs, NotificationRequest, PushType
 from db_models import AppleDeviceRegistrations, AppleDevices
 from services.apple_pass import APPLE_APNS_KEY, APPLE_APNS_KEY_ID, APPLE_TEAM_ID, APPLE_PASS_TYPE_ID
-from db import with_db
+from decorators import with_db
 
 logger = logging.getLogger(__name__)
 
