@@ -115,7 +115,7 @@ def ticket_price_col(event: EventResponse):
 
 def event_card(event: EventResponse, venue: VenueResponse, show_venue=False):
     venue_name = venue.short_name if show_venue else "TBA"
-    with ui.card().props(add='bordered').classes('border-4 rounded-[20px] p-0 w-64 max-w-96 aspect-4/5 h-auto flex-auto') as c:
+    with ui.card().classes('rounded-[20px] p-0 w-64 max-w-96 aspect-4/5 h-auto flex-auto') as c:
         with ui.image(event.image_url).classes('event-card-img'):
             with ui.column().classes(add='bg-transparent h-full justify-between p-6 w-full'):
                 page_header(event.name)

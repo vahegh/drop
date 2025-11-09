@@ -1,4 +1,4 @@
-steps:
+steps:  
   - name: 'gcr.io/cloud-builders/docker'
     entrypoint: 'bash'
     args: 
@@ -47,7 +47,6 @@ steps:
       - --cpu=1
       - --concurrency=80
       - --timeout=300s
-      - --service-account=759529195467-compute@developer.gserviceaccount.com
       - --allow-unauthenticated
       - --ingress=all
 
