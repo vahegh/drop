@@ -27,7 +27,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
                 try:
                     return await refresh(request)
                 except HTTPException:
-                    return await logout()
+                    return await logout(refresh_token)
             else:
                 return await call_next(request)
 
