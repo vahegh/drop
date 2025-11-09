@@ -19,7 +19,7 @@ async def frame(show_footer=True):
     show_signin = request.url not in ['/signup']
     await ui.context.client.connected()
 
-    with ui.header(bordered=True).classes('items-center bg-transparent h-14 p-2 backdrop-blur-xs flex justify-between'):
+    with ui.header(bordered=True).classes('items-center bg-transparent h-[8vh] p-2 backdrop-blur-xs flex justify-between'):
         with ui.button().props('flat').classes('py-0 px-2').on('click', lambda: ui.navigate.to('/')):
             ui.image(logo_gray_path).classes(
                 'w-14 h-8')

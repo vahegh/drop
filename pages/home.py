@@ -17,8 +17,19 @@ from dependencies import Depends, logged_in
 
 @ui.page('/', title='Home | Drop Dead Disco', response_timeout=50)
 async def home_page(request: Request, logged_in=Depends(logged_in)):
-    async with frame() as f:
 
+    video_url = app.add_static_file(local_file="static/images/bg_video.mp4")
+    cover_url = app.add_static_file(local_file="static/images/bg_cover.png")
+
+    video_col_h = "[20vh]" if logged_in else "[80vh]"
+    space_h = "[12vh]" if logged_in else "[72vh]"
+
+    with ui.column().classes(f'w-full h-{video_col_h} absolute -top-[8vh] left-0') as video_col:
+        img = ui.image(cover_url).classes(
+            'object-cover h-full w-full -z-1')
+    ui.space().classes(f'h-{space_h}')
+
+    async with frame() as f:
         f.classes('gap-2')
         upcoming_events: list[EventResponse] = []
         past_events: list[EventResponse] = []
@@ -27,13 +38,9 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
         events = await cache.fetch_all_events()
         await cache.fetch_all_venues()
 
-        video_url = app.add_static_file(local_file="static/images/bg_video.mp4")
-        vid = ui.video(video_url, controls=False).classes(
-            'w-full object-cover h-[80vh]').props('autoplay loop muted playsinline')
-        ui.context.client.page_container.classes('relative -top-14')
+        # ui.context.client.page_container.classes('relative -top-14')
 
         if logged_in:
-            vid.classes(add='h-[20vh]', remove='h-[80vh]')
             person: PersonResponseFull = request.state.person
             with section():
                 with ui.row(wrap=False).classes('flex max-w-96'):
@@ -152,3 +159,7 @@ We don't tell you the location beforehand, and every guest has to pass **verific
                                     src="https://open.spotify.com/embed/playlist/49t6kUgW6nB7Kcv4d357qy?utm_source=generator"
                                     allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                                     loading="lazy"''').classes('rounded-xl w-full h-[500px] px-2')
+        with video_col:
+            vid = ui.video(video_url, controls=False).classes(
+                'object-cover h-full w-full').props('autoplay loop muted playsinline')
+            img.delete()
