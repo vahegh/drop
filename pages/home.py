@@ -24,12 +24,11 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
     video_col_h = "[20vh]" if logged_in else "[80vh]"
     space_h = "[12vh]" if logged_in else "[72vh]"
 
-    with ui.column().classes(f'w-full h-{video_col_h} absolute -top-[8vh] left-0') as video_col:
-        img = ui.image(cover_url).classes(
-            'object-cover h-full w-full -z-1')
-    ui.space().classes(f'h-{space_h}')
-
     async with frame() as f:
+        with ui.column().classes(f'w-full h-{video_col_h} absolute -top-[8vh] left-0') as video_col:
+            img = ui.image(cover_url).classes(
+                'object-cover h-full w-full')
+        ui.space().classes(f'h-{space_h}')
         f.classes('gap-2')
         upcoming_events: list[EventResponse] = []
         past_events: list[EventResponse] = []
