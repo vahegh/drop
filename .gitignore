@@ -6,3 +6,4 @@ key.json
 **/*.pyc
 .vscode
 credentials
+.unused

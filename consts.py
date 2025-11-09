@@ -30,13 +30,11 @@ MEMBER_PASS_TEMPLATE = "member_pass.html"
 EVENT_TICKET_TEMPLATE = "event_ticket.html"
 EVENT_ANNOUNCEMENT_TEMPLATE = "event_announcement.html"
 VENUE_REVEAL_TEMPLATE = "venue_reveal.html"
-MAGIC_LINK_TEMPLATE = "magic_link.html"
 
 APPLICATION_SUBMITTED_SUBJECT = "Application Submitted"
 STATUS_CHANGE_SUBJECT = "Application Status Change"
 MEMBER_PASS_SUBJECT = "Your Membership Pass"
 EVENT_TICKET_SUBJECT = "Your Ticket For {event_name}"
-MAGIC_LINK_SUBJECT = "Your Payment Link"
 
 IDRAM_PAYMENT_URL = os.environ["idram_payment_url"]
 idram_merchant_id = os.environ["idram_merchant_id"]
