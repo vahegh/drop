@@ -3,7 +3,7 @@ from fastapi.responses import Response
 from fastapi import APIRouter, Request
 from db_models import Person
 from api_models import PersonUpdate, PersonResponse
-from routes.person import update_person
+from services.person import update_person
 from services.telegram import telegram_api_url, notify_payment_page_view
 
 router = APIRouter(tags=['Telegram Webhook'], prefix="/api/telegram")

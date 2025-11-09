@@ -9,7 +9,7 @@ from fastapi.responses import RedirectResponse
 from decorators import with_db
 from consts import APP_BASE_URL, APPLICATION_SUBMITTED_SUBJECT, APPLICATION_SUBMITTED_TEMPLATE
 from api_models import VerifyPersonRequest, ValidateTokenRequest, ValidateTokenResponse, PersonCreate, PersonUpdate
-from routes.person import update_person
+from services.person import update_person
 from services.auth import create_jwt, create_token
 from services.telegram import notify_application
 from services.templating import generate_template

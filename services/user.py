@@ -7,7 +7,7 @@ from decorators import with_db
 from decorators import verify_user_token
 from db_models import Person,  MemberPass
 from api_models import PersonUpdate, PersonResponseFull
-from routes.event_ticket import get_tickets_by_person_id
+from services.event_ticket import get_tickets_by_person_id
 
 logger = logging.getLogger(__name__)
 

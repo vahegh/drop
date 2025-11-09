@@ -2,11 +2,11 @@ from api_models import EventResponse, VenueResponse, PersonResponse, EventTicket
 from datetime import datetime, timedelta
 from typing import Optional
 from uuid import UUID
-from routes.event import get_event_info, get_all_events
-from routes.venue import get_venue_info, get_all_venues
-from routes.person import get_all_persons, get_person
-from routes.payment import get_all_payments
-from routes.event_ticket import get_all_tickets
+from services.event import get_event_info, get_all_events
+from services.venue import get_venue_info, get_all_venues
+from services.person import get_all_persons, get_person
+from services.payment import get_all_payments
+from services.event_ticket import get_all_tickets
 
 
 class CacheManager:

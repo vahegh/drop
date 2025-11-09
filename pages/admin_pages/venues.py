@@ -3,7 +3,7 @@ from helpers import parse_inputs
 from api_models import VenueCreate, VenueUpdate
 from elements import (primary_button, secondary_button, accented_button,
                       page_header, section_title, generate_form_from_model)
-from routes.venue import create_venue, update_venue, delete_venue, get_all_venues, get_venue_info
+from services.venue import create_venue, update_venue, delete_venue, get_all_venues, get_venue_info
 
 
 async def venues_panel():

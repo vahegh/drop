@@ -2,25 +2,21 @@ import asyncio
 from uuid import UUID
 from sqlalchemy import select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import HTTPException
 from decorators import with_db
 from consts import VENUE_REVEAL_TEMPLATE
 from services.templating import generate_template
 from services.mailing import send_email, EmailRequest
-from api_models import VenueCreate, VenueResponse, VenueUpdate
+from api_models import VenueCreate, VenueUpdate
 from db_models import Venue, EventTicket, Person, MemberPass, Event
 
-router = APIRouter(tags=['Venue'], prefix="/api/venue")
 
-
-# @router.get("/all", response_model=list[VenueResponse])
 @with_db
 async def get_all_venues(db: AsyncSession):
     venues = await db.scalars(select(Venue))
     return venues.all()
 
 
-# @router.get("/{id}", response_model=VenueResponse)
 @with_db
 async def get_venue_info(db: AsyncSession, id: UUID):
     venue = await db.get(Venue, id)
@@ -29,7 +25,6 @@ async def get_venue_info(db: AsyncSession, id: UUID):
     return venue
 
 
-# @router.post("/", response_model=VenueResponse)
 @with_db
 async def create_venue(db: AsyncSession, venue: VenueCreate):
     db_venue = Venue(
@@ -47,7 +42,6 @@ async def create_venue(db: AsyncSession, venue: VenueCreate):
     return db_venue
 
 
-# @router.put("/{id}", response_model=VenueResponse)
 @with_db
 async def update_venue(db: AsyncSession, id: UUID, venue: VenueUpdate):
     db_venue = await db.get(Venue, id)
@@ -61,7 +55,6 @@ async def update_venue(db: AsyncSession, id: UUID, venue: VenueUpdate):
     return db_venue
 
 
-# @router.delete("/{id}")
 @with_db
 async def delete_venue(db: AsyncSession, id: UUID):
     db_venue = await db.get(Venue, id)
@@ -72,7 +65,6 @@ async def delete_venue(db: AsyncSession, id: UUID):
     return
 
 
-# @router.post("/venue-reveal")
 @with_db
 async def venue_reveal(db: AsyncSession, event_id: UUID):
     event = await db.get(Event, event_id)

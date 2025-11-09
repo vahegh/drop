@@ -12,9 +12,9 @@ from elements import (rounded_email_input, secondary_button, primary_button, toa
 
 from storage_cache import get_cache
 from uuid import UUID
-from routes.event_ticket import create_event_ticket, get_tickets_by_person_id
-from routes.member_pass import create_member_pass
-from routes.payment import init_payment
+from services.event_ticket import create_event_ticket, get_tickets_by_person_id
+from services.member_pass import create_member_pass
+from services.payment import init_payment
 from services.person import get_person_by_email
 from dependencies import Depends, logged_in
 

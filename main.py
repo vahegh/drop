@@ -1,18 +1,13 @@
+import os
+import logging
 from consts import favicon_path
 from helpers import is_cloud_run
-import logging
-import os
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+
 from routes.auth import router as auth_router
-from routes.venue import router as venue_router
-from routes.event import router as event_router
-from routes.telegram import router as tg_router
-from routes.person import router as person_router
-from routes.payment import router as payment_router
-from routes.member_pass import router as member_router
-from routes.event_ticket import router as ticket_router
+from routes.telegram_webhook import router as tg_webhook_router
 from routes.attendance import router as attendance_router
 from routes.apple_pass_updates import router as apple_pass_updates
 from services.drive import drive_service
@@ -41,15 +36,9 @@ fastapi_app = FastAPI(lifespan=lifespan)
 
 env = os.getenv('env')
 
-fastapi_app.include_router(member_router)
-fastapi_app.include_router(ticket_router)
-fastapi_app.include_router(payment_router)
-fastapi_app.include_router(person_router)
-fastapi_app.include_router(event_router)
-fastapi_app.include_router(venue_router)
 
 fastapi_app.include_router(auth_router)
-fastapi_app.include_router(tg_router)
+fastapi_app.include_router(tg_webhook_router)
 fastapi_app.include_router(attendance_router)
 fastapi_app.include_router(apple_pass_updates)
 

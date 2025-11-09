@@ -2,32 +2,29 @@ import os
 from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import HTTPException
 from decorators import with_db
 from consts import APP_BASE_URL_NO_PROTO, idram_merchant_id
 from enums import PersonStatus, PaymentStatus, PaymentProvider
 from db_models import Payment, Person, EventTicket, PaymentIntent, Event, MemberPass
 from services.ecrm import ecrm_print
 from services.telegram import notify_payment_init, notify_payment_confirmed
-from services.send_pass import send_member_pass, send_event_ticket
-from services.event_ticket import add_ticket_to_db, create_event_ticket
+from services.event_ticket import add_ticket_to_db, create_event_ticket, send_event_ticket
 from services.myameria_payment import MYAMERIA_PAY_URL, myameria_merchant_id
 from services.myameria_payment import create_payment_myameria, get_payment_details_myameria
 from services.vpos_payment import init_payment_vpos, get_payment_details_vpos, VPOS_BASE_URL
-from api_models import PaymentCreate, PaymentConfirmRequest, PaymentConfirmResponse, ECRMPrintRequest, PaymentResponse, ECRMItem
+from services.member_pass import send_member_pass
+from api_models import PaymentCreate, PaymentConfirmRequest, PaymentConfirmResponse, ECRMPrintRequest, ECRMItem
 
-router = APIRouter(tags=["Payment"], prefix="/api/payment")
 ecrm_crn = os.environ['ecrm_crn']
 
 
-# @router.get("/all", response_model=list[PaymentResponse])
 @with_db
 async def get_all_payments(db: AsyncSession):
     payments = await db.scalars(select(Payment))
     return payments.all()
 
 
-# @router.post("/init-payment")
 @with_db
 async def init_payment(db: AsyncSession, request: PaymentCreate):
     new_payment = Payment(
@@ -84,7 +81,6 @@ async def init_payment(db: AsyncSession, request: PaymentCreate):
             raise HTTPException(404, "Payment provider not found")
 
 
-# @router.post("/confirm")
 @with_db
 async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest):
     payment = await db.scalar(select(Payment).where((Payment.order_id == transaction.order_id) & (Payment.provider == transaction.provider)))

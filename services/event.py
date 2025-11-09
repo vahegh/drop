@@ -1,40 +1,33 @@
-import asyncio
 import logging
 from uuid import UUID
-from typing import Union
 from datetime import date
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import Depends, APIRouter, HTTPException
+from fastapi import HTTPException
 from enums import PersonStatus
-from services.auth import create_jwt
 from services.templating import generate_template
 from db_models import Event, Venue, Person, EventTicket
-from api_models import EventCreate, EventResponse, EventUpdate
+from api_models import EventCreate, EventUpdate
 from consts import GOOGLE_MEMBER_CLASS_ID, APP_BASE_URL, TIMEZONE
 from services.google_pass import create_ticket_class, update_member_class
 from services.mailing import EmailRequest, send_email
 from decorators import with_db
 
-router = APIRouter(tags=['Event'], prefix="/api/event")
 logger = logging.getLogger(__name__)
 
 
-# @router.get("/all", response_model=list[EventResponse])
 @with_db
 async def get_all_events(db: AsyncSession):
     events = await db.scalars(select(Event).order_by(Event.starts_at.desc()))
     return events.all()
 
 
-# @router.get("/next", response_model=Union[EventResponse, None])
 @with_db
 async def get_next_event(db: AsyncSession):
     event = await db.scalar(select(Event).where(Event.starts_at >= date.today()).limit(1))
     return event
 
 
-# @router.get("/{id}", response_model=EventResponse)
 @with_db
 async def get_event_info(db: AsyncSession, id: UUID):
     event = await db.get(Event, id)
@@ -43,7 +36,6 @@ async def get_event_info(db: AsyncSession, id: UUID):
     return event
 
 
-# @router.post("/", response_model=EventResponse)
 @with_db
 async def create_event(db: AsyncSession, event: EventCreate):
     db_event = Event(**event.model_dump())
@@ -57,7 +49,6 @@ async def create_event(db: AsyncSession, event: EventCreate):
     return db_event
 
 
-# @router.put("/{id}", response_model=EventResponse)
 @with_db
 async def update_event(db: AsyncSession, id: UUID, event_update: EventUpdate):
     event = await db.get(Event, id)
@@ -101,7 +92,6 @@ async def update_event(db: AsyncSession, id: UUID, event_update: EventUpdate):
     return event
 
 
-# @router.delete("/{id}")
 @with_db
 async def delete_event(db: AsyncSession, id: UUID):
     db_event = await db.get(Event, id)
@@ -112,7 +102,6 @@ async def delete_event(db: AsyncSession, id: UUID):
     return
 
 
-@router.post("/early-bird-end")
 @with_db
 async def early_bird_end(db: AsyncSession, event_id: UUID):
     event = await db.get(Event, event_id)
@@ -151,7 +140,6 @@ async def early_bird_end(db: AsyncSession, event_id: UUID):
         await send_email(outgoing_email)
 
 
-# @router.post("/event-announcement")
 @with_db
 async def event_announcement(db: AsyncSession, event_id: UUID):
     event = await db.get(Event, event_id)
@@ -192,7 +180,6 @@ async def event_announcement(db: AsyncSession, event_id: UUID):
         await send_email(outgoing_email)
 
 
-# @router.post("/event-notify")
 @with_db
 async def event_notify(db: AsyncSession, event_id: UUID):
     event = await db.get(Event, event_id)

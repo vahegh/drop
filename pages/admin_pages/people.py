@@ -8,10 +8,10 @@ from elements import (primary_button, secondary_button, accented_button,
                       generate_form_from_model, ticket_indicator,
                       person_card)
 from enums import PersonStatus
-from routes.person import create_person, update_person, delete_person
-from routes.event_ticket import create_event_ticket, delete_event_ticket, get_all_tickets
-from routes.event import get_all_events
-from routes.person import get_all_persons, get_person
+from services.person import create_person, update_person, delete_person
+from services.event_ticket import create_event_ticket, delete_event_ticket, get_all_tickets
+from services.event import get_all_events
+from services.person import get_all_persons, get_person
 
 
 async def persons_panel():

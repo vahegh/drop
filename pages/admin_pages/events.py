@@ -10,11 +10,11 @@ from elements import (primary_button, secondary_button, accented_button,
                       page_header, section_title, event_datetime_col,
                       ticket_price_col, generate_form_from_model, ticket_indicator,
                       person_card)
-from routes.event import create_event, update_event, delete_event, get_all_events, get_event_info
-from routes.venue import get_all_venues
-from routes.payment import get_all_payments
-from routes.event_ticket import get_all_tickets
-from routes.person import get_all_persons, get_person
+from services.event import create_event, update_event, delete_event, get_all_events, get_event_info
+from services.venue import get_all_venues
+from services.payment import get_all_payments
+from services.event_ticket import get_all_tickets
+from services.person import get_all_persons, get_person
 
 
 async def events_panel():
