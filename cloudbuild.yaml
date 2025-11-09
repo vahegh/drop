@@ -3,7 +3,7 @@ steps:
     entrypoint: 'bash'
     args:
       - '-c'
-      - 'docker pull gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+      - 'docker pull europe-west4-docker.pkg.dev/cloud-builders/docker/cloud-sdk:slim'
     id: 'pull-cloudsdk'
     waitFor: ['-']
 
