@@ -39,7 +39,7 @@ async def login_page(request: Request, token: str = None, redirect_url='/'):
             return await generate_and_set_tokens(person.id)
 
     async with frame(show_footer=False) as f:
-        f.classes('bg-gray-100 p-2')
+        f.classes('p-2')
 
         async def magic_link(email_input):
             if not email_input.validate():
@@ -67,13 +67,6 @@ async def login_page(request: Request, token: str = None, redirect_url='/'):
                 main_card.clear()
                 with section("Check your email!", subtitle="If verified, you'll receive a link to log in."):
                     pass
-            # with section("Enter your OTP", subtitle="Check your email to find it."):
-            #     otp_input = ui.input("One-time password")
-            #     secondary_button('Submit').on_click(
-            #         lambda: validate_otp(otp_input.value))
-            #     ui.label("Haven't received one?")
-            #     primary_button('Send again').on_click(
-            #         lambda: create_and_send_otp())
 
         with main_card:
             with section():

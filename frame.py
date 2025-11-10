@@ -41,10 +41,15 @@ async def frame(show_footer=True):
                             ui.icon('account_circle', size='xl')
 
                         section_title(person.full_name).classes('text-center')
-                        b = secondary_button('Logout')
-                        b.on_click(lambda: b.props(add='loading'))
-                        b.on_click(lambda: ui.navigate.to(
-                            f'/logout?redirect_url={request.url}'))
+                        profile_btn = primary_button('Your profile').on_click(
+                            lambda: (
+                                ui.navigate.to('/profile'),
+                                profile_btn.props(add='loading disable')
+                            ))
+                        logout_btn = secondary_button('Logout').on_click(lambda: (
+                            ui.navigate.to(f'/logout?redirect_url={request.url}'),
+                            logout_btn.props(add='loading disable')
+                        ))
                 btn.on_click(menu.toggle)
 
         else:
@@ -65,7 +70,7 @@ async def frame(show_footer=True):
                 ui.button("Log in").classes(
                     'rounded-full bg-primary text-accent', remove='text-black').props('size="12px" outline no-caps').on_click(lambda: ui.navigate.to(f'/login?redirect_url={request.url}'))
 
-    with ui.context.client.content.classes('p-0 gap-0 w-full items-center justify-center min-h-[100vh]') as content:
+    with ui.context.client.content.classes('bg-gray-100 p-0 gap-0 w-full items-center justify-center min-h-[100vh]') as content:
         yield content
 
     if show_footer:

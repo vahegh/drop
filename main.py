@@ -133,6 +133,7 @@ def main():
                        signup,
                        login,
                        logout,
+                       profile,
                        errors)
 
     ui.run_with(

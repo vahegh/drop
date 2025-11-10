@@ -304,7 +304,7 @@ def large_google_button(page):
 
 @contextmanager
 def section(title: str = None, subtitle: str = None):
-    with ui.column().classes('gap-4 p-2 w-full items-center justify-start max-w-96') as main:
+    with ui.column().classes('gap-2 p-2 w-full items-center justify-start max-w-96') as main:
         if title:
             with ui.column().classes('gap-0 items-center'):
                 section_title(title).classes('text-center')
@@ -380,3 +380,25 @@ def past_tickets_col(event_tickets, event_map):
                                         Since you don't have any, here's Colonel Hans Landa judging you silently.""")
             ui.element('iframe').props(
                 'src="https://giphy.com/embed/9JeJxpaQlbcGC1zZNh"').classes('h-auto w-auto')
+
+
+def instagram_dialog(instagram_info):
+    with ui.dialog() as dl:
+        with ui.card().classes('gap-4 w-full max-w-96'):
+            if instagram_info:
+                with section():
+                    ui.link(
+                        f"@{instagram_info['username']}", f"https://instagram.com/{instagram_info['username']}").classes('text-2xl')
+                    ui.label(f"{instagram_info['followers']} followers").classes(
+                        'text-gray-600')
+
+                with section():
+                    section_title("Is this you?")
+                    with ui.row(wrap=False):
+                        primary_button("No").on_click(lambda: dl.submit(False))
+                        accented_button("Yes, submit").on_click(
+                            lambda: dl.submit(True))
+            else:
+                with section(f"Instagram user {instagram_info['username']} not found", subtitle="Please check your username."):
+                    primary_button("Fix").on_click(lambda: (dl.submit(False)))
+    return dl

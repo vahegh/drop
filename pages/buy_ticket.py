@@ -177,7 +177,7 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                     append = add_attendee_input.add_slot('append')
                     with append:
                         save_btn = primary_button(icon="save").props(
-                            'round dense flat').classes(remove='min-w-32').on_click(validate_and_add_attendee)
+                            'round dense flat').on_click(validate_and_add_attendee)
 
         add_attendee_row.set_visibility(False)
         update_attendee_list()

@@ -2,7 +2,7 @@ import jwt
 from nicegui import ui
 from frame import frame
 from elements import (rectangular_email_input, instagram_input, accented_button,
-                      name_input, section, primary_button, section_title)
+                      name_input, section, primary_button, section_title, instagram_dialog)
 from api_models import PersonCreate
 
 from fastapi import HTTPException
@@ -19,7 +19,7 @@ async def signup_page(token):
         raise HTTPException(401, "Invalid token")
 
     async with frame(show_footer=False) as main_col:
-        main_col.classes('bg-gray-100 p-2')
+        main_col.classes('p-2')
         main_card = ui.card().classes('gap-4 w-full max-w-96')
 
         with main_card:
@@ -44,7 +44,6 @@ async def signup_page(token):
                 btn = accented_button('Submit')
 
                 async def submit():
-                    btn.props(add='loading disable')
                     if not all([
                         firstname_input.validate(),
                         lastname_input.validate(),
@@ -52,6 +51,7 @@ async def signup_page(token):
                         insta_input.validate()
                     ]):
                         return
+                    btn.props(add='loading disable')
 
                     first_name = firstname_input.value.strip()
                     last_name = lastname_input.value.strip()
@@ -60,24 +60,7 @@ async def signup_page(token):
 
                     instagram_info = await instagram_check(insta)
 
-                    with ui.dialog() as dl:
-                        with ui.card().classes('gap-4 w-full max-w-96'):
-                            if instagram_info:
-                                with section():
-                                    ui.link(
-                                        f"@{insta}", f"https://instagram.com/{insta}").classes('text-2xl')
-                                    ui.label(f"{instagram_info['followers']} followers").classes(
-                                        'text-gray-600')
-
-                                with section():
-                                    section_title("Is this you?")
-                                    with ui.row(wrap=False):
-                                        primary_button("No").on_click(lambda: dl.submit(False))
-                                        accented_button("Yes, submit").on_click(
-                                            lambda: dl.submit(True))
-                            else:
-                                with section(f"Instagram user {insta} not found", subtitle="Please check your username."):
-                                    primary_button("Fix").on_click(lambda: (dl.submit(False)))
+                    dl = instagram_dialog(instagram_info)
 
                     dl.open()
 
