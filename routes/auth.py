@@ -27,6 +27,31 @@ auth_secret = os.environ['auth_secret']
 router = APIRouter(tags=['Auth'], prefix="/api/auth")
 
 
+@with_db
+async def generate_and_set_tokens(db: AsyncSession, person_id: str, redirect_url='/'):
+    access = await create_token(str(person_id))
+    refresh = await create_token(str(person_id), expires_in=7*24*60, refresh=True)
+
+    db.add(RefreshToken(token=refresh, person_id=person_id))
+    await db.commit()
+
+    response = RedirectResponse(redirect_url, 302)
+
+    response.set_cookie(
+        "access_token", access,
+        httponly=True, secure=True, samesite="lax",
+        max_age=15*60, path="/"
+    )
+
+    response.set_cookie(
+        "refresh_token", refresh,
+        httponly=True, secure=True, samesite="lax",
+        max_age=7*24*3600, path="/"
+    )
+
+    return response
+
+
 # @router.post("/verify-person")
 # @with_db
 # async def verify_person(db: AsyncSession, request: VerifyPersonRequest):
@@ -136,27 +161,7 @@ async def login_user(db: AsyncSession, token, redirect_url='/'):
             update_req = PersonUpdate(avatar_url=avatar_url)
             await update_person(person.id, update_req)
 
-        access = await create_token(str(person.id))
-        refresh = await create_token(str(person.id), expires_in=7*24*60, refresh=True)
-
-        db.add(RefreshToken(token=refresh, person_id=person.id))
-        await db.commit()
-
-        response = RedirectResponse(redirect_url, 302)
-
-        response.set_cookie(
-            "access_token", access,
-            httponly=True, secure=True, samesite="lax",
-            max_age=15*60, path="/"
-        )
-
-        response.set_cookie(
-            "refresh_token", refresh,
-            httponly=True, secure=True, samesite="lax",
-            max_age=7*24*3600, path="/"
-        )
-
-        return response
+        return await generate_and_set_tokens(person.id, redirect_url)
 
 
 # @router.post("/refresh")
@@ -181,23 +186,7 @@ async def refresh(db: AsyncSession, request: Request):
 
     await db.delete(stored)
 
-    person_id = payload['person_id']
-
-    new_access = await create_token(str(person_id))
-    new_refresh = await create_token(str(person_id), expires_in=7*24*3600, refresh=True)
-
-    db.add(RefreshToken(token=new_refresh, person_id=person_id))
-
-    await db.commit()
-
-    response = RedirectResponse(request.url, 302)
-
-    response.set_cookie("access_token", new_access, httponly=True,
-                        secure=True, samesite="lax", max_age=15*60, path="/")
-    response.set_cookie("refresh_token", new_refresh, httponly=True, secure=True,
-                        samesite="lax", max_age=7*24*3600, path="/")
-
-    return response
+    return await generate_and_set_tokens(payload['person_id'], request.url)
 
 
 # @router.post("/logout")
