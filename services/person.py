@@ -9,9 +9,8 @@ from services.event import get_next_event
 from services.auth import create_jwt
 from services.telegram import notify_application
 from services.templating import generate_template
-from services.member_pass import create_member_pass
+from services.member_pass import create_member_pass, send_member_pass
 from services.mailing import EmailRequest, send_email
-from services.event_ticket import send_event_ticket
 from api_models import PersonCreate, PersonUpdate
 from consts import (APP_BASE_URL, APPLICATION_SUBMITTED_TEMPLATE, APPROVED_TEMPLATE,
                     REJECTED_TEMPLATE, APPLICATION_SUBMITTED_SUBJECT,
