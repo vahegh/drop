@@ -22,14 +22,12 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
     cover_url = app.add_static_file(local_file="static/images/bg_cover.png")
 
     video_col_h = "[20vh]" if logged_in else "[80vh]"
-    space_h = "[12vh]" if logged_in else "[72vh]"
 
     async with frame() as f:
-        with ui.column().classes(f'w-full h-{video_col_h} absolute -top-[8vh] left-0') as video_col:
+        with ui.column().classes(f'w-full h-{video_col_h}') as video_col:
             img = ui.image(cover_url).classes(
                 'object-cover h-full w-full')
-        ui.space().classes(f'h-{space_h}')
-        f.classes('gap-2')
+        f.classes('gap-2 -top-[8vh]')
         upcoming_events: list[EventResponse] = []
         past_events: list[EventResponse] = []
 
@@ -37,12 +35,10 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
         events = await cache.fetch_all_events()
         await cache.fetch_all_venues()
 
-        # ui.context.client.page_container.classes('relative -top-14')
-
         if logged_in:
             person: PersonResponseFull = request.state.person
             with section():
-                with ui.row(wrap=False).classes('flex max-w-96'):
+                with ui.row(wrap=False).classes('flex max-w-96 px-2'):
                     if person.avatar_url:
                         ui.image(person.avatar_url).classes(
                             'size-16 rounded-full flex-none')

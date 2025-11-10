@@ -131,6 +131,7 @@ def main():
                        callback,
                        policy,
                        signup,
+                       login,
                        logout,
                        errors)
 

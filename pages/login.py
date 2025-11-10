@@ -1,0 +1,90 @@
+from nicegui import ui
+from frame import frame
+from elements import section, large_google_button, primary_button, rectangular_email_input, toast, secondary_button, section_title
+from fastapi import Request, HTTPException
+from consts import logo_black_path, APP_BASE_URL
+from services.mailing import EmailRequest, send_email
+from services.templating import generate_template
+from services.person import get_person_by_email
+from services.auth import create_jwt, auth_secret
+import jwt
+from routes.auth import generate_and_set_tokens
+
+
+@ui.page('/login')
+async def login_page(request: Request, token: str = None, redirect_url='/'):
+    main_card = ui.card().classes('gap-4 w-full max-w-96')
+
+    if token:
+        try:
+            payload = jwt.decode(token, auth_secret, algorithms=["HS256"])
+        except jwt.ExpiredSignatureError:
+            async with frame(show_footer=False):
+                with main_card:
+                    section_title("Magic link expired")
+                    primary_button("Try again").on_click(lambda: ui.navigate.to('/login'))
+                return
+
+        except jwt.InvalidTokenError:
+            async with frame(show_footer=False):
+                with main_card:
+                    section_title("Invalid magic link")
+                    primary_button("Try again").on_click(lambda: ui.navigate.to('/login'))
+                return
+
+        else:
+            person = await get_person_by_email(payload['email'])
+            if not person:
+                raise HTTPException(404, "No such person - es vonc eq hajoxacrel")
+            return await generate_and_set_tokens(person.id)
+
+    async with frame(show_footer=False) as f:
+        f.classes('bg-gray-100 p-2')
+
+        async def magic_link(email_input):
+            if not email_input.validate():
+                return
+
+            send_link_btn.props(add='loading disable')
+
+            email = email_input.value
+
+            person = await get_person_by_email(email)
+
+            if person:
+                jwt = await create_jwt(person.email)
+
+            context = {"name": person.first_name, "magic_link": f"{APP_BASE_URL}/login?token={jwt}"}
+            template = await generate_template("magic_link.html", context)
+            outgoing_email = EmailRequest(
+                recipient_email=email,
+                subject="Your signin link",
+                body=template
+            )
+            await send_email(outgoing_email)
+
+            with main_card:
+                main_card.clear()
+                with section("Check your email!", subtitle="If verified, you'll receive a link to log in."):
+                    pass
+            # with section("Enter your OTP", subtitle="Check your email to find it."):
+            #     otp_input = ui.input("One-time password")
+            #     secondary_button('Submit').on_click(
+            #         lambda: validate_otp(otp_input.value))
+            #     ui.label("Haven't received one?")
+            #     primary_button('Send again').on_click(
+            #         lambda: create_and_send_otp())
+
+        with main_card:
+            with section():
+                ui.image(logo_black_path).classes('w-24')
+                section_title("Login / sign up with Google")
+                large_google_button(redirect_url)
+                # ui.separator()
+                ui.label("OR")
+                ui.separator()
+                section_title('Login with link')
+                email_input = rectangular_email_input("Verified email")
+                send_link_btn = primary_button('Send link')
+                send_link_btn.on_click(
+                    lambda: magic_link(email_input))

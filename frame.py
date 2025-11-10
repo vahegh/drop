@@ -3,7 +3,7 @@ from nicegui import ui
 from consts import (spotify_logo_path, instagram_logo_path,
                     DROP_INSTA_URL, DROP_SPOTIFY_URL, support_email, logo_white_path,
                     DROP_YOUTUBE_URL, youtube_logo_path, APP_BASE_URL, google_client_id, logo_gray_path)
-from elements import google_button, secondary_button, section_title
+from elements import google_button, secondary_button, section_title, primary_button
 from api_models import PersonResponseFull
 
 
@@ -19,7 +19,7 @@ async def frame(show_footer=True):
     show_signin = request.url not in ['/signup']
     await ui.context.client.connected()
 
-    with ui.header(bordered=True).classes('items-center bg-transparent h-[8vh] p-2 backdrop-blur-xs flex justify-between'):
+    with ui.row().classes('fixed top-0 left-0 items-center bg-transparent h-14 px-4 py-2 backdrop-blur-xs flex justify-between z-10'):
         with ui.button().props('flat').classes('py-0 px-2').on('click', lambda: ui.navigate.to('/')):
             ui.image(logo_gray_path).classes(
                 'w-14 h-8')
@@ -60,9 +60,12 @@ async def frame(show_footer=True):
                         use_fedcm_for_button: true
                     }});''')
 
-                google_button(request.url.path)
+                # google_button(request.url.path)
 
-    with ui.context.client.content.classes('h-full p-0 gap-0 w-full items-center justify-between') as content:
+                ui.button("Log in").classes(
+                    'rounded-full bg-primary text-accent', remove='text-black').props('size="12px" outline no-caps').on_click(lambda: ui.navigate.to(f'/login?redirect_url={request.url}'))
+
+    with ui.context.client.content.classes('p-0 gap-0 w-full items-center justify-center min-h-[100vh]') as content:
         yield content
 
     if show_footer:

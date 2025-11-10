@@ -18,23 +18,21 @@ from consts import (email_validation, insta_validation, name_validation,
 from helpers import generate_qr
 
 
-ui.button.default_props(':ripple="false" :press-delay="0" push')
+ui.button.default_props(':ripple="false" :press-delay="0"')
+ui.button.default_classes('text-black')
 ui.input.default_classes('w-full max-w-96 items-center justify-center')
 ui.input.default_props('color=accent no-error-icon outlined clearable clear-icon="clear"')
 ui.card.default_classes('rounded-3xl items-center')
-ui.card.default_props('flat')
-ui.column.default_classes('')
 ui.row.default_classes('w-full items-center justify-between')
-ui.label.default_classes('')
 ui.item.default_classes('text-3xl text-center')
 ui.markdown.default_classes('text-base/relaxed w-full max-w-96')
 ui.link.default_classes('no-underline')
 ui.separator.default_classes('w-full')
 
 
-def rectangular_email_input(required=True, **kwargs):
-    inp = ui.input(label="Email address", placeholder=email_placeholder, validation=email_validation, **kwargs).props(
-        'type=email readonly').on('blur', lambda: inp.validate()).without_auto_validation()
+def rectangular_email_input(label="Email address", required=True, **kwargs):
+    inp = ui.input(label=label, placeholder=email_placeholder, validation=email_validation, **kwargs).props(
+        'type=email').on('blur', lambda: inp.validate()).without_auto_validation()
     if not required:
         inp._validation = email_non_required
 
@@ -64,15 +62,15 @@ def name_input(label, placeholder, **kwargs):
 
 
 def primary_button(text='', **kwargs):
-    return ui.button(text, **kwargs).props(add='color="primary"').classes('text-black')
+    return ui.button(text, **kwargs).props(add='color="primary" push')
 
 
 def secondary_button(text='', **kwargs):
-    return ui.button(text, **kwargs).props(add='color="secondary"')
+    return ui.button(text, **kwargs).props(add='color="secondary" push').classes('text-white', remove='text-black')
 
 
 def accented_button(text='', **kwargs):
-    return ui.button(text, **kwargs).props(add='color="accent"')
+    return ui.button(text, **kwargs).props(add='color="accent" push').classes('text-white', remove='text-black')
 
 
 def toast(text, **kwargs):
@@ -130,7 +128,7 @@ def page_header(text=''):
 
 
 def section_title(text=''):
-    return ui.label(text).classes('text-2xl font-semibold')
+    return ui.label(text).classes('text-2xl font-medium')
 
 
 def subsection_title(text=''):
@@ -228,7 +226,7 @@ def member_card(member_pass: MemberCardResponse, attendance: int, user_agent):
     img = generate_qr(member_pass.id)
     color = status_colors.get(PersonStatus.member)
 
-    with ui.card().props('bordered').classes(f'w-full max-w-96 gap-4 px-0 justify-around border-[{color}]'):
+    with ui.card().props('bordered flat').classes(f'w-full max-w-96 gap-4 px-0 justify-around border-[{color}]'):
         subsection_title('Membership pass')
         with ui.column().classes('w-full items-center px-6 py-0 gap-2'):
             with ui.row(wrap=False):
@@ -248,7 +246,7 @@ def member_card(member_pass: MemberCardResponse, attendance: int, user_agent):
 def event_ticket(ticket: EventTicketResponse, event: EventResponse, user_agent):
     img = generate_qr(ticket.id)
 
-    with ui.card().props('bordered').classes('w-full max-w-96 gap-4 px-0 justify-around border-black'):
+    with ui.card().props('bordered flat').classes('w-full max-w-96 gap-4 px-0 justify-around border-black'):
         with ui.column().classes('gap-0 items-center'):
             ui.link(event.name, f"/event/{event.id}")
             subsection_title("Your ticket")
@@ -275,13 +273,13 @@ def image_carousel(urls):
 
 
 def google_button(page):
-    div = ui.element('div').classes('h-[32px]')
+    div = ui.element('div').classes('h-[33px]')
     ui.run_javascript(f"""
                     google.accounts.id.renderButton({div.html_id}, {{
                         type: 'standard',
                         shape: 'pill',
                         theme: 'outline',
-                        text: 'signin',
+                        text: 'signup_with',
                         size: 'medium',
                         locale: 'en-US',
                         logo_alignment: 'left',
@@ -290,12 +288,12 @@ def google_button(page):
 
 
 def large_google_button(page):
-    div = ui.element('div').classes('h-[40px]')
+    div = ui.element('div')  # .classes('h-[40px]')
     ui.run_javascript(f"""
                     google.accounts.id.renderButton({div.html_id}, {{
                         type: 'standard',
-                        shape: 'pill',
-                        theme: 'filled_blue',
+                        shape: 'rectangular',
+                        theme: 'outline',
                         text: 'continue_with',
                         size: 'large',
                         locale: 'en-US',
@@ -368,7 +366,7 @@ def past_tickets_col(event_tickets, event_map):
                 for ticket in event_tickets:
                     event = event_map.get(ticket.event_id)
                     if event:
-                        with ui.card().props(remove='flat').classes('w-full max-w-96'):
+                        with ui.card().classes('w-full max-w-96'):
                             with ui.row(wrap=False).classes('justify-between items-center w-full'):
                                 ui.label(event.name).classes(
                                     'text-lg font-medium')
