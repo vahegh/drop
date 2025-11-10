@@ -7,10 +7,9 @@ TOKEN_EXPIRATION_MINUTES = 15
 auth_secret = os.environ['auth_secret']
 
 
-async def create_jwt(email, event_id, expires_in: int = TOKEN_EXPIRATION_MINUTES):
+async def create_jwt(email, expires_in: int = TOKEN_EXPIRATION_MINUTES):
     token = jwt.encode({
         "email": email,
-        "event_id": event_id,
         "exp": datetime.now(timezone.utc) + timedelta(minutes=expires_in),
         "iat": datetime.now(timezone.utc).timestamp()
     }, auth_secret, algorithm="HS256")

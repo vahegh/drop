@@ -1,0 +1,14 @@
+{% extends "base_email.html" %}
+{% block content %}
+<h1 style="text-align: center">{{ name }},</h1>
+<p>
+    <a href="{{ magic_link }}">Here's your link</a> to sign into Drop Dead Disco.
+</p>
+<p>
+    For the privacy and security of everyone involved, it will expire in 15 minutes.
+</p>
+<p>
+    <b>Do not share your link with anyone.</b>
+</p>
+
+{% endblock %}

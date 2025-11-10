@@ -23,6 +23,7 @@ class EmailRequest(BaseModel):
     recipient_email: EmailStr
     subject: str
     body: str
+    transactional: bool = True
 
 
 def create_email_message(email_request: EmailRequest) -> EmailMessage:
@@ -30,8 +31,9 @@ def create_email_message(email_request: EmailRequest) -> EmailMessage:
     msg["Subject"] = email_request.subject
     msg["From"] = SENDER_FROM
     msg["To"] = email_request.recipient_email
-    msg["List-Unsubscribe"] = f"<{APP_BASE_URL}/unsubscribe>, <mailto:{SENDER_EMAIL}?subject=unsubscribe>"
-    msg["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click"
+    if not email_request.transactional:
+        msg["List-Unsubscribe"] = f"<{APP_BASE_URL}/unsubscribe>, <mailto:{SENDER_EMAIL}?subject=unsubscribe>"
+        msg["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click"
     msg.set_content(email_request.body, subtype='html')
     return msg
 

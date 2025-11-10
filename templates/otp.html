@@ -1,0 +1,16 @@
+{% extends "base_email.html" %}
+{% block content %}
+<h1 style="text-align: center">{{ name }},</h1>
+<p>
+    You have requested a one-time code to make changes to your account.
+</p>
+<p style="text-align: center;">
+    Your one-time code is {{ otp }}<br>
+</p>
+<p style="text-align: center;">
+    This code will expire in <b>{{ expiration_minutes | default(10) }} minutes</b>.
+</p>
+<p style="text-align: center; color: #666;">
+    If you didn't request this code, you can safely ignore this email.
+</p>
+{% endblock %}
