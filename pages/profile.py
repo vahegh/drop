@@ -70,7 +70,7 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                 template = await generate_template("otp.html", context=context)
                 outgoing_email = EmailRequest(
                     recipient_email=new_email,
-                    subject="One-time verification code",
+                    subject="Your OTP",
                     body=template
                 )
                 await send_email(outgoing_email)
