@@ -70,7 +70,7 @@ async def frame(show_footer=True):
                 ui.button("Log in").classes(
                     'rounded-full bg-primary text-accent', remove='text-black').props('size="12px" outline no-caps').on_click(lambda: ui.navigate.to(f'/login?redirect_url={request.url}'))
 
-    with ui.context.client.content.classes('bg-gray-100 p-0 gap-0 w-full items-center justify-center min-h-[100vh]') as content:
+    with ui.context.client.content.classes('bg-gray-100 p-0 gap-2 w-full items-center justify-center min-h-[100vh] pt-14 pb-2') as content:
         yield content
 
     if show_footer:

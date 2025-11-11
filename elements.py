@@ -304,7 +304,7 @@ def large_google_button(page):
 
 @contextmanager
 def section(title: str = None, subtitle: str = None):
-    with ui.column().classes('gap-2 p-2 w-full items-center justify-start max-w-96') as main:
+    with ui.column().classes('gap-2 p-0 w-full items-center justify-start max-w-96') as main:
         if title:
             with ui.column().classes('gap-0 items-center'):
                 section_title(title).classes('text-center')
