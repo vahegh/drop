@@ -288,7 +288,7 @@ def google_button(page):
 
 
 def large_google_button(page):
-    div = ui.element('div')  # .classes('h-[40px]')
+    div = ui.element('div').classes('h-[40px]')
     ui.run_javascript(f"""
                     google.accounts.id.renderButton({div.html_id}, {{
                         type: 'standard',
