@@ -1,18 +1,16 @@
-from nicegui import ui, Client
+from nicegui import ui
 from frame import frame
 from consts import support_email
 from elements import page_header
 
 
 @ui.page('/policy', title='Policy | Drop Dead Disco')
-async def policy_page(client: Client):
-    client.content.classes('p-0')
-    async with frame():
-        with ui.column().classes('h-full gap-8 p-8 items-center'):
+async def policy_page():
+    async with frame(show_footer=False) as f:
+        f.classes('px-4')
+        page_header('Return Policy')
 
-            page_header('Return Policy')
-
-            ui.markdown(f'''
+        ui.markdown(f'''
 Any ticket purchased from [our website](/) may be refunded until the previous day (included) of the event it is designated for. 
 
 The return process consists of the following steps: 

@@ -61,24 +61,45 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                     toast(f"Updated Instagram username to {instagram.value}.")
             dl.delete()
 
-        async def send_otp(new_email):
-            otp = random.randint(100000, 999999)
-            app.storage.user['otp'] = str(otp)
-            context = {"name": person.first_name, "otp": otp}
-            template = await generate_template("otp.html", context=context)
-            outgoing_email = EmailRequest(
-                recipient_email=new_email,
-                subject="One-time verification code",
-                body=template
-            )
-            await send_email(outgoing_email)
-
         async def modify_email(new_email):
+            async def send_otp(new_email):
+                send_btn.props(add='loading disable')
+                otp = random.randint(100000, 999999)
+                app.storage.user['otp'] = str(otp)
+                context = {"name": person.first_name, "otp": otp}
+                template = await generate_template("otp.html", context=context)
+                outgoing_email = EmailRequest(
+                    recipient_email=new_email,
+                    subject="One-time verification code",
+                    body=template
+                )
+                await send_email(outgoing_email)
+                send_btn.props(remove='loading disable')
+                send_btn.set_text("Send again")
+                save_btn.set_visibility(True)
+                otp_input.set_visibility(True)
+
             if not new_email.validate():
                 return
 
             async def verify_otp(otp):
-                dl.submit(otp == app.storage.user['otp'])
+                save_btn.props(add='loading disable')
+                result = otp == app.storage.user['otp']
+                if result:
+                    try:
+                        await update_person(person.id, PersonUpdate(email=email.value))
+                    except Exception as e:
+                        toast(f"Unable to save email: {str(e)}")
+                    else:
+                        toast(f"Updated email to {email.value}.")
+                        dl.delete()
+                    finally:
+                        app.storage.user.clear()
+
+                else:
+                    toast(f"Incorrect OTP")
+
+                save_btn.props(remove='loading disable')
 
             existing_user = await get_person_by_email(new_email.value)
             if existing_user:
@@ -88,6 +109,7 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
             with ui.dialog(value=True) as dl:
                 with ui.card().classes('w-full'):
                     with section("Verify email", subtitle="Send a one-time code to your new email to verify."):
+                        ui.label(new_email.value)
 
                         otp_input = ui.input("OTP")
                         otp_input.set_visibility(False)
@@ -98,19 +120,6 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
 
                         send_btn = primary_button("Send OTP").on_click(
                             lambda: send_otp(new_email.value))
-
-                        send_btn.on_click(lambda: (send_btn.set_text(
-                            "Send again"), save_btn.set_visibility(True), otp_input.set_visibility(True)))
-
-            result = await dl
-
-            if result:
-                try:
-                    await update_person(person.id, PersonUpdate(email=email.value))
-                except Exception as e:
-                    toast(f"Unable to save email: {str(e)}")
-                else:
-                    toast(f"Updated email to {email.value}.")
 
         with section():
             if person.avatar_url:

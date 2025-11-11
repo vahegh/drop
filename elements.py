@@ -266,7 +266,7 @@ def event_ticket(ticket: EventTicketResponse, event: EventResponse, user_agent):
 
 
 def image_carousel(urls):
-    with ui.carousel().classes('w-full h-96 aspect-square max-w-96').props('infinite autoplay="2500" swipeable animated arrows'):
+    with ui.carousel().classes('w-full h-96 aspect-square max-w-96 bg-gray-100').props('infinite autoplay="2500" swipeable animated arrows'):
         for url in urls:
             with ui.carousel_slide().classes('justify-center p-0'):
                 ui.image(f'{url}=w1080-h1080').props('fit="cover"').classes('rounded-xl w-full h-full')

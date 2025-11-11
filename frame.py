@@ -19,7 +19,7 @@ async def frame(show_footer=True):
     show_signin = request.url not in ['/signup']
     await ui.context.client.connected()
 
-    with ui.context.client.content.classes('bg-gray-100 p-0 gap-2 w-full items-center justify-center min-h-[100vh] pt-14 pb-2') as content:
+    with ui.context.client.content.classes('bg-gray-100 gap-4 px-0 pb-4 pt-14 w-full items-center justify-center min-h-[100vh]') as content:
         with ui.row().classes('fixed top-0 left-0 items-center bg-transparent h-14 px-4 py-2 backdrop-blur-xs flex justify-between z-10'):
             with ui.button().props('flat').classes('py-0 px-2').on('click', lambda: ui.navigate.to('/')):
                 ui.image(logo_gray_path).classes(
@@ -71,7 +71,7 @@ async def frame(show_footer=True):
                     # google_button(request.url.path)
 
                     ui.button("Log in").classes(
-                        'rounded-full bg-primary text-accent', remove='text-black').props('size="12px" outline no-caps').on_click(lambda: ui.navigate.to(f'/login?redirect_url={request.url}'))
+                        'rounded-full bg-primary').props('size="12px" outline no-caps').on_click(lambda: ui.navigate.to(f'/login?redirect_url={request.url}'))
 
         yield content
 

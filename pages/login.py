@@ -77,7 +77,6 @@ async def login_page(token: str = None, redirect_url='/', logged_in=Depends(logg
                 section_title("Login / sign up with Google")
                 large_google_button(redirect_url)
                 ui.label("OR")
-                ui.separator()
                 section_title('Login with link')
                 email_input = rectangular_email_input("Verified email")
                 send_link_btn = primary_button('Send link')

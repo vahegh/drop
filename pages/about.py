@@ -7,7 +7,7 @@ from dependencies import Depends, logged_in
 @ui.page('/about', title='About Us | Drop Dead Disco')
 async def about_page(logged_in=Depends(logged_in)):
     async with frame() as main_col:
-        main_col.classes('gap-4 p-4 w-2/3 min-w-96', remove='pb-2 gap-2')
+        main_col.classes('w-2/3 min-w-96 px-4')
 
         page_header('About Us')
         with ui.column().classes('gap-0 w-full'):
@@ -22,7 +22,7 @@ async def about_page(logged_in=Depends(logged_in)):
         with ui.column().classes('gap-0 w-full'):
             section_title("Verification?")
             ui.markdown('''
-    Yes. s
+    Yes.
                     
     The reason we started this was to gather like-minded people around the thing we love the most - **music**.
     We want to make sure that everyone gets that. Thus, we are very strict about who we let in.

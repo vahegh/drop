@@ -27,7 +27,7 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
         with ui.column().classes(f'w-full h-{video_col_h}') as video_col:
             img = ui.image(cover_url).classes(
                 'object-cover h-full w-full')
-        f.classes('gap-2', remove='pt-14')
+        f.classes('pt-0', remove='pt-14')
         upcoming_events: list[EventResponse] = []
         past_events: list[EventResponse] = []
 
