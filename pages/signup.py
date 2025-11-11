@@ -19,13 +19,14 @@ async def signup_page(token):
         raise HTTPException(401, "Invalid token")
 
     async with frame(show_footer=False) as main_col:
-        main_col.classes('p-2')
+        main_col.classes('px-2')
         main_card = ui.card().classes('gap-4 w-full max-w-96')
 
         with main_card:
             with section():
                 ui.image(logo_black_path).classes('w-24')
 
+            with section():
                 with ui.column().classes('w-full gap-0 items-center'):
                     section_title("Sign up")
 

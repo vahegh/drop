@@ -42,7 +42,7 @@ async def login_page(token: str = None, redirect_url='/', logged_in=Depends(logg
             return await generate_and_set_tokens(person.id)
 
     async with frame(show_footer=False) as f:
-        f.classes('py-14 px-2')
+        f.classes('px-2')
 
         async def magic_link(email_input):
             if not email_input.validate():
@@ -74,7 +74,8 @@ async def login_page(token: str = None, redirect_url='/', logged_in=Depends(logg
         with ui.card().classes('gap-4 w-full max-w-96') as main_card:
             with section():
                 ui.image(logo_black_path).classes('w-24')
-                section_title("Login / sign up with Google")
+            with section():
+                section_title("Login or sign up with Google")
                 large_google_button(redirect_url)
                 ui.label("OR")
                 section_title('Login with link')

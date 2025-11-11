@@ -41,7 +41,7 @@ async def init_payment(db: AsyncSession, request: PaymentCreate):
 
     for id in request.ticket_holders:
         recipient = await db.get(Person, id)
-        recipient_names.append(recipient.name)
+        recipient_names.append(f"{recipient.first_name} {recipient.last_name}")
         intent = PaymentIntent(
             order_id=new_payment.order_id,
             recipient_id=id)

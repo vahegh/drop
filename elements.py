@@ -128,11 +128,11 @@ def page_header(text=''):
 
 
 def section_title(text=''):
-    return ui.label(text).classes('text-2xl font-medium')
+    return ui.label(text).classes('text-xl font-medium')
 
 
 def subsection_title(text=''):
-    return ui.label(text).classes('text-xl font-medium')
+    return ui.label(text).classes('text-lg font-medium')
 
 
 def price_row(type, price):

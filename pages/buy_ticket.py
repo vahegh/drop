@@ -12,8 +12,7 @@ from elements import (rounded_email_input, secondary_button, primary_button, toa
 
 from storage_cache import get_cache
 from uuid import UUID
-from services.event_ticket import create_event_ticket, get_tickets_by_person_id
-from services.member_pass import create_member_pass
+from services.event_ticket import get_tickets_by_person_id
 from services.payment import init_payment
 from services.person import get_person_by_email
 from dependencies import Depends, logged_in
@@ -22,13 +21,18 @@ from dependencies import Depends, logged_in
 @ui.page('/buy-ticket', title='Buy Your Ticket | Drop Dead Disco')
 async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(logged_in)):
     if not logged_in:
-        ui.navigate.to('/')
+        ui.navigate.to('/login')
+        return
 
     cache = get_cache()
 
     person: PersonResponse = request.state.person
 
     event = await cache.fetch_event(event_id)
+
+    if event.ends_at < datetime.now(timezone.utc):
+        ui.navigate.to(f'/event/{event.id}')
+        return
 
     # await notify_payment_page(person)
 
