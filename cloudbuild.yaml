@@ -87,6 +87,7 @@ steps:
       - --set-secrets=ecrm_key_pem=ecrm_key_pem:latest
       - --set-secrets=auth_secret=auth_secret:latest
       - --set-secrets=google_client_id=google_client_id:latest
+      - --set-secrets=google_client_secret=google_client_secret:latest
       - --set-secrets=google_drive_creds=google_drive_creds:latest
       - --set-secrets=admins=admins:latest
 

@@ -1,7 +1,8 @@
 from nicegui import ui, app
 from consts import APP_BASE_URL, name_validation, email_validation, insta_validation
 from elements import (primary_button, secondary_button, status_icon,
-                      page_header, section, toast, instagram_dialog)
+                      page_header, section, toast, instagram_dialog,
+                      destructive_button)
 from services.person import update_person, get_person_by_email
 from api_models import PersonResponseFull, PersonUpdate
 from frame import frame
@@ -139,9 +140,9 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
 
                     with input_field.add_slot('append'):
                         edit_btn = ui.button(icon='edit').props(
-                            'round dense flat')
+                            'round dense flat color="dark"')
                         save_btn = ui.button(icon='save').props(
-                            'round dense flat')
+                            'round dense flat color="dark"')
                         save_btn.set_visibility(False)
 
                     input_field.on('blur', lambda: (
@@ -172,4 +173,4 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
             instagram_save.on_click(lambda: modify_instagram(instagram))
 
         with section():
-            secondary_button('Logout', on_click=lambda: ui.navigate.to('/logout'))
+            destructive_button('Logout', on_click=lambda: ui.navigate.to('/logout'))

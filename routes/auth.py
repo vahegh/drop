@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import APIRouter, HTTPException, Response, Request
 from fastapi.responses import RedirectResponse
 from decorators import with_db
-from consts import APP_BASE_URL, APPLICATION_SUBMITTED_SUBJECT, APPLICATION_SUBMITTED_TEMPLATE
+from consts import APP_BASE_URL, APPLICATION_SUBMITTED_SUBJECT, APPLICATION_SUBMITTED_TEMPLATE, google_client_id
 from api_models import VerifyPersonRequest, ValidateTokenRequest, ValidateTokenResponse, PersonCreate, PersonUpdate
 from services.person import update_person
 from services.auth import create_jwt, create_token
@@ -17,11 +17,16 @@ from services.mailing import EmailRequest, send_email
 from enums import PersonStatus
 from db_models import Person, RefreshToken
 import logging
+import httpx
+from nicegui import app
+import urllib.parse
+
 
 logger = logging.getLogger(__name__)
 
 
 aud = os.environ['google_client_id']
+client_secret = os.environ['google_client_secret']
 auth_secret = os.environ['auth_secret']
 
 router = APIRouter(tags=['Auth'], prefix="/api/auth")
@@ -52,43 +57,6 @@ async def generate_and_set_tokens(db: AsyncSession, person_id: str, redirect_url
     return response
 
 
-# @router.post("/verify-person")
-# @with_db
-# async def verify_person(db: AsyncSession, request: VerifyPersonRequest):
-#     person = await get_person_by_email(request.email)
-#     if not person:
-#         raise HTTPException(404, "No such person")
-
-#     event = await db.get(Event, request.event_id)
-#     if not event:
-#         raise HTTPException(404, "No such event")
-
-#     if person.status in (PersonStatus.verified, PersonStatus.member):
-#         token = await create_jwt(person.email, str(event.id))
-#         await send_magic_link(person, event.name, f"{APP_BASE_URL}/buy-ticket?token={token}")
-#     return
-
-
-# @router.post("/validate-token")
-# async def validate_token(request: ValidateTokenRequest):
-#     try:
-#         payload = jwt.decode(request.token, auth_secret, algorithms=["HS256"])
-#         try:
-#             person = await get_person_by_email(payload['email'])
-#             event = await get_event_info(payload['event_id'])
-#             has_ticket = bool(await get_tickets_by_person_id(person.id, event.id))
-#         except HTTPException(404):
-#             raise
-#         else:
-#             return ValidateTokenResponse(person=person, event=event, has_ticket=has_ticket)
-
-#     except jwt.ExpiredSignatureError:
-#         raise HTTPException(401, "Expired")
-#     except jwt.InvalidTokenError:
-#         raise HTTPException(401, "Invalid")
-
-
-# @router.post("/register")
 @with_db
 async def register(db: AsyncSession, person: PersonCreate):
     existing_email = await db.scalar(select(Person).where(Person.email == person.email))
@@ -111,29 +79,6 @@ async def register(db: AsyncSession, person: PersonCreate):
 
     await send_email(email_request)
     return person
-
-
-@router.post("/login")
-async def login(request: Request):
-    form_data = await request.form()
-
-    redirect_url = form_data.get('state', '/')
-
-    csrf_token_cookie = request.cookies.get('g_csrf_token')
-    if not csrf_token_cookie:
-        raise HTTPException(400, 'No CSRF token in Cookie.')
-    csrf_token_body = form_data.get('g_csrf_token')
-    if not csrf_token_body:
-        raise HTTPException(400, 'No CSRF token in post body.')
-    if csrf_token_cookie != csrf_token_body:
-        raise HTTPException(400, 'Failed to verify double submit cookie.')
-
-    token = form_data.get('credential')
-
-    if not token:
-        raise HTTPException(401, "No token")
-
-    return await login_user(token, redirect_url)
 
 
 @router.get("/login-user")
@@ -164,7 +109,6 @@ async def login_user(db: AsyncSession, token, redirect_url='/'):
         return await generate_and_set_tokens(person.id, redirect_url)
 
 
-# @router.post("/refresh")
 @with_db
 async def refresh(db: AsyncSession, request: Request):
     token = request.cookies.get('refresh_token')
@@ -189,7 +133,6 @@ async def refresh(db: AsyncSession, request: Request):
     return await generate_and_set_tokens(payload['person_id'], request.url)
 
 
-# @router.post("/logout")
 @with_db
 async def logout(db: AsyncSession, token: str = None, redirect_url='/'):
     response = RedirectResponse(redirect_url, 302)

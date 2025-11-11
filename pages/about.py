@@ -1,6 +1,6 @@
 from nicegui import ui
 from frame import frame
-from elements import page_header, section_title, section, large_google_button, primary_button
+from elements import page_header, section_title, section, google_button, primary_button
 from dependencies import Depends, logged_in
 
 
@@ -72,6 +72,6 @@ async def about_page(logged_in=Depends(logged_in)):
         If there are no planned events at the time of your approval, you're still in, and will get future event updates as they are available.
         ''')
             with section("Wanna join the fun?", subtitle="Sign up to get verified."):
-                large_google_button(ui.context.client.request.url.path)
+                google_button("Sign up with Google", ui.context.client.request.url.path)
         else:
             primary_button("Go home").on_click(lambda: ui.navigate.to('/'))

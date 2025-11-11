@@ -48,7 +48,7 @@ head_html = '''
 <meta name="description" content="Drop Dead Disco - it's like a cult, but you can keep your job.">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet">
 
 <style>
@@ -82,11 +82,6 @@ head_html = '''
 </style>
 '''
 
-google_signin_html = f'''
-<meta name="google-signin-client_id" content="759529195467-d4dt9f5do5iu4g4itndu2v0q9vpmip93.apps.googleusercontent.com">
-<script src="https://accounts.google.com/gsi/client?hl=en" async defer></script>
-'''
-
 if not is_cloud_run():
     gtag_html = '''
 <!-- Google tag (gtag.js) -->
@@ -118,7 +113,6 @@ def main():
 
     ui.add_head_html(head_html, shared=True)
     ui.add_head_html(gtag_html, shared=True)
-    ui.add_head_html(google_signin_html, shared=True)
 
     import elements
 

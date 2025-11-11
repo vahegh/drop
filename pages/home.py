@@ -6,8 +6,8 @@ from storage_cache import get_cache
 from api_models import EventResponse, PersonResponseFull
 from elements import (event_card, page_header, section_title,
                       status_icon, member_card, event_ticket,
-                      image_carousel, large_google_button,
-                      primary_button, section, past_tickets_col, accented_button,
+                      image_carousel, google_button, dark_button,
+                      section, past_tickets_col, accented_button,
                       status_colors)
 from helpers import get_user_agent, get_album_urls
 from enums import PersonStatus
@@ -75,7 +75,7 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
 
                             ui.markdown(
                                 "As a Member, you get access to **all photos of you** captured during Drop events, in full quality.").classes('text-center')
-                            primary_button("Open in Google Drive", icon=f"img:{svg_url}").on_click(
+                            dark_button("Open in Google Drive", icon=f"img:{svg_url}").on_click(
                                 lambda: ui.navigate.to(person.drive_folder_url))
                             ui.markdown(
                                 "*note: this folder is only visible to you*").classes('text-center')
@@ -91,7 +91,7 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                                 We'll get back to you ASAP. You'll receive an email about your status.""").classes('text-center')
         else:
             with section("Wanna join the fun?", subtitle="Sign up to get verified."):
-                large_google_button(request.url.path)
+                google_button("Sign up with Google", request.url.path)
         ui.separator()
 
         with ui.grid().classes('flex w-full justify-center p-2 gap-4'):
@@ -104,7 +104,7 @@ We host our events in unexpected locations - whatever has the most sparkle.
                     
 We don't tell you the location beforehand, and every guest has to pass **verification** before they're able to buy tickets and attend.
 ''').classes('text-md/5')
-                accented_button("Read More").on_click(lambda: ui.navigate.to('/about'))
+                accented_button("Read more").on_click(lambda: ui.navigate.to('/about'))
 
             with section():
                 person_counts = await get_all_person_stats()
@@ -149,6 +149,6 @@ We don't tell you the location beforehand, and every guest has to pass **verific
                                     allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                                     loading="lazy"''').classes('rounded-xl w-full h-[500px] px-2')
         with video_col:
-            vid = ui.video(video_url, controls=False).classes(
+            ui.video(video_url, controls=False).classes(
                 'object-cover h-full w-full').props('autoplay loop muted playsinline')
-            img.delete()
+    img.delete()

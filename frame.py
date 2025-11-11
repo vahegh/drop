@@ -2,22 +2,22 @@ from contextlib import asynccontextmanager
 from nicegui import ui
 from consts import (spotify_logo_path, instagram_logo_path,
                     DROP_INSTA_URL, DROP_SPOTIFY_URL, support_email, logo_white_path,
-                    DROP_YOUTUBE_URL, youtube_logo_path, APP_BASE_URL, google_client_id, logo_gray_path)
-from elements import google_button, secondary_button, section_title, primary_button
+                    DROP_YOUTUBE_URL, youtube_logo_path, logo_gray_path)
+from elements import section_title, primary_button, destructive_button
 from api_models import PersonResponseFull
 
 
 @asynccontextmanager
 async def frame(show_footer=True):
     ui.colors(primary="#FFFFFF", dark="#101010", secondary="#df296f",
-              accent="#9D20C3", section="#61007F")
+              accent="#9D20C3", section="#61007F", negative="#D50E0E")
 
     request = ui.context.client.request
 
     person: PersonResponseFull = request.state.person
     logged_in = request.state.logged_in
     show_signin = True
-    login_redirect_url = request.url.path if request.url.path not in ['/signup'] else '/'
+    login_redirect_url = request.url.path if request.url.path not in ['/signup', '/login'] else '/'
     await ui.context.client.connected()
 
     with ui.context.client.content.classes('bg-gray-100 gap-4 px-0 py-14 w-full items-center justify-center min-h-[100svh]') as content:
@@ -34,7 +34,7 @@ async def frame(show_footer=True):
                     else:
                         ui.icon('account_circle', size='32px', color="gray")
 
-                    menu = ui.menu().props('').classes('w-48')
+                    menu = ui.menu().classes('w-48 bg-gray-100')
 
                     with menu:
                         with ui.column().classes('items-center w-full p-4'):
@@ -50,7 +50,7 @@ async def frame(show_footer=True):
                                     ui.navigate.to('/profile'),
                                     profile_btn.props(add='loading disable')
                                 ))
-                            logout_btn = secondary_button('Logout').on_click(lambda: (
+                            logout_btn = destructive_button('Logout').on_click(lambda: (
                                 ui.navigate.to(f'/logout?redirect_url={login_redirect_url}'),
                                 logout_btn.props(add='loading disable')
                             ))
@@ -58,21 +58,8 @@ async def frame(show_footer=True):
 
             else:
                 if show_signin:
-                    ui.run_javascript(f'''
-                        google.accounts.id.initialize({{
-                            client_id: '759529195467-d4dt9f5do5iu4g4itndu2v0q9vpmip93.apps.googleusercontent.com',
-                            ux_mode: 'redirect',
-                            login_uri: '{APP_BASE_URL}/api/auth/login',
-                            auto_select: false,
-                            itp_support: true,
-                            use_fedcm_for_prompt: true,
-                            use_fedcm_for_button: true
-                        }});''')
-
-                    # google_button(request.url.path)
-
                     ui.button("Log in").classes(
-                        'rounded-full bg-primary').props('size="12px" outline no-caps').on_click(lambda: ui.navigate.to(f'/login?redirect_url={request.url}'))
+                        'rounded-full bg-primary text-black').props('size="12px" outline no-caps').on_click(lambda: ui.navigate.to(f'/login?redirect_url={login_redirect_url}'))
 
         yield content
 

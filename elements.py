@@ -1,25 +1,21 @@
-from pydantic import BaseModel, EmailStr
-from nicegui import ui
-from typing import Type, Union
-from consts import email_validation, email_non_required, email_placeholder, calendar_base_url, google_calendar_img_url
+import secrets
 import urllib.parse
-from datetime import datetime
 from uuid import UUID
-
-import urllib.parse
+from datetime import datetime
+from typing import Type, Union
 from contextlib import contextmanager
-from nicegui import ui
+from nicegui import ui, app
+from pydantic import BaseModel, EmailStr
 from api_models import EventResponse, MemberCardResponse, EventTicketResponse, EventResponse, VenueResponse, PersonResponse
 from enums import PersonStatus
+from helpers import generate_qr
 from consts import (email_validation, insta_validation, name_validation,
                     email_non_required, email_placeholder, calendar_base_url,
                     google_calendar_img_url, instagram_placeholder, google_wallet_img_url,
-                    apple_wallet_img_url)
-from helpers import generate_qr
+                    apple_wallet_img_url, google_client_id, APP_BASE_URL)
 
 
 ui.button.default_props(':ripple="false" :press-delay="0"')
-ui.button.default_classes('text-black')
 ui.input.default_classes('w-full max-w-96 items-center justify-center')
 ui.input.default_props('color=accent no-error-icon outlined clearable clear-icon="clear"')
 ui.card.default_classes('rounded-3xl items-center')
@@ -62,15 +58,23 @@ def name_input(label, placeholder, **kwargs):
 
 
 def primary_button(text='', **kwargs):
-    return ui.button(text, **kwargs).props(add='color="primary" push')
+    return ui.button(text, **kwargs).props(add='color="primary" rounded no-caps outline').classes('text-black h-[40px] w-full max-w-96')
+
+
+def dark_button(text='', **kwargs):
+    return ui.button(text, **kwargs).props(add='color="dark" rounded no-caps unelevated').classes('text-primary h-[40px] w-full max-w-96')
 
 
 def secondary_button(text='', **kwargs):
-    return ui.button(text, **kwargs).props(add='color="secondary" push').classes('text-white', remove='text-black')
+    return ui.button(text, **kwargs).props(add='color="secondary" rounded no-caps unelevated').classes('h-[40px] w-full max-w-96')
 
 
 def accented_button(text='', **kwargs):
-    return ui.button(text, **kwargs).props(add='color="accent" push').classes('text-white', remove='text-black')
+    return ui.button(text, **kwargs).props(add='color="accent" rounded no-caps outline').classes('h-[40px] w-full max-w-96')
+
+
+def destructive_button(text='', **kwargs):
+    return ui.button(text, **kwargs).props(add='color="negative" rounded no-caps unelevated').classes('h-[40px] w-full max-w-96')
 
 
 def toast(text, **kwargs):
@@ -148,48 +152,6 @@ def price_row(type, price):
     return row
 
 
-# def send_link_dialog(event_id) -> Dialog:
-#     async def send_link():
-#         if not email_address_input.validate():
-#             return
-
-#         buy_btn.props(add='loading')
-
-#         try:
-#             req = VerifyPersonRequest(
-#                 email=email_address_input.value, event_id=event_id)
-#             await client.verify_person(req)
-#         except httpx.HTTPStatusError as e:
-#             if e.response.status_code == 404:
-#                 email_address_input.set_visibility(False)
-#                 message.text = "You haven't applied yet!"
-#                 secondary_message.text = "Redirecting you to the apply page..."
-#                 await asyncio.sleep(1)
-#                 ui.navigate.to(f"/apply?email={email_address_input.value}")
-
-#             else:
-#                 toast(f"Failed, please try again.", type='negative')
-#                 buy_btn.props(remove='loading')
-#         else:
-#             email_address_input.set_visibility(False)
-#             message.text = "Check your email!"
-#             secondary_message.text = "If verified, you'll receive an email with your payment link."
-#             buy_btn.delete()
-
-#     with ui.dialog() as dl:
-#         with ui.card().classes('gap-4 p-6'):
-#             message = section_title("Your Email")
-#             secondary_message = ui.label("*this your verified email in Drop Dead Disco").classes(
-#                 'text-xs')
-
-#             email_address_input = rectangular_email_input(required=False).on(
-#                 'keydown.enter', send_link)
-
-#             buy_btn = secondary_button('get link').on('click', send_link)
-
-#     return dl
-
-
 status_colors = {
     PersonStatus.verified: "#11b553",
     PersonStatus.member: "#6233da",
@@ -227,7 +189,7 @@ def member_card(member_pass: MemberCardResponse, attendance: int, user_agent):
     color = status_colors.get(PersonStatus.member)
 
     with ui.card().props('bordered flat').classes(f'w-full max-w-96 gap-4 px-0 justify-around border-[{color}]'):
-        subsection_title('Membership pass')
+        subsection_title('Your Membership pass')
         with ui.column().classes('w-full items-center px-6 py-0 gap-2'):
             with ui.row(wrap=False):
                 with ui.column().classes(replace='gap-0'):
@@ -270,36 +232,6 @@ def image_carousel(urls):
         for url in urls:
             with ui.carousel_slide().classes('justify-center p-0'):
                 ui.image(f'{url}=w1080-h1080').props('fit="cover"').classes('rounded-xl w-full h-full')
-
-
-def google_button(page):
-    div = ui.element('div').classes('h-[33px]')
-    ui.run_javascript(f"""
-                    google.accounts.id.renderButton({div.html_id}, {{
-                        type: 'standard',
-                        shape: 'pill',
-                        theme: 'outline',
-                        text: 'signup_with',
-                        size: 'medium',
-                        locale: 'en-US',
-                        logo_alignment: 'left',
-                        state: '{page}'
-                    }})""")
-
-
-def large_google_button(page):
-    div = ui.element('div').classes('h-[40px]')
-    ui.run_javascript(f"""
-                    google.accounts.id.renderButton({div.html_id}, {{
-                        type: 'standard',
-                        shape: 'rectangular',
-                        theme: 'filled_blue',
-                        text: 'continue_with',
-                        size: 'large',
-                        locale: 'en-US',
-                        logo_alignment: 'left',
-                        state: '{page}'
-                    }})""")
 
 
 @contextmanager
@@ -402,3 +334,28 @@ def instagram_dialog(instagram_info):
                 with section(f"Instagram user {instagram_info['username']} not found", subtitle="Please check your username."):
                     primary_button("Fix").on_click(lambda: (dl.submit(False)))
     return dl
+
+
+def google_button(text, url='/'):
+    img_uri = app.add_static_file(local_file="static/images/google.svg")
+
+    async def redirect_to_auth():
+        csrf_token = secrets.token_urlsafe(32)
+        app.storage.user['csrf_token'] = csrf_token
+
+        params = {
+            "client_id": google_client_id,
+            "redirect_uri": f"{APP_BASE_URL}/google-login",
+            "response_type": "code",
+            "scope": "openid email profile",
+            "hl": "en",
+            "state": f"csrf_token={csrf_token}&url={url}"
+        }
+
+        auth_uri = f"https://accounts.google.com/o/oauth2/v2/auth?{urllib.parse.urlencode(params)}"
+        ui.navigate.to(auth_uri)
+
+    with dark_button(text, icon=f'img:{img_uri}') as btn:
+        btn.on_click(lambda: redirect_to_auth())
+
+    return btn
