@@ -62,7 +62,7 @@ async def login_page(token: str = None, redirect_url='/', logged_in=Depends(logg
             template = await generate_template("magic_link.html", context)
             outgoing_email = EmailRequest(
                 recipient_email=email,
-                subject="Your signin link",
+                subject="Your Signin Link",
                 body=template
             )
             await send_email(outgoing_email)
