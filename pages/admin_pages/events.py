@@ -228,13 +228,15 @@ async def event_details_panel(event_id):
         if not t.attended_at:
             continue
 
+        person = person_map[t.person_id]
+
         people_attended += 1
 
         delta = t.attended_at.astimezone() - start_datetime
         bin_index = int(delta.total_seconds() // (5 * 60))
         if 0 <= bin_index < len(time_bins):
             bin_time = start_datetime + timedelta(minutes=5*bin_index)
-            attendance_by_bin[bin_time].append(person_map[t.person_id].name)
+            attendance_by_bin[bin_time].append(f"{person.first_name} {person.last_name}")
 
     if attendance_by_bin:
         last_bin = max(attendance_by_bin)
