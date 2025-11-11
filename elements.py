@@ -293,7 +293,7 @@ def large_google_button(page):
                     google.accounts.id.renderButton({div.html_id}, {{
                         type: 'standard',
                         shape: 'rectangular',
-                        theme: 'outline',
+                        theme: 'filled_blue',
                         text: 'continue_with',
                         size: 'large',
                         locale: 'en-US',
