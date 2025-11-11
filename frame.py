@@ -16,7 +16,8 @@ async def frame(show_footer=True):
 
     person: PersonResponseFull = request.state.person
     logged_in = request.state.logged_in
-    show_signin = request.url not in ['/signup']
+    show_signin = True
+    login_redirect_url = request.url.path if request.url.path not in ['/signup'] else '/'
     await ui.context.client.connected()
 
     with ui.context.client.content.classes('bg-gray-100 gap-4 px-0 py-14 w-full items-center justify-center min-h-[100svh]') as content:
@@ -50,7 +51,7 @@ async def frame(show_footer=True):
                                     profile_btn.props(add='loading disable')
                                 ))
                             logout_btn = secondary_button('Logout').on_click(lambda: (
-                                ui.navigate.to(f'/logout?redirect_url={request.url}'),
+                                ui.navigate.to(f'/logout?redirect_url={login_redirect_url}'),
                                 logout_btn.props(add='loading disable')
                             ))
                     btn.on_click(menu.toggle)

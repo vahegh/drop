@@ -23,10 +23,10 @@ async def signup_page(token):
         main_card = ui.card().classes('gap-4 w-full max-w-96')
 
         with main_card:
-            with section():
-                ui.image(logo_black_path).classes('w-24')
+            ui.image(logo_black_path).classes('w-24 h-8')
 
-            with section():
+            with section() as s:
+                s.classes('h-[480px]')
                 with ui.column().classes('w-full gap-0 items-center'):
                     section_title("Sign up")
 

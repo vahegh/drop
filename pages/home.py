@@ -24,16 +24,14 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
     video_col_h = "[20vh]" if logged_in else "[80vh]"
 
     async with frame() as f:
+        cache = get_cache()
+        events = await cache.fetch_all_events()
+        f.classes('pb-4 pt-0')
         with ui.column().classes(f'w-full h-{video_col_h}') as video_col:
             img = ui.image(cover_url).classes(
                 'object-cover h-full w-full')
-        f.classes('pb-4 pt-0')
         upcoming_events: list[EventResponse] = []
         past_events: list[EventResponse] = []
-
-        cache = get_cache()
-        events = await cache.fetch_all_events()
-        await cache.fetch_all_venues()
 
         if logged_in:
             person: PersonResponseFull = request.state.person
@@ -120,10 +118,6 @@ We don't tell you the location beforehand, and every guest has to pass **verific
                         ui.label("VERIFIED").classes('font-semibold text-gray-600')
                         ui.label(person_counts[PersonStatus.verified]).classes(
                             f'text-3xl font-semibold text-[{status_colors.get(PersonStatus.verified)}]')
-                    # with ui.row(wrap=False):
-                    #     ui.label("PENDING REVIEW").classes('font-semibold text-gray-600')
-                    #     ui.label(person_counts[PersonStatus.pending]).classes(
-                    #         f'text-3xl font-semibold text-[{status_colors.get(PersonStatus.pending)}]')
 
             with section():
                 album_url = "https://photos.google.com/share/AF1QipNb8__JbXtuax9DJm21Ca666tb2o4voA1u09nj0Z04jhyNjfdzcQ-1KTMqI7N9zNA?key=MG11Qm01N1JRWGxZUElGazdvcGlzOEw4VWVobUdR"

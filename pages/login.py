@@ -71,10 +71,10 @@ async def login_page(token: str = None, redirect_url='/', logged_in=Depends(logg
                 with section("Check your email!", subtitle="If verified, you'll receive a link to log in."):
                     pass
 
-        with ui.card().classes('gap-4 w-full max-w-96') as main_card:
-            with section():
-                ui.image(logo_black_path).classes('w-24')
-            with section():
+        with ui.card().classes('gap-4 w-full max-w-96 justify-center') as main_card:
+            ui.image(logo_black_path).classes('w-24 h-8')
+            with section() as s:
+                s.classes('h-64')
                 section_title("Login or sign up with Google")
                 large_google_button(redirect_url)
                 ui.label("OR")
