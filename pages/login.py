@@ -9,25 +9,28 @@ from services.person import get_person_by_email
 from services.auth import create_jwt, auth_secret
 import jwt
 from routes.auth import generate_and_set_tokens
+from dependencies import Depends, logged_in
 
 
 @ui.page('/login')
-async def login_page(request: Request, token: str = None, redirect_url='/'):
-    main_card = ui.card().classes('gap-4 w-full max-w-96')
+async def login_page(token: str = None, redirect_url='/', logged_in=Depends(logged_in)):
+    if logged_in:
+        ui.navigate.to('/profile')
+        return
 
     if token:
         try:
             payload = jwt.decode(token, auth_secret, algorithms=["HS256"])
         except jwt.ExpiredSignatureError:
             async with frame(show_footer=False):
-                with main_card:
+                with ui.card().classes('gap-4 w-full max-w-96'):
                     section_title("Magic link expired")
                     primary_button("Try again").on_click(lambda: ui.navigate.to('/login'))
                 return
 
         except jwt.InvalidTokenError:
             async with frame(show_footer=False):
-                with main_card:
+                with ui.card().classes('gap-4 w-full max-w-96'):
                     section_title("Invalid magic link")
                     primary_button("Try again").on_click(lambda: ui.navigate.to('/login'))
                 return
@@ -39,7 +42,7 @@ async def login_page(request: Request, token: str = None, redirect_url='/'):
             return await generate_and_set_tokens(person.id)
 
     async with frame(show_footer=False) as f:
-        f.classes('p-2')
+        f.classes('py-14 px-2')
 
         async def magic_link(email_input):
             if not email_input.validate():
@@ -68,12 +71,11 @@ async def login_page(request: Request, token: str = None, redirect_url='/'):
                 with section("Check your email!", subtitle="If verified, you'll receive a link to log in."):
                     pass
 
-        with main_card:
+        with ui.card().classes('gap-4 w-full max-w-96') as main_card:
             with section():
                 ui.image(logo_black_path).classes('w-24')
                 section_title("Login / sign up with Google")
                 large_google_button(redirect_url)
-                # ui.separator()
                 ui.label("OR")
                 ui.separator()
                 section_title('Login with link')

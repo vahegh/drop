@@ -19,7 +19,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         if request.url.path.startswith('/api'):
             return await call_next(request)
 
-        if request.url.path in ['/logout', '/login', '/signup']:
+        if request.url.path in ['/logout', '/signup']:
             return await call_next(request)
 
         async def silent_refresh():

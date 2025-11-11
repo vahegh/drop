@@ -19,58 +19,60 @@ async def frame(show_footer=True):
     show_signin = request.url not in ['/signup']
     await ui.context.client.connected()
 
-    with ui.row().classes('fixed top-0 left-0 items-center bg-transparent h-14 px-4 py-2 backdrop-blur-xs flex justify-between z-10'):
-        with ui.button().props('flat').classes('py-0 px-2').on('click', lambda: ui.navigate.to('/')):
-            ui.image(logo_gray_path).classes(
-                'w-14 h-8')
-        ui.space()
-
-        if logged_in:
-            with ui.button().props('round flat').classes('p-0') as btn:
-                if person.avatar_url:
-                    ui.image(person.avatar_url).classes('w-8 rounded-full')
-                else:
-                    ui.icon('account_circle', size='lg')
-
-                with ui.menu().props() as menu:
-                    with ui.column().classes('items-center w-full p-4'):
-                        if person.avatar_url:
-                            ui.image(person.avatar_url).classes(
-                                'size-20 rounded-full')
-                        else:
-                            ui.icon('account_circle', size='xl')
-
-                        section_title(person.full_name).classes('text-center')
-                        profile_btn = primary_button('Your profile').on_click(
-                            lambda: (
-                                ui.navigate.to('/profile'),
-                                profile_btn.props(add='loading disable')
-                            ))
-                        logout_btn = secondary_button('Logout').on_click(lambda: (
-                            ui.navigate.to(f'/logout?redirect_url={request.url}'),
-                            logout_btn.props(add='loading disable')
-                        ))
-                btn.on_click(menu.toggle)
-
-        else:
-            if show_signin:
-                ui.run_javascript(f'''
-                    google.accounts.id.initialize({{
-                        client_id: '759529195467-d4dt9f5do5iu4g4itndu2v0q9vpmip93.apps.googleusercontent.com',
-                        ux_mode: 'redirect',
-                        login_uri: '{APP_BASE_URL}/api/auth/login',
-                        auto_select: false,
-                        itp_support: true,
-                        use_fedcm_for_prompt: true,
-                        use_fedcm_for_button: true
-                    }});''')
-
-                # google_button(request.url.path)
-
-                ui.button("Log in").classes(
-                    'rounded-full bg-primary text-accent', remove='text-black').props('size="12px" outline no-caps').on_click(lambda: ui.navigate.to(f'/login?redirect_url={request.url}'))
-
     with ui.context.client.content.classes('bg-gray-100 p-0 gap-2 w-full items-center justify-center min-h-[100vh] pt-14 pb-2') as content:
+        with ui.row().classes('fixed top-0 left-0 items-center bg-transparent h-14 px-4 py-2 backdrop-blur-xs flex justify-between z-10'):
+            with ui.button().props('flat').classes('py-0 px-2').on('click', lambda: ui.navigate.to('/')):
+                ui.image(logo_gray_path).classes(
+                    'w-14 h-8')
+            ui.space()
+
+            if logged_in:
+                with ui.button().props('round flat').classes('p-0') as btn:
+                    if person.avatar_url:
+                        ui.image(person.avatar_url).classes('w-[32px] rounded-full')
+                    else:
+                        ui.icon('account_circle', size='32px', color="gray")
+
+                    menu = ui.menu().props('').classes('w-48')
+
+                    with menu:
+                        with ui.column().classes('items-center w-full p-4'):
+                            if person.avatar_url:
+                                ui.image(person.avatar_url).classes(
+                                    'w-[80px] rounded-full')
+                            else:
+                                ui.icon('account_circle', size='80px')
+
+                            section_title(person.full_name).classes('text-center')
+                            profile_btn = primary_button('Your profile').on_click(
+                                lambda: (
+                                    ui.navigate.to('/profile'),
+                                    profile_btn.props(add='loading disable')
+                                ))
+                            logout_btn = secondary_button('Logout').on_click(lambda: (
+                                ui.navigate.to(f'/logout?redirect_url={request.url}'),
+                                logout_btn.props(add='loading disable')
+                            ))
+                    btn.on_click(menu.toggle)
+
+            else:
+                if show_signin:
+                    ui.run_javascript(f'''
+                        google.accounts.id.initialize({{
+                            client_id: '759529195467-d4dt9f5do5iu4g4itndu2v0q9vpmip93.apps.googleusercontent.com',
+                            ux_mode: 'redirect',
+                            login_uri: '{APP_BASE_URL}/api/auth/login',
+                            auto_select: false,
+                            itp_support: true,
+                            use_fedcm_for_prompt: true,
+                            use_fedcm_for_button: true
+                        }});''')
+
+                    # google_button(request.url.path)
+
+                    ui.button("Log in").classes(
+                        'rounded-full bg-primary text-accent', remove='text-black').props('size="12px" outline no-caps').on_click(lambda: ui.navigate.to(f'/login?redirect_url={request.url}'))
+
         yield content
 
     if show_footer:

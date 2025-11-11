@@ -25,7 +25,7 @@ ui.input.default_props('color=accent no-error-icon outlined clearable clear-icon
 ui.card.default_classes('rounded-3xl items-center')
 ui.row.default_classes('w-full items-center justify-between')
 ui.item.default_classes('text-3xl text-center')
-ui.markdown.default_classes('text-base/relaxed w-full max-w-96')
+ui.markdown.default_classes('text-base/relaxed w-full')
 ui.link.default_classes('no-underline')
 ui.separator.default_classes('w-full')
 
