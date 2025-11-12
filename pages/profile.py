@@ -153,12 +153,13 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                     ui.image(image_src).classes('size-48 rounded-full')
                     with ui.row(wrap=False):
                         primary_button("Cancel").on_click(lambda: dl.submit(False))
-                        save_btn = positive_button("Save").on_click(lambda: dl.submit(True))
+                        save_btn = positive_button("Save")
+                        save_btn.on_click(lambda e: e.sender.props(add='loading disable'))
+                        save_btn.on_click(lambda: dl.submit(True))
 
             result = await dl
 
             if result:
-                save_btn.props(add='loading disable')
                 filename = person.id
                 avatar_url = await upload_avatar(
                     filename,
@@ -169,7 +170,18 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                 ui.notify(f'Avatar updated')
                 ui.navigate.to('/profile')
 
+                upload.run_method("reset")
+
             dl.delete()
+
+        async def delete_avatar():
+            if await ui.run_javascript('confirm("Are you sure you want to delete your avatar?")', timeout=15):
+                try:
+                    await update_person(person.id, PersonUpdate(avatar_url=None))
+                    ui.notify('Avatar deleted successfully.')
+                    ui.navigate.to('/profile')
+                except Exception as e:
+                    ui.notify(f'Error deleting avatar: {str(e)}')
 
         with section():
             with ui.element('div').classes('relative inline-block'):
@@ -187,10 +199,16 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                         "Please select a different picture. JPEG and PNG files under 1MB are supported.", timeout=3, type='warning')
                 ).props('flat accept="image/jpeg, image/png" no-thumbnails').classes('hidden')
 
-                avatar_edit_btn = ui.button(color="secondary").props('unelevated round size="8px"').classes(
+                avatar_edit_btn = ui.button(color="accent").props('unelevated round size="8px"').classes(
                     'absolute bottom-0 right-0').on_click(lambda: upload.run_method('pickFiles'))
                 with avatar_edit_btn:
                     ui.icon('edit', size='16px')
+
+                if person.avatar_url:
+                    avatar_delete_btn = ui.button(color="negative").props('unelevated round size="8px"').classes(
+                        'absolute bottom-0 left-0').on_click(lambda: delete_avatar())
+                    with avatar_delete_btn:
+                        ui.icon('delete', size='16px')
 
             page_header(f'{person.first_name} {person.last_name}')
             status_icon(person.status)
