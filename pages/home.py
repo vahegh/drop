@@ -19,17 +19,15 @@ from dependencies import Depends, logged_in
 async def home_page(request: Request, logged_in=Depends(logged_in)):
 
     video_url = app.add_static_file(local_file="static/images/bg_video.mp4")
-    cover_url = app.add_static_file(local_file="static/images/bg_cover.png")
 
-    video_col_h = "[20vh]" if logged_in else "[80vh]"
+    video_h = "[20vh]" if logged_in else "[80vh]"
 
     async with frame() as f:
         cache = get_cache()
         events = await cache.fetch_all_events()
         f.classes('pb-4 pt-0')
-        with ui.column().classes(f'w-full h-{video_col_h}') as video_col:
-            img = ui.image(cover_url).classes(
-                'object-cover h-full w-full')
+        ui.video(video_url, controls=False).classes(
+            f'object-cover h-{video_h} w-full').props('autoplay loop muted playsinline')
         upcoming_events: list[EventResponse] = []
         past_events: list[EventResponse] = []
 
@@ -148,7 +146,3 @@ We don't tell you the location beforehand, and every guest has to pass **verific
                                     src="https://open.spotify.com/embed/playlist/49t6kUgW6nB7Kcv4d357qy?utm_source=generator"
                                     allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                                     loading="lazy"''').classes('rounded-xl w-full h-[500px] px-2')
-        with video_col:
-            ui.video(video_url, controls=False).classes(
-                'object-cover h-full w-full').props('autoplay loop muted playsinline')
-    img.delete()

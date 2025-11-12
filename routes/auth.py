@@ -102,7 +102,7 @@ async def login_user(db: AsyncSession, token, redirect_url='/'):
 
         avatar_url = id_info.get('picture')
 
-        if avatar_url:
+        if avatar_url and not person.avatar_url:
             update_req = PersonUpdate(avatar_url=avatar_url)
             await update_person(person.id, update_req)
 

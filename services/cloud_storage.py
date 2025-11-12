@@ -3,9 +3,10 @@ from services.google_auth import get_google_credentials
 
 GCS_BUCKET_NAME = "dropdeadisco"
 APPLE_PASSES_GCS_DIR = "apple_passes"
+AVATARS_GCS_DIR = "avatars"
 
 
-async def upload_apple_pass(filename) -> str:
+async def upload_apple_pass(filename: str) -> str:
     storage_client = storage.Client(credentials=await get_google_credentials())
     bucket = storage_client.bucket(GCS_BUCKET_NAME)
 
@@ -14,6 +15,18 @@ async def upload_apple_pass(filename) -> str:
         blob.delete()
     blob.cache_control = "max-age=0"
     blob.upload_from_filename(filename)
+    return blob.public_url
+
+
+async def upload_avatar(filename: str, file_bytes: bytes, content_type: str) -> str:
+    storage_client = storage.Client(credentials=await get_google_credentials())
+    bucket = storage_client.bucket(GCS_BUCKET_NAME)
+
+    blob = bucket.blob(f"{AVATARS_GCS_DIR}/{filename}")
+    if blob.exists():
+        blob.delete()
+    blob.cache_control = "max-age=0"
+    blob.upload_from_string(file_bytes, content_type=content_type)
     return blob.public_url
 
 

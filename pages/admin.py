@@ -46,7 +46,7 @@ async def admin_page():
             await ui.context.client.connected()
             main_col.classes('p-4 gap-4')
             with ui.footer().classes('p-0'):
-                with ui.tabs().classes(f'w-full bg-white text-primary').props('left-icon="none" right-icon="none" active-color="secondary"'):
+                with ui.tabs().classes(f'w-full bg-white').props('left-icon="none" right-icon="none" active-color="secondary"'):
                     ui.tab('events').classes('text-black').on('click',
                                                               lambda: ui.navigate.to('/gagodzya'))
                     ui.tab('people').classes('text-black').on('click',

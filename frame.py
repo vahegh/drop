@@ -9,8 +9,8 @@ from api_models import PersonResponseFull
 
 @asynccontextmanager
 async def frame(show_footer=True):
-    ui.colors(primary="#FFFFFF", dark="#101010", secondary="#df296f",
-              accent="#9D20C3", section="#61007F", negative="#D50E0E")
+    ui.colors(primary="#101010", dark="#101010", secondary="#df296f",
+              accent="#9D20C3", section="#61007F", positive="#49D761", negative="#D50E0E")
 
     request = ui.context.client.request
 
@@ -58,8 +58,8 @@ async def frame(show_footer=True):
 
             else:
                 if show_signin:
-                    ui.button("Log in").classes(
-                        'rounded-full bg-primary text-black').props('size="12px" outline no-caps').on_click(lambda: ui.navigate.to(f'/login?redirect_url={login_redirect_url}'))
+                    ui.button("Log in", color='white').classes(
+                        'rounded-full').props('size="12px" unelevated no-caps').on_click(lambda: ui.navigate.to(f'/login?redirect_url={login_redirect_url}'))
 
         yield content
 

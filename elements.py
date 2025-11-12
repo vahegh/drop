@@ -62,7 +62,7 @@ def primary_button(text='', **kwargs):
 
 
 def dark_button(text='', **kwargs):
-    return ui.button(text, **kwargs).props(add='color="dark" rounded no-caps unelevated').classes('text-primary h-[40px] w-full max-w-96')
+    return ui.button(text, **kwargs).props(add='color="dark" rounded no-caps unelevated').classes('h-[40px] w-full max-w-96')
 
 
 def secondary_button(text='', **kwargs):
@@ -75,6 +75,10 @@ def accented_button(text='', **kwargs):
 
 def destructive_button(text='', **kwargs):
     return ui.button(text, **kwargs).props(add='color="negative" rounded no-caps unelevated').classes('h-[40px] w-full max-w-96')
+
+
+def positive_button(text='', **kwargs):
+    return ui.button(text, **kwargs).props(add='color="positive" rounded no-caps unelevated').classes('h-[40px] w-full max-w-96')
 
 
 def toast(text, **kwargs):
