@@ -35,13 +35,15 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
             person: PersonResponseFull = request.state.person
             with section():
                 with ui.row(wrap=False).classes('flex max-w-96 px-2'):
-                    if person.avatar_url:
-                        ui.image(person.avatar_url).classes(
-                            'size-16 rounded-full flex-none')
-
-                    with ui.column().classes('gap-0 items-end'):
+                    with ui.column().classes('gap-0 items-start'):
                         status_icon(person.status)
                         page_header(person.full_name).classes('text-right')
+
+                    if person.avatar_url:
+                        ui.image(person.avatar_url).classes(
+                            'size-[64px] rounded-full flex-none')
+                    else:
+                        ui.icon('account_circle', size='64px', color="gray")
 
             ui.separator()
             with ui.grid().classes('flex w-full justify-center p-2 gap-4'):
