@@ -183,7 +183,8 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                     max_file_size=1000000,
                     auto_upload=True,
                     on_upload=lambda e: handle_upload(e),
-                    on_rejected=lambda e: toast(e)
+                    on_rejected=lambda: toast(
+                        "Please select a different picture. JPEG and PNG files under 1MB are supported.", timeout=3, type='warning')
                 ).props('flat accept="image/jpeg, image/png" no-thumbnails').classes('hidden')
 
                 avatar_edit_btn = ui.button(color="secondary").props('unelevated round size="8px"').classes(

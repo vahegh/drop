@@ -81,8 +81,8 @@ def positive_button(text='', **kwargs):
     return ui.button(text, **kwargs).props(add='color="positive" rounded no-caps unelevated').classes('h-[40px] w-full max-w-96')
 
 
-def toast(text, **kwargs):
-    ui.notification(text, timeout=1.5, **kwargs)
+def toast(text, timeout=1.5, **kwargs):
+    ui.notification(text, timeout=timeout, **kwargs)
 
 
 def event_datetime_col(event: EventResponse):
