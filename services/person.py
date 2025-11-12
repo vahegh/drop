@@ -118,15 +118,14 @@ async def update_person(db: AsyncSession, id: UUID, updated_person: PersonUpdate
 
         case PersonStatus.member:
             member_pass = MemberPass(person_id=person.id)
-            member_pass, _ = await create_member_pass(member_pass)
+            member_pass = await create_member_pass(member_pass)
             await send_member_pass(member_pass)
 
     if email_request:
         await send_email(email_request)
 
-    for field, value in updated_person.model_dump().items():
-        if value is not None:
-            setattr(person, field, value)
+    for field, value in updated_person.model_dump(exclude_unset=True).items():
+        setattr(person, field, value)
     await db.commit()
     await db.refresh(person)
     return person

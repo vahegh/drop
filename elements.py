@@ -15,7 +15,7 @@ from consts import (email_validation, insta_validation, name_validation,
                     apple_wallet_img_url, google_client_id, APP_BASE_URL)
 
 
-ui.button.default_props(':ripple="false" :press-delay="0"')
+ui.button.default_props(':ripple="{ center: true, early: true }" :press-delay="0"')
 ui.input.default_classes('w-full max-w-96 items-center justify-center')
 ui.input.default_props('color=accent no-error-icon outlined clearable clear-icon="clear"')
 ui.card.default_classes('rounded-3xl items-center')
