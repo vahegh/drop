@@ -41,14 +41,12 @@ steps:
 
       - --image=europe-west4-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/drop/drop:$COMMIT_SHA
       - --region=europe-west4
-      - --platform=managed
       - --port=8080
-      - --memory=512Mi
-      - --cpu=1
-      - --concurrency=80
-      - --timeout=300s
+      - --memory=256Mi
+      - --cpu=0.5
       - --allow-unauthenticated
       - --ingress=all
+      - --execution-environment=gen1
 
       - --set-env-vars=TZ=Asia/Yerevan,app_base_url=https://dropdeadisco.com,app_base_url_no_proto=dropdeadisco.com
 
