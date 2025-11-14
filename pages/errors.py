@@ -8,7 +8,7 @@ from frame import frame
 @app.exception_handler(404)
 async def exception_handler_404(request: Request, exception: Exception) -> Response:
     with Client(page('', title='404 Not Found'), request=request) as client:
-        async with frame(show_footer=False):
+        async with frame():
             with ui.column():
                 page_header('404 - Not Found')
             ui.image('static/images/404.gif')
@@ -21,7 +21,7 @@ async def exception_handler_404(request: Request, exception: Exception) -> Respo
 @app.exception_handler(401)
 async def exception_handler_401(request: Request, exception: Exception) -> Response:
     with Client(page('', title='401 Unauthorized'), request=request) as client:
-        async with frame(show_footer=False):
+        async with frame():
             with ui.column():
                 page_header('401 - Unauthorized')
             ui.image('static/images/401.webp')

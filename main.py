@@ -52,6 +52,13 @@ head_html = '''
 <link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet">
 
 <style>
+    body.body--light {
+        background-color: #f3f4f6;
+    }
+    body.body--dark {
+        background-color: #24262b;
+    }
+
     * { font-family: 'Montserrat' }
 
     html {
@@ -135,8 +142,8 @@ def main():
         favicon=favicon_path,
         title="Drop Dead Disco",
         reconnect_timeout=30.0,
-        dark=False,
-        storage_secret=storage_secret
+        dark=None,
+        storage_secret=storage_secret,
     )
     app.add_middleware(AuthMiddleware)
 

@@ -6,7 +6,7 @@ from storage_cache import get_cache
 from api_models import EventResponse, PersonResponseFull
 from elements import (event_card, page_header, section_title,
                       status_icon, member_card, event_ticket,
-                      image_carousel, google_button, dark_button,
+                      image_carousel, google_button, primary_button,
                       section, past_tickets_col, accented_button,
                       status_colors)
 from helpers import get_user_agent, get_album_urls
@@ -22,10 +22,10 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
 
     video_h = "[20vh]" if logged_in else "[80vh]"
 
-    async with frame() as f:
+    async with frame(show_footer=True) as f:
         cache = get_cache()
         events = await cache.fetch_all_events()
-        f.classes('pb-4 pt-0')
+        f.classes('pt-0')
         ui.video(video_url, controls=False).classes(
             f'object-cover h-{video_h} w-full').props('autoplay loop muted playsinline')
         upcoming_events: list[EventResponse] = []
@@ -34,7 +34,7 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
         if logged_in:
             person: PersonResponseFull = request.state.person
             with section():
-                with ui.row(wrap=False).classes('flex max-w-96 px-2'):
+                with ui.row(wrap=False).classes('flex max-w-96 px-4'):
                     with ui.column().classes('gap-0 items-start'):
                         status_icon(person.status)
                         page_header(person.full_name)
@@ -75,7 +75,7 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
 
                             ui.markdown(
                                 "As a Member, you get access to **all photos of you** captured during Drop events, in full quality.").classes('text-center')
-                            dark_button("Open in Google Photos", icon=f"img:{svg_url}").on_click(
+                            primary_button("Open in Google Photos", icon=f"img:{svg_url}").on_click(
                                 lambda: ui.navigate.to(f"{person.drive_folder_url}?authuser={person.email}"))
                             ui.markdown(
                                 "*note: this album is only visible to you*").classes('text-center')
@@ -111,11 +111,11 @@ We don't tell you the location beforehand, and every guest has to pass **verific
 
                 with ui.column().classes('w-full gap-4 px-4'):
                     with ui.row(wrap=False):
-                        ui.label("MEMBERS").classes('font-semibold text-gray-600')
+                        ui.label("MEMBERS").classes('font-semibold text-gray-500')
                         ui.label(person_counts[PersonStatus.member]).classes(
                             f'text-3xl font-semibold text-[{status_colors.get(PersonStatus.member)}]')
                     with ui.row(wrap=False):
-                        ui.label("VERIFIED").classes('font-semibold text-gray-600')
+                        ui.label("VERIFIED").classes('font-semibold text-gray-500')
                         ui.label(person_counts[PersonStatus.verified]).classes(
                             f'text-3xl font-semibold text-[{status_colors.get(PersonStatus.verified)}]')
 

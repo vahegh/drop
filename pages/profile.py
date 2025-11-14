@@ -22,8 +22,8 @@ import base64
 @ui.page('/profile', title='Drop Dead Disco')
 async def home_page(request: Request, logged_in=Depends(logged_in)):
 
-    async with frame(show_footer=False) as f:
-        f.classes('py-14')
+    async with frame() as f:
+        f.classes('py-14 px-2')
         if not logged_in:
             ui.navigate.to(f'/login?redirect_url={APP_BASE_URL}/profile')
             return
@@ -199,7 +199,7 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                         "Please select a different picture. JPEG and PNG files under 1MB are supported.", timeout=3, type='warning')
                 ).props('flat accept="image/jpeg, image/png" no-thumbnails').classes('hidden')
 
-                avatar_edit_btn = ui.button(color="accent").props('unelevated round size="8px"').classes(
+                avatar_edit_btn = ui.button(color=None).props('unelevated round size="8px"').classes(
                     'absolute bottom-0 right-0').on_click(lambda: upload.run_method('pickFiles'))
                 with avatar_edit_btn:
                     ui.icon('edit', size='16px')
@@ -221,10 +221,10 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                     input_field.without_auto_validation()
 
                     with input_field.add_slot('append'):
-                        edit_btn = ui.button(icon='edit').props(
-                            'round dense flat color="dark"')
-                        save_btn = ui.button(icon='save').props(
-                            'round dense flat color="dark"')
+                        edit_btn = ui.button(icon='edit', color=None).props(
+                            'round dense flat')
+                        save_btn = ui.button(icon='save', color=None).props(
+                            'round dense flat')
                         save_btn.set_visibility(False)
 
                     input_field.on('blur', lambda: (

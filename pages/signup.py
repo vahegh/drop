@@ -18,9 +18,9 @@ async def signup_page(token):
     except jwt.DecodeError:
         raise HTTPException(401, "Invalid token")
 
-    async with frame(show_footer=False) as main_col:
-        main_col.classes('px-2')
-        main_card = ui.card().classes('gap-4 w-full max-w-96')
+    async with frame() as main_col:
+        main_col.classes('px-2 pt-4')
+        main_card = ui.card().classes('gap-4 w-full max-w-96').props('flat')
 
         with main_card:
             ui.image(logo_black_path).classes('w-24 h-8')

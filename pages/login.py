@@ -1,9 +1,9 @@
 from nicegui import ui, app
 from frame import frame
 from elements import (section, google_button, primary_button,
-                      section_title, rectangular_email_input)
+                      section_title, rectangular_email_input, outline_button)
 from fastapi import Request, HTTPException
-from consts import logo_black_path, APP_BASE_URL, google_client_id
+from consts import logo_gray_path, APP_BASE_URL, google_client_id
 from services.mailing import EmailRequest, send_email
 from services.templating import generate_template
 from services.person import get_person_by_email
@@ -58,14 +58,14 @@ async def login_page(token: str = None, redirect_url='/', logged_in=Depends(logg
         try:
             payload = jwt.decode(token, auth_secret, algorithms=["HS256"])
         except jwt.ExpiredSignatureError:
-            async with frame(show_footer=False):
+            async with frame():
                 with ui.card().classes('gap-4 w-full max-w-96'):
                     section_title("Magic link expired")
                     primary_button("Try again").on_click(lambda: ui.navigate.to('/login'))
                 return
 
         except jwt.InvalidTokenError:
-            async with frame(show_footer=False):
+            async with frame():
                 with ui.card().classes('gap-4 w-full max-w-96'):
                     section_title("Invalid magic link")
                     primary_button("Try again").on_click(lambda: ui.navigate.to('/login'))
@@ -77,8 +77,8 @@ async def login_page(token: str = None, redirect_url='/', logged_in=Depends(logg
                 raise HTTPException(404, "No such person - es vonc eq hajoxacrel")
             return await generate_and_set_tokens(person.id)
 
-    async with frame(show_footer=False) as f:
-        f.classes('px-2')
+    async with frame() as f:
+        f.classes('px-2 pt-4')
 
         async def magic_link(email_input):
             if not email_input.validate():
@@ -112,19 +112,19 @@ async def login_page(token: str = None, redirect_url='/', logged_in=Depends(logg
             google_login_section.set_visibility(not google_login_section.visible)
             link_login_section.set_visibility(not link_login_section.visible)
 
-        with ui.card().classes('gap-4 w-full max-w-96 justify-center') as main_card:
-            ui.image(logo_black_path).classes('w-24 h-8')
+        with ui.card().classes('gap-4 w-full max-w-96 justify-center').props('flat') as main_card:
+            ui.image(logo_gray_path).classes('w-24 h-8')
 
             with section() as google_login_section:
                 section_title("Login or sign up")
                 google_button("Continue with Google", redirect_url)
                 ui.label("OR")
-                primary_button("Login using magic link").on_click(toggle_login)
+                outline_button("Login using magic link").on_click(toggle_login)
 
             with section('Login with magic link') as link_login_section:
                 link_login_section.set_visibility(False)
                 email_input = rectangular_email_input("Verified email")
-                send_link_btn = primary_button('Send link')
+                send_link_btn = outline_button('Send link')
                 send_link_btn.on_click(
                     lambda: magic_link(email_input))
                 google_button("Continue with Google", redirect_url)

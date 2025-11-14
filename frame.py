@@ -1,16 +1,15 @@
 from contextlib import asynccontextmanager
-from nicegui import ui
-from consts import (spotify_logo_path, instagram_logo_path,
-                    DROP_INSTA_URL, DROP_SPOTIFY_URL, support_email, logo_white_path,
-                    DROP_YOUTUBE_URL, youtube_logo_path, logo_gray_path)
-from elements import section_title, primary_button, destructive_button
+from nicegui import ui, app
+from consts import (DROP_INSTA_URL, DROP_SPOTIFY_URL,
+                    support_email, DROP_YOUTUBE_URL, logo_gray_path)
+from elements import primary_button, destructive_button, section, login_button
 from api_models import PersonResponseFull
 
 
 @asynccontextmanager
-async def frame(show_footer=True):
-    ui.colors(primary="#101010", dark="#101010", secondary="#df296f",
-              accent="#9D20C3", section="#61007F", positive="#49D761", negative="#D50E0E")
+async def frame(show_footer=False):
+    ui.colors(primary="#f3f4f6", dark="#2a2e38", secondary="#f6339a", light="#f3f4f6",
+              accent="#8e51ff", positive="#50bf5a", warning="#ff8904", negative="#fb2c36")
 
     request = ui.context.client.request
 
@@ -20,7 +19,7 @@ async def frame(show_footer=True):
     login_redirect_url = request.url.path if request.url.path not in ['/signup', '/login'] else '/'
     await ui.context.client.connected()
 
-    with ui.context.client.content.classes('bg-gray-100 gap-4 px-0 py-14 w-full items-center justify-center min-h-[100svh]') as content:
+    with ui.context.client.content.classes('gap-4 px-0 py-18 pb-4 w-full items-center justify-center min-h-[100svh]') as content:
         with ui.row().classes('fixed top-0 left-0 items-center bg-transparent h-14 px-4 py-2 backdrop-blur-xs flex justify-between z-10'):
             with ui.button().props('flat').classes('py-0 px-2').on('click', lambda: ui.navigate.to('/')):
                 ui.image(logo_gray_path).classes(
@@ -34,7 +33,7 @@ async def frame(show_footer=True):
                     else:
                         ui.icon('account_circle', size='32px', color="gray")
 
-                    menu = ui.menu().classes('w-48 bg-gray-100')
+                    menu = ui.menu().classes('w-48')
 
                     with menu:
                         with ui.column().classes('items-center w-full p-4'):
@@ -44,44 +43,44 @@ async def frame(show_footer=True):
                             else:
                                 ui.icon('account_circle', size='80px')
 
-                            section_title(person.full_name).classes('text-center')
-                            profile_btn = primary_button('Your profile').on_click(
-                                lambda: (
-                                    ui.navigate.to('/profile'),
-                                    profile_btn.props(add='loading disable')
+                            with section(person.full_name) as sec:
+                                sec.classes('text-center')
+                                profile_btn = primary_button('Your profile').on_click(
+                                    lambda: (
+                                        ui.navigate.to('/profile'),
+                                        profile_btn.props(add='loading disable')
+                                    ))
+                                logout_btn = destructive_button('Logout').on_click(lambda: (
+                                    ui.navigate.to(f'/logout?redirect_url={login_redirect_url}'),
+                                    logout_btn.props(add='loading disable')
                                 ))
-                            logout_btn = destructive_button('Logout').on_click(lambda: (
-                                ui.navigate.to(f'/logout?redirect_url={login_redirect_url}'),
-                                logout_btn.props(add='loading disable')
-                            ))
                     btn.on_click(menu.toggle)
 
             else:
                 if show_signin:
-                    ui.button("Log in", color='white').classes(
-                        'rounded-full').props('size="12px" unelevated no-caps').on_click(lambda: ui.navigate.to(f'/login?redirect_url={login_redirect_url}'))
+                    login_button().on_click(lambda: ui.navigate.to(
+                        f'/login?redirect_url={login_redirect_url}'))
 
         yield content
 
     if show_footer:
-        with ui.footer(fixed=False, bordered=True).classes('bg-dark h-auto z-0'):
+        with ui.column().classes('border-t-1 border-gray-300 dark:border-gray-700 h-auto z-0 w-full gap-1'):
             with ui.column().classes('gap-1 w-full items-center'):
-                ui.image(logo_white_path).props(
+                ui.image(logo_gray_path).props(
                     'no-spinner').classes('w-20 h-10').on('click', lambda: ui.navigate.to('/'))
-                ui.link("Home", '/').classes('text-white')
-                ui.link("About us", '/about').classes('text-white')
-                ui.link("Policy", '/policy').classes('text-white')
+                ui.link("Home", '/')
+                ui.link("About us", '/about')
+                ui.link("Policy", '/policy')
 
-            with ui.row().classes('justify-center'):
-                ui.image(instagram_logo_path).classes('w-8').on('click',
-                                                                lambda: ui.navigate.to(DROP_INSTA_URL))
-                ui.image(spotify_logo_path).classes('w-8').on('click',
-                                                              lambda: ui.navigate.to(DROP_SPOTIFY_URL))
-                ui.image(youtube_logo_path).classes('w-8').on('click',
-                                                              lambda: ui.navigate.to(DROP_YOUTUBE_URL))
+            with ui.row().classes('justify-center gap-0'):
+                app.add_static_files(url_path='/static/images', local_directory='static/images')
+                ui.button(icon="img:/static/images/instagram.svg",
+                          color=None).props('flat').classes('dark:invert').on_click(lambda: ui.navigate.to(DROP_INSTA_URL))
+                ui.button(icon="img:/static/images/spotify.svg",
+                          color=None).props('flat').classes('dark:invert').on_click(lambda: ui.navigate.to(DROP_SPOTIFY_URL))
+                ui.button(icon="img:/static/images/youtube.svg",
+                          color=None).props('flat').classes('dark:invert').on_click(lambda: ui.navigate.to(DROP_YOUTUBE_URL))
 
             with ui.column().classes('gap-1 w-full items-center'):
                 ui.link(support_email,
                         target=f"mailto:{support_email}").classes('text-xs')
-                ui.label("123 Andranik Str, Yerevan, Armenia 0004").classes(
-                    'text-xs text-gray-600')

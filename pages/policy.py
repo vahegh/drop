@@ -6,7 +6,7 @@ from elements import page_header
 
 @ui.page('/policy', title='Policy | Drop Dead Disco')
 async def policy_page():
-    async with frame(show_footer=False) as f:
+    async with frame() as f:
         f.classes('px-4')
         page_header('Return Policy')
 

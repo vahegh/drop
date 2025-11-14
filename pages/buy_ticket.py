@@ -30,9 +30,9 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
 
     event = await cache.fetch_event(event_id)
 
-    if event.ends_at < datetime.now(timezone.utc):
-        ui.navigate.to(f'/event/{event.id}')
-        return
+    # if event.ends_at < datetime.now(timezone.utc):
+    #     ui.navigate.to(f'/event/{event.id}')
+    #     return
 
     # await notify_payment_page(person)
 
@@ -150,10 +150,10 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
             attendee_list_container.clear()
             with attendee_list_container:
                 for attendee in attendees:
-                    with ui.card().classes('w-full items-center justify-center bg-transparent rounded-full').props('bordered'):
+                    with ui.card().classes('w-full items-center justify-center rounded-full').props('flat bordered'):
                         with ui.row(wrap=False).classes('gap-1') as email_row:
                             ui.label(f'{attendee.email}').classes(
-                                ' text-sm')
+                                'text-sm')
                         if attendee == person:
                             with email_row:
                                 ui.label("You").classes('ml-auto text-green-700')
@@ -216,7 +216,7 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
             app.add_static_files(url_path='/static/images/',
                                  local_directory='static/images')
 
-            with primary_button().classes("h-12") as card_pay_button:
+            with primary_button() as card_pay_button:
                 with ui.row(wrap=False).classes(add='gap-3 justify-center', remove='justify-between'):
 
                     if user_agent == "ios":
@@ -232,7 +232,7 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
             card_pay_button.on_click(
                 lambda: buy_ticket(PaymentProvider.VPOS, card_pay_button))
 
-            with primary_button('MYAMERIA', icon='img:static/images/myameria.png').classes("h-12 text-black") as myameria_button:
+            with primary_button('MYAMERIA', icon='img:static/images/myameria.png') as myameria_button:
                 myameria_button.on_click(
                     lambda: buy_ticket(PaymentProvider.MYAMERIA, myameria_button))
 
@@ -262,6 +262,6 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
         with main_col:
             await main_page()
 
-    async with frame(show_footer=False) as main_col:
+    async with frame() as main_col:
         await ui.context.client.connected()
         await main_page()

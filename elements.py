@@ -58,11 +58,21 @@ def name_input(label, placeholder, **kwargs):
 
 
 def primary_button(text='', **kwargs):
-    return ui.button(text, **kwargs).props(add='color="primary" rounded no-caps outline').classes('text-black h-[40px] w-full max-w-96')
+    btn = ui.button(text, color=None, **kwargs).classes('h-[40px] w-full max-w-96')
+    btn.props(add='''rounded no-caps :color="Quasar.Dark.isActive ? 'light' : 'dark'"''')
+    btn.props(add='''rounded no-caps :text-color="Quasar.Dark.isActive ? 'black' : 'light'"''')
+    return btn
 
 
-def dark_button(text='', **kwargs):
-    return ui.button(text, **kwargs).props(add='color="dark" rounded no-caps unelevated').classes('h-[40px] w-full max-w-96')
+def login_button():
+    btn = ui.button("Log in", color=None)
+    btn.props(add='''size="12px" unelevated rounded no-caps :color="Quasar.Dark.isActive ? 'light' : 'dark'"''')
+    btn.props(add=''':text-color="Quasar.Dark.isActive ? 'dark' : 'light'"''')
+    return btn
+
+
+def outline_button(text='', **kwargs):
+    return ui.button(text, color=None, **kwargs).props(add='rounded no-caps outline').classes('h-[40px] w-full max-w-96')
 
 
 def secondary_button(text='', **kwargs):
@@ -121,7 +131,7 @@ def ticket_price_col(event: EventResponse):
 
 def event_card(event: EventResponse, venue: VenueResponse, show_venue=False):
     venue_name = venue.short_name if show_venue else "TBA"
-    with ui.card().classes('rounded-[20px] p-0 w-64 max-w-96 aspect-4/5 h-auto flex-auto') as c:
+    with ui.card().classes('rounded-[20px] p-0 w-64 max-w-96 aspect-4/5 h-auto flex-auto').props('flat') as c:
         with ui.image(event.image_url).classes('event-card-img'):
             with ui.column().classes(add='bg-transparent h-full justify-between p-6 w-full'):
                 page_header(event.name)
@@ -157,17 +167,17 @@ def price_row(type, price):
 
 
 status_colors = {
-    PersonStatus.verified: "#11b553",
-    PersonStatus.member: "#6233da",
-    PersonStatus.rejected: "#d32629",
-    PersonStatus.pending: "#f58302"
+    PersonStatus.verified: "#00c951",
+    PersonStatus.member: "#ad46ff",
+    PersonStatus.rejected: "#fb2c36",
+    PersonStatus.pending: "#ff6900"
 }
 
 
 def ticket_indicator(exists: bool, used: bool):
     ticket_indicator = ui.element('div').classes('rounded size-4')
     if exists:
-        bg_color = 'bg-green-500' if used else 'bg-orange-500'
+        bg_color = 'bg-positive' if used else 'bg-warning'
         ticket_indicator.classes(add=bg_color)
     return ticket_indicator
 
@@ -232,7 +242,7 @@ def event_ticket(ticket: EventTicketResponse, event: EventResponse, user_agent):
 
 
 def image_carousel(urls):
-    with ui.carousel().classes('w-full h-96 aspect-square max-w-96 bg-gray-100').props('infinite autoplay="2500" swipeable animated arrows'):
+    with ui.carousel().classes('w-full h-96 aspect-square max-w-96 bg-transparent').props('infinite autoplay="2500" swipeable animated arrows'):
         for url in urls:
             with ui.carousel_slide().classes('justify-center p-0'):
                 ui.image(f'{url}=w1080-h1080').props('fit="cover"').classes('rounded-xl w-full h-full')
@@ -245,7 +255,7 @@ def section(title: str = None, subtitle: str = None):
             with ui.column().classes('gap-0 items-center'):
                 section_title(title).classes('text-center')
                 if subtitle:
-                    ui.label(subtitle).classes('text-center text-gray-600')
+                    ui.label(subtitle).classes('text-center text-gray-500')
         yield main
 
 
@@ -302,7 +312,8 @@ def past_tickets_col(event_tickets, event_map):
                 for ticket in event_tickets:
                     event = event_map.get(ticket.event_id)
                     if event:
-                        with ui.card().classes('w-full max-w-96'):
+                        ticket.attended_at = None
+                        with ui.card().classes('w-full max-w-96').props('flat'):
                             with ui.row(wrap=False).classes('justify-between items-center w-full'):
                                 ui.label(event.name).classes(
                                     'text-lg font-medium')
@@ -359,7 +370,7 @@ def google_button(text, url='/'):
         auth_uri = f"https://accounts.google.com/o/oauth2/v2/auth?{urllib.parse.urlencode(params)}"
         ui.navigate.to(auth_uri)
 
-    with dark_button(text, icon=f'img:{img_uri}') as btn:
+    with primary_button(text, icon=f'img:{img_uri}') as btn:
         btn.on_click(lambda: redirect_to_auth())
 
     return btn

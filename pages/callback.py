@@ -16,7 +16,7 @@ myameria_payment_status = Literal['success', 'failure']
 
 
 async def callback_page(confirm_request):
-    async with frame(show_footer=False) as main_col:
+    async with frame() as main_col:
         with ui.column().classes('fixed inset-0 h-full w-full'):
             status_icon = ui.icon('check', size='100px').classes(
                 'text-green-500')
