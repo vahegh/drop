@@ -37,7 +37,7 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                 with ui.row(wrap=False).classes('flex max-w-96 px-2'):
                     with ui.column().classes('gap-0 items-start'):
                         status_icon(person.status)
-                        page_header(person.full_name).classes('text-right')
+                        page_header(person.full_name)
 
                     if person.avatar_url:
                         ui.image(person.avatar_url).classes(
@@ -71,14 +71,14 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                     if person.drive_folder_url:
                         with section():
                             svg_url = app.add_static_file(
-                                local_file='static/images/google_drive.svg')
+                                local_file='static/images/google_photos.svg')
 
                             ui.markdown(
                                 "As a Member, you get access to **all photos of you** captured during Drop events, in full quality.").classes('text-center')
-                            dark_button("Open in Google Drive", icon=f"img:{svg_url}").on_click(
+                            dark_button("Open in Google Photos", icon=f"img:{svg_url}").on_click(
                                 lambda: ui.navigate.to(person.drive_folder_url))
                             ui.markdown(
-                                "*note: this folder is only visible to you*").classes('text-center')
+                                "*note: this album is only visible to you*").classes('text-center')
 
                     past_tickets_col(event_tickets, event_map)
 

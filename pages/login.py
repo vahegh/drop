@@ -25,7 +25,7 @@ async def google_login(request: Request):
     cstf_token = state_parts.get('csrf_token', [None])[0]
     redirect_url = state_parts.get('url', [None])[0]
 
-    if cstf_token != app.storage.user['csrf_token']:
+    if cstf_token != app.storage.user.get('csrf_token'):
         raise HTTPException(401, "Invalid request - CSRF token doesnt match")
 
     app.storage.user.clear()
