@@ -76,7 +76,7 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                             ui.markdown(
                                 "As a Member, you get access to **all photos of you** captured during Drop events, in full quality.").classes('text-center')
                             dark_button("Open in Google Photos", icon=f"img:{svg_url}").on_click(
-                                lambda: ui.navigate.to(person.drive_folder_url))
+                                lambda: ui.navigate.to(f"{person.drive_folder_url}?authuser={person.email}"))
                             ui.markdown(
                                 "*note: this album is only visible to you*").classes('text-center')
 
