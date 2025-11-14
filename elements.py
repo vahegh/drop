@@ -312,7 +312,6 @@ def past_tickets_col(event_tickets, event_map):
                 for ticket in event_tickets:
                     event = event_map.get(ticket.event_id)
                     if event:
-                        ticket.attended_at = None
                         with ui.card().classes('w-full max-w-96').props('flat'):
                             with ui.row(wrap=False).classes('justify-between items-center w-full'):
                                 ui.label(event.name).classes(
