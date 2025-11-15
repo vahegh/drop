@@ -1,12 +1,6 @@
-from dotenv import load_dotenv
 import os
 import re
 from zoneinfo import ZoneInfo
-
-if os.path.exists('.env'):
-    load_dotenv()
-
-env = os.getenv('env')
 
 default_date_format = "%d.%m"
 TIMEZONE = ZoneInfo('Asia/Yerevan')
@@ -45,13 +39,7 @@ google_client_id = '759529195467-d4dt9f5do5iu4g4itndu2v0q9vpmip93.apps.googleuse
 google_wallet_img_url = 'https://storage.googleapis.com/dropdeadisco/images/add_to_google.svg'
 apple_wallet_img_url = 'https://storage.googleapis.com/dropdeadisco/images/add_to_apple.svg'
 
-logo_white_path = os.path.relpath("static/images/logo_white.png")
-logo_black_path = os.path.relpath("static/images/logo_black.png")
 logo_gray_path = os.path.relpath("static/images/logo_gray.png")
-favicon_path = os.path.relpath("static/images/favicon.png")
-spotify_logo_path = os.path.relpath("static/images/spotify.svg")
-instagram_logo_path = os.path.relpath("static/images/instagram.svg")
-youtube_logo_path = os.path.relpath("static/images/youtube.svg")
 
 
 album_urls = {

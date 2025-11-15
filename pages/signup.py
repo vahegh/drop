@@ -8,7 +8,7 @@ from api_models import PersonCreate
 from fastapi import HTTPException
 from routes.auth import register
 from services.instagram_check import instagram_check
-from consts import logo_black_path
+from consts import logo_gray_path
 
 
 @ui.page('/signup')
@@ -23,7 +23,7 @@ async def signup_page(token):
         main_card = ui.card().classes('gap-4 w-full max-w-96').props('flat')
 
         with main_card:
-            ui.image(logo_black_path).classes('w-24 h-8')
+            ui.image(logo_gray_path).classes('w-24 h-8')
 
             with section() as s:
                 s.classes('h-[480px]')

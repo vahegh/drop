@@ -1,6 +1,11 @@
 import os
+from dotenv import load_dotenv
+
+if os.path.exists('.env'):
+    load_dotenv()
+
+
 import logging
-from consts import favicon_path
 from helpers import is_cloud_run
 
 from contextlib import asynccontextmanager
@@ -139,7 +144,7 @@ def main():
 
     ui.run_with(
         fastapi_app,
-        favicon=favicon_path,
+        favicon="static/images/favicon.png",
         title="Drop Dead Disco",
         reconnect_timeout=30.0,
         dark=None,
