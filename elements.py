@@ -345,7 +345,7 @@ def instagram_dialog(instagram_info):
                         accented_button("Yes, submit").on_click(
                             lambda: dl.submit(True))
             else:
-                with section(f"Instagram user {instagram_info['username']} not found", subtitle="Please check your username."):
+                with section(f"Instagram user not found", subtitle="Please check your username."):
                     primary_button("Fix").on_click(lambda: (dl.submit(False)))
     return dl
 
