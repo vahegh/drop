@@ -97,6 +97,7 @@ class EventCreate(BaseModel):
     ends_at: datetime
     venue_id: UUID
     image_url: str
+    video_url: Optional[str]
     description: str
     early_bird_date: Optional[datetime] = None
     early_bird_price: Optional[int] = None
@@ -113,6 +114,7 @@ class EventResponse(BaseModel):
     ends_at: datetime
     venue_id: UUID
     image_url: str
+    video_url: Optional[str]
     description: str
     early_bird_date: Optional[datetime] = None
     early_bird_price: Optional[int] = None
@@ -132,6 +134,7 @@ class EventUpdate(BaseModel):
     ends_at: Optional[datetime] = None
     venue_id: Optional[UUID] = None
     image_url: Optional[str] = None
+    video_url: Optional[str] = None
     description: Optional[str] = None
     early_bird_date: Optional[datetime] = None
     early_bird_price: Optional[int] = None

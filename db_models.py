@@ -47,6 +47,7 @@ class Event(Base):
     venue_id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey('venue.id'))
     image_url: Mapped[str] = mapped_column(String)
+    video_url: Mapped[str] = mapped_column(String, nullable=True)
     description: Mapped[str] = mapped_column(String)
     early_bird_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     early_bird_price: Mapped[int] = mapped_column(Integer, nullable=True)
