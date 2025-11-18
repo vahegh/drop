@@ -69,6 +69,11 @@ async def event_page(event_id, logged_in=Depends(logged_in)):
                     with section("As it happened"):
                         image_carousel(await get_album_urls(album_url))
 
+                if event.video_url:
+                    with section():
+                        ui.element('iframe').props(
+                            f'src="{event.video_url}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen').classes('w-full h-auto aspect-16/9')
+
                 with section("Location"):
                     name_urlsafe = urllib.parse.quote(
                         venue.name, safe='/', encoding=None, errors=None)

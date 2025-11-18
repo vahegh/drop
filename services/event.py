@@ -55,38 +55,37 @@ async def update_event(db: AsyncSession, id: UUID, event_update: EventUpdate):
     if not event:
         raise HTTPException(404, "Event not found")
 
-    venue = await db.get(Venue, event.venue_id)
-    event_start_local = event.starts_at.astimezone(TIMEZONE)
-    event_end_local = event.ends_at.astimezone(TIMEZONE)
-    event_url = f"{APP_BASE_URL}/event/{event.id}"
+    # venue = await db.get(Venue, event.venue_id)
+    # event_start_local = event.starts_at.astimezone(TIMEZONE)
+    # event_end_local = event.ends_at.astimezone(TIMEZONE)
+    # event_url = f"{APP_BASE_URL}/event/{event.id}"
 
-    for field, value in event_update.model_dump().items():
-        if value:
-            setattr(event, field, value)
+    for field, value in event_update.model_dump(exclude_unset=True).items():
+        setattr(event, field, value)
 
-    await update_member_class(
-        GOOGLE_MEMBER_CLASS_ID,
-        event.name,
-        event_url,
-        venue.name,
-        venue.google_maps_link,
-        # venue.yandex_maps_link,
-        event_start_local.strftime("%B %d, %Y"),
-        event_start_local.strftime('%H:%M'),
-        event_end_local.strftime('%H:%M'),
-        notify=True
-    )
+    # await update_member_class(
+    #     GOOGLE_MEMBER_CLASS_ID,
+    #     event.name,
+    #     event_url,
+    #     venue.name,
+    #     venue.google_maps_link,
+    #     # venue.yandex_maps_link,
+    #     event_start_local.strftime("%B %d, %Y"),
+    #     event_start_local.strftime('%H:%M'),
+    #     event_end_local.strftime('%H:%M'),
+    #     notify=True
+    # )
 
-    await create_ticket_class(
-        event.id,
-        event.name,
-        event_url,
-        venue.name,
-        venue.address,
-        event_start_local,
-        event_end_local,
-        notify=True
-    )
+    # await create_ticket_class(
+    #     event.id,
+    #     event.name,
+    #     event_url,
+    #     venue.name,
+    #     venue.address,
+    #     event_start_local,
+    #     event_end_local,
+    #     notify=True
+    # )
     await db.commit()
     await db.refresh(event)
     return event
