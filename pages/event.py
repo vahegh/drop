@@ -43,45 +43,45 @@ async def event_page(event_id, logged_in=Depends(logged_in)):
             return
 
         if event.shared:
-            main_col.classes(add='gap-6 px-4 py-6')
-
+            # main_col.classes(add='gap-6 px-4 py-6')
             event_card(event, venue, show_venue=event_passed).classes(add='w-full')
-
             ui.label(event.description).classes('text-center')
 
-            if not event_passed:
-                async def buy_ticket():
-                    if logged_in:
-                        ui.navigate.to(f'/buy-ticket?event_id={event.id}')
-                    else:
-                        toast('Please sign in to continue', type='neutral')
+            with ui.grid().classes('flex w-full justify-center p-2 gap-4'):
 
-                section_title("Date & time")
-                event_datetime_col(event)
-                if album_url:
-                    with section("Vibe"):
-                        image_carousel(await get_album_urls(album_url))
-                with section("Tickets"):
-                    ticket_price_col(event)
-                    secondary_button('Get your ticket').on_click(buy_ticket)
-            else:
-                if album_url:
-                    with section("As it happened"):
-                        image_carousel(await get_album_urls(album_url))
+                if not event_passed:
+                    async def buy_ticket():
+                        if logged_in:
+                            ui.navigate.to(f'/buy-ticket?event_id={event.id}')
+                        else:
+                            toast('Please sign in to continue', type='neutral')
 
-                if event.video_url:
-                    with section():
-                        ui.element('iframe').props(
-                            f'src="{event.video_url}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen').classes('w-full h-auto aspect-16/9')
+                    section_title("Date & time")
+                    event_datetime_col(event)
+                    if album_url:
+                        with section("Vibe"):
+                            image_carousel(await get_album_urls(album_url))
+                    with section("Tickets"):
+                        ticket_price_col(event)
+                        secondary_button('Get your ticket').on_click(buy_ticket)
+                else:
+                    if album_url:
+                        with section("Photos"):
+                            image_carousel(await get_album_urls(album_url))
 
-                with section("Location"):
-                    name_urlsafe = urllib.parse.quote(
-                        venue.name, safe='/', encoding=None, errors=None)
-                    ui.element('iframe').props(f'''
-                        loading="lazy"
-                        allowfullscreen
-                        src="https://www.google.com/maps/embed/v1/place?q={name_urlsafe}&key={maps_api_key}"
-                    ''').classes('rounded-3xl w-full max-w-96 aspect-square h-auto')
+                    if event.video_url:
+                        with section("DJ Set"):
+                            ui.element('iframe').props(
+                                f'src="{event.video_url}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen').classes('w-full h-auto aspect-16/9')
+
+                    with section("Location"):
+                        name_urlsafe = urllib.parse.quote(
+                            venue.name, safe='/', encoding=None, errors=None)
+                        ui.element('iframe').props(f'''
+                            loading="lazy"
+                            allowfullscreen
+                            src="https://www.google.com/maps/embed/v1/place?q={name_urlsafe}&key={maps_api_key}"
+                        ''').classes('rounded-3xl w-full max-w-96 aspect-square h-auto')
 
         else:
             ui.image(event.image_url).classes(
