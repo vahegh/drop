@@ -203,7 +203,6 @@ def member_card(member_pass: MemberCardResponse, attendance: int, user_agent):
     color = status_colors.get(PersonStatus.member)
 
     with ui.card().props('bordered flat').classes(f'w-full max-w-96 gap-4 px-0 justify-around border-[{color}]'):
-        subsection_title('Your Membership pass')
         with ui.column().classes('w-full items-center px-6 py-0 gap-2'):
             with ui.row(wrap=False):
                 with ui.column().classes(replace='gap-0'):
@@ -250,7 +249,7 @@ def image_carousel(urls):
 
 @contextmanager
 def section(title: str = None, subtitle: str = None):
-    with ui.column().classes('gap-2 p-0 w-full items-center justify-center max-w-96') as main:
+    with ui.column().classes('gap-2 p-0 w-full items-center justify-start max-w-96') as main:
         if title:
             with ui.column().classes('gap-0 items-center'):
                 section_title(title).classes('text-center')

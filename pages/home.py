@@ -45,7 +45,8 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                     else:
                         ui.icon('account_circle', size='64px', color="gray")
 
-            ui.separator()
+                ui.separator()
+
             with ui.grid().classes('flex w-full justify-center p-2 gap-4'):
                 user_agent = await get_user_agent(request)
                 next_event = await cache.fetch_next_event()
@@ -65,11 +66,11 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                     past_tickets_col(event_tickets, event_map)
 
                 elif person.status == PersonStatus.member:
-                    with section():
+                    with section("Your Membership pass"):
                         member_card(person.member_pass, person.events_attended, user_agent)
 
                     if person.drive_folder_url:
-                        with section():
+                        with section("You at Drop"):
                             svg_url = app.add_static_file(
                                 local_file='static/images/google_photos.svg')
 
@@ -92,34 +93,30 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
         else:
             with section("Wanna join the fun?", subtitle="Sign up to get verified."):
                 google_button("Sign up with Google", request.url.path)
-        ui.separator()
+
+        page_header("The Community")
+        ui.markdown('''
+**Drop Dead Disco** is a dance music community for those who want more from a night out.  
+We host our events in unexpected locations - whatever has the most sparkle.  
+We don't tell you the location beforehand, and every guest has to pass **verification** before they're able to buy tickets and attend.
+''').classes('text-center px-4 max-w-[800px]')
+        accented_button("Read more").on_click(lambda: ui.navigate.to('/about'))
 
         with ui.grid().classes('flex w-full justify-center p-2 gap-4'):
-            with section():
-                page_header("The Community")
-                ui.markdown('''
-**Drop Dead Disco** is a dance music community for those who want more from a night out. 
-
-We host our events in unexpected locations - whatever has the most sparkle. 
-                    
-We don't tell you the location beforehand, and every guest has to pass **verification** before they're able to buy tickets and attend.
-''').classes('text-md/5')
-                accented_button("Read more").on_click(lambda: ui.navigate.to('/about'))
-
-            with section():
+            with section("Stats", subtitle="Our community numbers as of right now.") as s:
+                s.classes('px-4')
                 person_counts = await get_all_person_stats()
 
-                with ui.column().classes('w-full gap-4 px-4'):
-                    with ui.row(wrap=False):
-                        ui.label("MEMBERS").classes('font-semibold text-gray-500')
-                        ui.label(person_counts[PersonStatus.member]).classes(
-                            f'text-3xl font-semibold text-[{status_colors.get(PersonStatus.member)}]')
-                    with ui.row(wrap=False):
-                        ui.label("VERIFIED").classes('font-semibold text-gray-500')
-                        ui.label(person_counts[PersonStatus.verified]).classes(
-                            f'text-3xl font-semibold text-[{status_colors.get(PersonStatus.verified)}]')
+                with ui.row(wrap=False):
+                    ui.label("MEMBERS").classes('font-semibold text-gray-500')
+                    ui.label(person_counts[PersonStatus.member]).classes(
+                        f'text-3xl font-semibold text-[{status_colors.get(PersonStatus.member)}]')
+                with ui.row(wrap=False):
+                    ui.label("VERIFIED").classes('font-semibold text-gray-500')
+                    ui.label(person_counts[PersonStatus.verified]).classes(
+                        f'text-3xl font-semibold text-[{status_colors.get(PersonStatus.verified)}]')
 
-            with section():
+            with section("Gallery"):
                 album_url = "https://photos.google.com/share/AF1QipNb8__JbXtuax9DJm21Ca666tb2o4voA1u09nj0Z04jhyNjfdzcQ-1KTMqI7N9zNA?key=MG11Qm01N1JRWGxZUElGazdvcGlzOEw4VWVobUdR"
                 image_carousel(await get_album_urls(album_url))
 
@@ -130,13 +127,13 @@ We don't tell you the location beforehand, and every guest has to pass **verific
                 past_events.append(e)
 
         if upcoming_events:
-            section_title("Next event").classes('w-full text-center')
+            page_header("Next event")
             with ui.grid().classes('flex w-full items-center justify-center'):
                 for e in upcoming_events:
                     event_card(e, venue, show_venue=False).on(
                         'click', lambda i, e=e: ui.navigate.to(f'/event/{e.id}'))
 
-        section_title("Previous events").classes('w-full text-center')
+        page_header("Previous events")
         with ui.grid().classes('flex w-full justify-center p-2 gap-4'):
             for e in past_events:
                 venue = await cache.fetch_venue(e.venue_id)
