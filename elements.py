@@ -59,8 +59,8 @@ def name_input(label, placeholder, **kwargs):
 
 def primary_button(text='', **kwargs):
     btn = ui.button(text, color=None, **kwargs).classes('h-[40px] w-full max-w-96')
-    btn.props(add='''rounded no-caps :color="Quasar.Dark.isActive ? 'light' : 'dark'"''')
-    btn.props(add='''rounded no-caps :text-color="Quasar.Dark.isActive ? 'black' : 'light'"''')
+    btn.props(add='''rounded no-caps unelevated :color="Quasar.Dark.isActive ? 'light' : 'dark'"''')
+    btn.props(add=''':text-color="Quasar.Dark.isActive ? 'black' : 'light'"''')
     return btn
 
 
