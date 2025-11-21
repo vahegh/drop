@@ -2,7 +2,7 @@ from uuid import UUID
 from nicegui import ui
 from helpers import parse_inputs
 from consts import default_date_format, APP_BASE_URL
-from api_models import PersonUpdate, EventTicketResponse, PersonCreate, EventTicketCreate
+from api_models import PersonUpdate, EventTicketResponse, PersonCreate, EventTicketCreate, PersonResponse
 from elements import (primary_button, secondary_button, accented_button,
                       status_icon, page_header, section_title,
                       generate_form_from_model, ticket_indicator,
@@ -11,6 +11,7 @@ from enums import PersonStatus
 from services.person import create_person, update_person, delete_person
 from services.event_ticket import create_event_ticket, delete_event_ticket, get_all_tickets
 from services.event import get_all_events
+from services.member_pass import get_all_member_passes
 from services.person import get_all_persons, get_person
 
 
@@ -18,6 +19,7 @@ async def persons_panel():
     events = await get_all_events()
     persons = await get_all_persons()
     tickets = await get_all_tickets()
+    member_passes = await get_all_member_passes()
 
     async def create_dialog():
         with ui.dialog(value=True) as dialog:
@@ -51,11 +53,16 @@ async def persons_panel():
         for e in sorted_events
     }
 
-    categorized = {
+    categorized: dict[str, list[PersonResponse]] = {
         'pending': [],
         'members': [],
         'verified': [],
         'rejected': []
+    }
+
+    pass_map = {
+        mp.person_id: mp.serial_number
+        for mp in member_passes
     }
 
     for p in persons:
@@ -68,13 +75,25 @@ async def persons_panel():
         elif p.status == PersonStatus.rejected:
             categorized['rejected'].append(p)
 
-    for category in categorized.values():
-        category.sort(key=lambda p: p.first_name.lower())
+    pending_persons = sorted(
+        categorized['pending'],
+        key=lambda p: p.first_name.lower()
+    )
 
-    pending_persons = categorized['pending']
-    members = categorized['members']
-    verified_persons = categorized['verified']
-    rejected_persons = categorized['rejected']
+    members = sorted(
+        categorized['members'],
+        key=lambda p: pass_map.get(p.id)
+    )
+
+    verified_persons = sorted(
+        categorized['verified'],
+        key=lambda p: p.first_name.lower()
+    )
+
+    rejected_persons = sorted(
+        categorized['rejected'],
+        key=lambda p: p.first_name.lower()
+    )
 
     def render_section(title: str, person_list: list, header=True):
         if not person_list:
