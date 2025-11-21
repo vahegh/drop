@@ -37,7 +37,7 @@ async def about_page(logged_in=Depends(logged_in)):
     **Members** are the heart and soul of Drop Dead Disco - without them this couldn't happen.
     As such, they get more benefits like:
 
-    - Free or discounted event access
+    - Discounted event access
 
     - Special digital cards with their serial no. and number of events attended
 
