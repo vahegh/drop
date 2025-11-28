@@ -255,4 +255,4 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
             instagram_save.on_click(lambda: modify_instagram(instagram))
 
         with section():
-            destructive_button('Logout', on_click=lambda: ui.navigate.to('/logout'))
+            ui.link('Log out', '/logout')

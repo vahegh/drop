@@ -18,6 +18,7 @@ async def frame(show_footer=False):
     show_signin = True
     login_redirect_url = request.url.path if request.url.path not in ['/signup', '/login'] else '/'
     await ui.context.client.connected()
+    menu = ui.right_drawer(value=False)
 
     with ui.context.client.content.classes('gap-4 px-0 py-18 pb-4 w-full items-center justify-center min-h-[100svh]') as content:
         with ui.row().classes('fixed top-0 left-0 items-center bg-transparent h-14 px-4 py-2 backdrop-blur-xs flex justify-between z-10'):
@@ -33,27 +34,26 @@ async def frame(show_footer=False):
                     else:
                         ui.icon('account_circle', size='32px', color="gray")
 
-                    menu = ui.menu().classes('w-48')
-
                     with menu:
-                        with ui.column().classes('items-center w-full p-4'):
+                        with section():
                             if person.avatar_url:
                                 ui.image(person.avatar_url).classes(
                                     'w-[80px] rounded-full')
                             else:
                                 ui.icon('account_circle', size='80px')
 
-                            with section(person.full_name) as sec:
-                                sec.classes('text-center')
-                                profile_btn = primary_button('Your profile').on_click(
-                                    lambda: (
-                                        ui.navigate.to('/profile'),
-                                        profile_btn.props(add='loading disable')
-                                    ))
-                                logout_btn = destructive_button('Logout').on_click(lambda: (
-                                    ui.navigate.to(f'/logout?redirect_url={login_redirect_url}'),
-                                    logout_btn.props(add='loading disable')
+                        with section(person.full_name) as sec:
+                            ui.link(f"@{person.instagram_handle}",
+                                    f"https://instagram.com/{person.instagram_handle}").classes('no-underline')
+                            sec.classes('text-center')
+
+                        with section():
+                            profile_btn = primary_button('Your profile').on_click(
+                                lambda: (
+                                    ui.navigate.to('/profile'),
+                                    profile_btn.props(add='loading disable')
                                 ))
+                            ui.link('Log out', f'/logout?redirect_url={login_redirect_url}')
                     btn.on_click(menu.toggle)
 
             else:
