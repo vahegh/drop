@@ -209,7 +209,7 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                 ).props('flat accept="image/jpeg, image/png" no-thumbnails').classes('hidden')
 
                 avatar_edit_btn = ui.button(color=None).props('unelevated round size="8px"').classes(
-                    'absolute bottom-0 right-0').on_click(lambda: upload.run_method('pickFiles'))
+                    'absolute bottom-0 right-0').on_click(lambda: upload.run_method('absolute inset-0 opacity-0 w-0 h-0 pointer-events-none'))
                 with avatar_edit_btn:
                     ui.icon('edit', size='16px')
 
