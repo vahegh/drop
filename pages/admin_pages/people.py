@@ -3,10 +3,10 @@ from nicegui import ui
 from helpers import parse_inputs
 from consts import default_date_format, APP_BASE_URL
 from api_models import PersonUpdate, EventTicketResponse, PersonCreate, EventTicketCreate, PersonResponse
-from elements import (primary_button, secondary_button, accented_button,
+from elements import (primary_button, destructive_button, accented_button,
                       status_icon, page_header, section_title,
                       generate_form_from_model, ticket_indicator,
-                      person_card)
+                      person_card, secondary_button)
 from enums import PersonStatus
 from services.person import create_person, update_person, delete_person
 from services.event_ticket import create_event_ticket, delete_event_ticket, get_all_tickets
@@ -244,7 +244,9 @@ async def person_details_panel(person_id):
 
         with ui.row().classes('justify-center'):
             primary_button('Edit').on_click(create_dialog)
-            secondary_button('Delete').on_click(delete)
+            destructive_button('Delete').on_click(delete)
+        secondary_button('Login as user').on('click',
+                                             lambda: ui.navigate.to(f"/login-as?person_id={person.id}"))
 
     all_tickets = await get_all_tickets()
     person_tickets = [t for t in all_tickets if t.person_id == person.id]

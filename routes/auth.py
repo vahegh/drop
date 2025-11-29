@@ -33,9 +33,9 @@ router = APIRouter(tags=['Auth'], prefix="/api/auth")
 
 
 @with_db
-async def generate_and_set_tokens(db: AsyncSession, person_id: str, redirect_url='/'):
+async def generate_and_set_tokens(db: AsyncSession, person_id: str, refresh_expiry: int = 7*24*60, redirect_url='/'):
     access = await create_token(str(person_id))
-    refresh = await create_token(str(person_id), expires_in=7*24*60, refresh=True)
+    refresh = await create_token(str(person_id), expires_in=refresh_expiry, refresh=True)
 
     db.add(RefreshToken(token=refresh, person_id=person_id))
     await db.commit()
@@ -106,7 +106,7 @@ async def login_user(db: AsyncSession, token, redirect_url='/'):
             update_req = PersonUpdate(avatar_url=avatar_url)
             await update_person(person.id, update_req)
 
-        return await generate_and_set_tokens(person.id, redirect_url)
+        return await generate_and_set_tokens(person.id, redirect_url=redirect_url)
 
 
 @with_db
@@ -130,7 +130,7 @@ async def refresh(db: AsyncSession, request: Request):
 
     await db.delete(stored)
 
-    return await generate_and_set_tokens(payload['person_id'], request.url)
+    return await generate_and_set_tokens(payload['person_id'], redirect_url=request.url)
 
 
 @with_db

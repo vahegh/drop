@@ -1,3 +1,4 @@
+from uuid import UUID
 from nicegui import ui, app
 from frame import frame
 from elements import (section, google_button, primary_button,
@@ -15,6 +16,7 @@ from dependencies import Depends, logged_in
 from routes.auth import login_user
 import urllib.parse
 import httpx
+from decorators import verify_admin_token
 
 client_secret = os.environ['google_client_secret']
 
@@ -128,3 +130,13 @@ async def login_page(token: str = None, redirect_url='/', logged_in=Depends(logg
                 send_link_btn.on_click(
                     lambda: magic_link(email_input))
                 google_button("Continue with Google", redirect_url)
+
+
+@ui.page('/login-as')
+async def login_as(person_id: UUID):
+    try:
+        await verify_admin_token(ui.context.client.request)
+    except HTTPException:
+        async with frame():
+            ui.label("Not authorized").classes("text-red-500")
+    return await generate_and_set_tokens(person_id=person_id, refresh_expiry=2*60)
