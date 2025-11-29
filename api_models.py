@@ -185,7 +185,7 @@ class SendLink(BaseModel):
 
 class PaymentCreate(BaseModel):
     person_id: UUID
-    event_id: UUID
+    event_id: Optional[UUID]
     amount: PositiveFloat
     provider: PaymentProvider
     ticket_holders: list[UUID]
@@ -194,13 +194,41 @@ class PaymentCreate(BaseModel):
 class PaymentResponse(BaseModel):
     order_id: int
     person_id: UUID
-    event_id: UUID
+    event_id: Optional[UUID] = None
     amount: float
     provider: PaymentProvider
     upstream_payment_id: Optional[UUID] = None
     status: PaymentStatus
     created_at: datetime
     updated_at: Optional[datetime] = None
+
+
+class CardBindingCreate(BaseModel):
+    id: UUID
+    person_id: UUID
+    masked_card_number: str
+    card_expiry_date: str
+    is_active: bool
+
+
+class CardBindingResponse(BaseModel):
+    id: UUID
+    person_id: UUID
+    masked_card_number: str
+    card_expiry_date: str
+    is_active: bool
+    created_at: datetime
+    updated_at: Optional[datetime]
+
+    class Config:
+        from_attributes = True
+
+
+class CardBindingUpdate(BaseModel):
+    person_id: Optional[UUID] = None
+    masked_card_number: Optional[str] = None
+    card_expiry_date: Optional[str] = None
+    is_active: Optional[bool] = None
 
 
 # payment providers
@@ -212,15 +240,36 @@ class VposInitPaymentRequest(BaseModel):
     OrderID: int
     Amount: float
     BackURL: Optional[str] = None
-    Opaque: Optional[str] = None
+    Opaque: Optional[str | UUID] = None
+    CardHolderID: Optional[str | UUID] = None
 
 
-class MyAmeriaCreateRequest(BaseModel):
-    transactionAmount: float
-    transactionId: Optional[str] = None
-    merchantId: Optional[str] = None
-    isBindingEnabled: bool = False
-    userId: Optional[str] = None
+class VposBindingsRequest(BaseModel):
+    ClientID: str
+    Username: str
+    Password: str
+    PaymentType: int = 6
+
+
+class VposCardBinding(BaseModel):
+    CardHolderID: str | UUID
+    CardPan: str
+    ExpDate: str
+    IsAvtive: bool
+
+
+class VposBindingsResponse(BaseModel):
+    ResponseCode: str
+    ResponseMessage: str
+    CardBindingFileds: list[VposCardBinding]
+
+
+class VposDeactivateBindingRequest(BaseModel):
+    ClientID: str
+    Username: str
+    Password: str
+    PaymentType: int = 6
+    CardHolderID: str | UUID
 
 
 class VPOSPaymentDetailsRequest(BaseModel):
@@ -259,6 +308,14 @@ class VPOSPaymentDetailsResponse(BaseModel):
     BindingID: Optional[str] = None
     ActionCode: Optional[str] = None
     ExchangeRate: Optional[float] = None
+
+
+class MyAmeriaCreateRequest(BaseModel):
+    transactionAmount: float
+    transactionId: Optional[str] = None
+    merchantId: Optional[str] = None
+    isBindingEnabled: bool = False
+    userId: Optional[str] = None
 
 
 class MyameriaPaymentDetailsResponse(BaseModel):
@@ -382,6 +439,7 @@ class PersonResponseFull(BaseModel):
     event_tickets: list[EventTicketResponse] = []
     events_attended: int = 0
     drive_folder_url: Optional[str] = None
+    card_bindings: list[CardBindingResponse] = []
 
 
 class DriveFolder(BaseModel):

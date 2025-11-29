@@ -71,3 +71,22 @@ async def parse_inputs(form, model: BaseModel):
         data[field_name] = value
 
     return data
+
+
+def get_card_type(bin_6: str) -> str:
+    if len(bin_6) < 6:
+        return "Unknown"
+
+    first_digit = bin_6[0]
+    first_two = bin_6[:2]
+    first_four = bin_6[:4]
+
+    if first_digit == '4':
+        return "visa"
+
+    if 51 <= int(first_two) <= 55:
+        return "mastercard"
+    if 2221 <= int(first_four) <= 2720:
+        return "mastercard"
+
+    return "Unknown"

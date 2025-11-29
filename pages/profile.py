@@ -1,12 +1,16 @@
+import logging
 from nicegui import ui, app
 from nicegui.events import UploadEventArguments
 from consts import APP_BASE_URL, name_validation, email_validation, insta_validation
 from elements import (primary_button, secondary_button, status_icon,
                       page_header, section, toast, instagram_dialog,
-                      destructive_button, positive_button)
+                      destructive_button, positive_button, binding_card)
 from services.person import update_person, get_person_by_email
 from services.cloud_storage import upload_avatar
-from api_models import PersonResponseFull, PersonUpdate
+from services.payment import create_payment
+from api_models import PersonResponseFull, PersonUpdate, CardBindingUpdate
+from db_models import Payment
+from enums import PaymentProvider
 from frame import frame
 from dependencies import logged_in, Depends
 from fastapi import Request
@@ -14,16 +18,21 @@ from services.instagram_check import instagram_check
 import random
 from services.mailing import EmailRequest, send_email
 from services.templating import generate_template
+from services.vpos_payment import init_payment_vpos, VPOS_BASE_URL, deactivate_binding
+from services.card_binding import create_card_binding, update_card_binding
 import io
 from PIL import Image
 import base64
+from uuid import uuid4
+
+logger = logging.getLogger(__name__)
 
 
 @ui.page('/profile', title='Drop Dead Disco')
 async def home_page(request: Request, logged_in=Depends(logged_in)):
 
     async with frame() as f:
-        f.classes('py-14 px-2')
+        f.classes('py-14 px-2', remove='min-h-[100svh]')
         if not logged_in:
             ui.navigate.to(f'/login?redirect_url={APP_BASE_URL}/profile')
             return
@@ -253,6 +262,69 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
 
             instagram, instagram_save = await editable_field('Instagram Handle', person.instagram_handle, validation=insta_validation)
             instagram_save.on_click(lambda: modify_instagram(instagram))
+
+        async def bind_card():
+            add_btn.props(add='loading')
+            try:
+                payment = await create_payment(
+                    Payment(
+                        person_id=person.id,
+                        amount=10,
+                        provider=PaymentProvider.VPOS
+                    )
+                )
+
+                card_binding_id = uuid4()
+
+                payment_id = await init_payment_vpos(
+                    order_id=payment.order_id,
+                    amount=payment.amount,
+                    back_url=f"{APP_BASE_URL}/cardbinding",
+                    cardholder_id=card_binding_id,
+                    opaque=card_binding_id
+                )
+
+                ui.navigate.to(f"{VPOS_BASE_URL}/Payments/Pay?id={payment_id}&lang=en")
+            except Exception as e:
+                logger.warning(f"Unable to add card: {str(e)}")
+            finally:
+                add_btn.props(remove='loading')
+
+        with section("Payment methods", subtitle="Add a card to pay easily."):
+            card_bindings = [b for b in person.card_bindings if b.is_active]
+
+            if card_bindings:
+                async def delete_card(id, card_row):
+                    async def delete_binding():
+                        try:
+                            del_btn.props(add='loading')
+                            await deactivate_binding(id)
+                            await update_card_binding(id, CardBindingUpdate(is_active=False))
+
+                        except Exception as e:
+                            logger.warning(f"Unable to delete card: {str(e)}")
+                            del_btn.props(remove='loading')
+                        else:
+                            card_row.delete()
+
+                    with ui.dialog(value=True) as dl:
+                        with ui.card().classes('gap-4 w-full max-w-96'):
+                            page_header("Delete card?")
+                            with ui.row(wrap=False):
+                                del_btn = destructive_button("Yes, delete").on_click(
+                                    lambda: delete_binding())
+                                primary_button("No").on_click(dl.delete)
+
+                for card in card_bindings:
+                    with ui.row(wrap=False).classes('gap-2') as c:
+                        binding_card(card)
+                        ui.button(icon='delete', color='negative').props(
+                            'round flat').on_click(lambda c=c: delete_card(card.id, c))
+
+            else:
+                ui.label("No payment methods configured")
+
+            add_btn = primary_button("Add card").on_click(lambda: bind_card())
 
         with section():
             ui.link('Log out', '/logout')

@@ -50,7 +50,7 @@ async def create_event(db: AsyncSession, event: EventCreate):
 
 
 @with_db
-async def update_event(db: AsyncSession, id: UUID, event_update: EventUpdate):
+async def update_event(db: AsyncSession, id: UUID, request: EventUpdate):
     event = await db.get(Event, id)
     if not event:
         raise HTTPException(404, "Event not found")
@@ -60,7 +60,7 @@ async def update_event(db: AsyncSession, id: UUID, event_update: EventUpdate):
     # event_end_local = event.ends_at.astimezone(TIMEZONE)
     # event_url = f"{APP_BASE_URL}/event/{event.id}"
 
-    for field, value in event_update.model_dump(exclude_unset=True).items():
+    for field, value in request.model_dump(exclude_unset=True).items():
         setattr(event, field, value)
 
     # await update_member_class(

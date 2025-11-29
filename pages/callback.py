@@ -1,13 +1,18 @@
 from nicegui import ui, Client
-from fastapi import HTTPException
+from fastapi import HTTPException, Request
 from typing import Literal, Optional
 from frame import frame
 from elements import section_title, secondary_button
 from enums import PaymentProvider, PaymentStatus
-from api_models import PaymentConfirmRequest, VerifyPersonRequest
+from api_models import PaymentConfirmRequest, VerifyPersonRequest, PersonResponseFull, CardBindingCreate
 from uuid import UUID
 import logging
 from httpx import HTTPStatusError
+from services.payment import confirm_payment
+from services.person import get_person
+from services.vpos_payment import get_payment_details_vpos, get_card_binding_vpos
+from services.card_binding import update_card_binding, create_card_binding
+from dependencies import Depends, logged_in
 
 
 logger = logging.getLogger(__name__)
@@ -29,7 +34,7 @@ async def callback_page(confirm_request):
                 desc_label = ui.label('Please wait...')
 
             try:
-                confirm_response = await client.confirm_payment(confirm_request)
+                confirm_response = await confirm_payment(confirm_request)
             except HTTPStatusError as e:
                 sp.set_visibility(False)
                 status_icon.set_visibility(True)
@@ -63,8 +68,8 @@ async def callback_page(confirm_request):
                 async def get_new_link(person_id, event_id):
                     new_link_btn.props(add='loading')
                     try:
-                        person = await client.fetch_person(person_id)
-                        await client.verify_person(VerifyPersonRequest(email=person.email, event_id=event_id))
+                        person = await get_person(person_id)
+                        # await client.verify_person(VerifyPersonRequest(email=person.email, event_id=event_id))
                         ui.notify("Check your email!", type='positive')
                     except Exception as e:
                         ui.notify(
@@ -111,3 +116,37 @@ async def vpos_callback(client: Client, orderID: int, resposneCode: str, payment
     )
 
     await callback_page(confirm_request)
+
+
+@ui.page('/cardbinding', title='Add Payment Method | Drop Dead Disco')
+async def card_binding_callback(request: Request, orderID: int, resposneCode: str, paymentID: UUID, opaque: Optional[str] = None, description: Optional[str] = None, logged_in=Depends(logged_in)):
+    await ui.context.client.connected()
+    if not orderID or not resposneCode or not paymentID:
+        raise HTTPException(404)
+
+    if not logged_in:
+        raise HTTPException(401)
+
+    person: PersonResponseFull = request.state.person
+
+    payment_details = await get_payment_details_vpos(paymentID)
+
+    if payment_details.ResponseCode == "00":
+        card_binding_vpos = await get_card_binding_vpos(opaque)
+
+        if not card_binding_vpos:
+            ui.label("Unable to attach card")
+
+        request = CardBindingCreate(
+            id=opaque,
+            person_id=person.id,
+            masked_card_number=card_binding_vpos.CardPan,
+            card_expiry_date=card_binding_vpos.ExpDate,
+            is_active=card_binding_vpos.IsAvtive
+        )
+
+        try:
+            await create_card_binding(request=request)
+            ui.navigate.to("/profile")
+        except Exception as e:
+            logger.warning(f"Unable to create card binding: {str(e)}")

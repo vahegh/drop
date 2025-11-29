@@ -8,6 +8,7 @@ from decorators import verify_user_token
 from db_models import Person,  MemberPass
 from api_models import PersonUpdate, PersonResponseFull
 from services.event_ticket import get_tickets_by_person_id
+from services.card_binding import get_card_binding_by_person_id
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +23,7 @@ async def user_info(db: AsyncSession, request: Request):
 
     event_tickets = await get_tickets_by_person_id(person.id)
     attendance = len([e for e in event_tickets if e.attended_at])
+    card_bindings = await get_card_binding_by_person_id(person.id)
 
     response = PersonResponseFull(
         id=person.id,
@@ -36,7 +38,8 @@ async def user_info(db: AsyncSession, request: Request):
         member_pass=member_pass,
         event_tickets=event_tickets,
         events_attended=attendance,
-        drive_folder_url=person.drive_folder_url
+        drive_folder_url=person.drive_folder_url,
+        card_bindings=card_bindings
     )
 
     return response

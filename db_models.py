@@ -109,7 +109,8 @@ class Payment(Base):
 
     order_id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     person_id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), ForeignKey('person.id'))
-    event_id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), ForeignKey('event.id'))
+    event_id: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey('event.id'), nullable=True)
     amount: Mapped[float] = mapped_column(Float)
     provider: Mapped[Enum] = mapped_column(Enum(PaymentProvider))
     upstream_payment_id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), nullable=True)
@@ -142,3 +143,16 @@ class RefreshToken(Base):
     token: Mapped[str] = mapped_column(String, unique=True, nullable=False)
     person_id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("person.id"), nullable=False)
+
+
+class CardBinding(Base):
+    __tablename__ = 'card_binding'
+
+    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    person_id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), ForeignKey('person.id'))
+    masked_card_number: Mapped[str] = mapped_column(String, nullable=True)
+    card_expiry_date: Mapped[str] = mapped_column(String, nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

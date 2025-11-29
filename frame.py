@@ -18,7 +18,7 @@ async def frame(show_footer=False):
     show_signin = True
     login_redirect_url = request.url.path if request.url.path not in ['/signup', '/login'] else '/'
     await ui.context.client.connected()
-    menu = ui.right_drawer(value=False)
+    menu = ui.right_drawer(value=False).props(':press-delay="0"')
 
     with ui.context.client.content.classes('gap-4 px-0 py-18 pb-4 w-full items-center justify-center min-h-[100svh]') as content:
         with ui.row().classes('fixed top-0 left-0 items-center bg-transparent h-14 px-4 py-2 backdrop-blur-xs flex justify-between z-10'):

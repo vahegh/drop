@@ -6,13 +6,14 @@ from typing import Type, Union
 from contextlib import contextmanager
 from nicegui import ui, app
 from pydantic import BaseModel, EmailStr
-from api_models import EventResponse, MemberCardResponse, EventTicketResponse, EventResponse, VenueResponse, PersonResponse
+from api_models import EventResponse, MemberCardResponse, EventTicketResponse, EventResponse, VenueResponse, PersonResponse, CardBindingResponse
 from enums import PersonStatus
 from helpers import generate_qr
 from consts import (email_validation, insta_validation, name_validation,
                     email_non_required, email_placeholder, calendar_base_url,
                     google_calendar_img_url, instagram_placeholder, google_wallet_img_url,
                     apple_wallet_img_url, google_client_id, APP_BASE_URL)
+from helpers import get_card_type
 
 
 ui.button.default_props(':ripple="{ center: true, early: true }" :press-delay="0"')
@@ -371,3 +372,25 @@ def google_button(text, url='/'):
         btn.on_click(lambda: redirect_to_auth())
 
     return btn
+
+
+def binding_card(card: CardBindingResponse):
+    card_type = get_card_type(card.masked_card_number[:6])
+    c = ui.card().classes(f'w-full rounded-full').props('bordered flat')
+    with c:
+        with ui.row(wrap=False):
+            with ui.row(wrap=False).classes(remove='justify-between'):
+                if card_type == 'visa':
+                    ui.image('static/images/visa.svg').classes('w-6')
+                elif card_type == 'mastercard':
+                    ui.image('static/images/mastercard.svg').classes('w-6')
+                else:
+                    ui.icon('card')
+
+                ui.label(f"•••• {card.masked_card_number[-4:]}")
+
+            exp_m = card.card_expiry_date[-2:]
+            exp_y = card.card_expiry_date[2:4]
+            ui.label(f"{exp_m}/{exp_y}")
+
+    return c

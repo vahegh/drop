@@ -1,19 +1,19 @@
 import os
 from datetime import datetime, timezone
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
 from decorators import with_db
+from services.ecrm import ecrm_print
+from services.member_pass import send_member_pass
 from consts import APP_BASE_URL_NO_PROTO, idram_merchant_id
 from enums import PersonStatus, PaymentStatus, PaymentProvider
-from db_models import Payment, Person, EventTicket, PaymentIntent, Event, MemberPass
-from services.ecrm import ecrm_print
 from services.telegram import notify_payment_init, notify_payment_confirmed
-from services.event_ticket import add_ticket_to_db, create_event_ticket, send_event_ticket
 from services.myameria_payment import MYAMERIA_PAY_URL, myameria_merchant_id
+from db_models import Payment, Person, EventTicket, PaymentIntent, Event, MemberPass
+from services.event_ticket import add_ticket_to_db, create_event_ticket, send_event_ticket
 from services.myameria_payment import create_payment_myameria, get_payment_details_myameria
 from services.vpos_payment import init_payment_vpos, get_payment_details_vpos, VPOS_BASE_URL
-from services.member_pass import send_member_pass
 from api_models import PaymentCreate, PaymentConfirmRequest, PaymentConfirmResponse, ECRMPrintRequest, ECRMItem
 
 ecrm_crn = os.environ['ecrm_crn']
@@ -26,16 +26,22 @@ async def get_all_payments(db: AsyncSession):
 
 
 @with_db
-async def init_payment(db: AsyncSession, request: PaymentCreate):
-    new_payment = Payment(
-        person_id=request.person_id,
-        event_id=request.event_id,
-        amount=request.amount,
-        provider=request.provider
-    )
-
+async def create_payment(db: AsyncSession, new_payment: Payment):
     db.add(new_payment)
     await db.flush()
+    return new_payment
+
+
+@with_db
+async def init_payment(db: AsyncSession, request: PaymentCreate):
+    new_payment = await create_payment(
+        request=Payment(
+            person_id=request.person_id,
+            event_id=request.event_id,
+            amount=request.amount,
+            provider=request.provider
+        )
+    )
 
     recipient_names = []
 
