@@ -88,9 +88,8 @@ async def callback_page(confirm_request):
 
 
 @ui.page('/ameriatransactionstate', title='Payment Confirmation | Drop Dead Disco')
-async def myameria_callback(client: Client, transactionId: int, paymentId: UUID, status=myameria_payment_status, errorMessage: Optional[str] = None):
-    await client.connected()
-    client.content.classes('p-0')
+async def myameria_callback(transactionId: int, paymentId: UUID, status=myameria_payment_status, errorMessage: Optional[str] = None):
+    await ui.context.client.connected()
     if not transactionId or not paymentId or not status:
         raise HTTPException(404)
 
@@ -104,10 +103,24 @@ async def myameria_callback(client: Client, transactionId: int, paymentId: UUID,
 
 
 @ui.page('/vpostransactionstate', title='Payment Confirmation | Drop Dead Disco')
-async def vpos_callback(client: Client, orderID: int, resposneCode: str, paymentID: UUID, opaque: Optional[str] = None, description: Optional[str] = None):
-    await client.connected()
+async def vpos_callback(request: Request, orderID: int, resposneCode: str, paymentID: UUID, opaque: Optional[str] = None, description: Optional[str] = None):
+    await ui.context.client.connected()
     if not orderID or not resposneCode or not paymentID:
         raise HTTPException(404)
+
+    if opaque:
+        person: PersonResponseFull = request.state.person
+        card_binding_vpos = await get_card_binding_vpos(opaque)
+
+        await create_card_binding(
+            CardBindingCreate(
+                id=opaque,
+                person_id=person.id,
+                masked_card_number=card_binding_vpos.CardPan,
+                card_expiry_date=card_binding_vpos.ExpDate,
+                is_active=card_binding_vpos.IsAvtive
+            )
+        )
 
     confirm_request = PaymentConfirmRequest(
         order_id=int(orderID),
@@ -137,16 +150,17 @@ async def card_binding_callback(request: Request, orderID: int, resposneCode: st
         if not card_binding_vpos:
             ui.label("Unable to attach card")
 
-        request = CardBindingCreate(
-            id=opaque,
-            person_id=person.id,
-            masked_card_number=card_binding_vpos.CardPan,
-            card_expiry_date=card_binding_vpos.ExpDate,
-            is_active=card_binding_vpos.IsAvtive
-        )
-
         try:
-            await create_card_binding(request=request)
+            await create_card_binding(
+                CardBindingCreate(
+                    id=opaque,
+                    person_id=person.id,
+                    masked_card_number=card_binding_vpos.CardPan,
+                    card_expiry_date=card_binding_vpos.ExpDate,
+                    is_active=card_binding_vpos.IsAvtive
+                )
+            )
+
             ui.navigate.to("/profile")
         except Exception as e:
             logger.warning(f"Unable to create card binding: {str(e)}")

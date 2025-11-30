@@ -20,7 +20,7 @@ async def frame(show_footer=False):
     await ui.context.client.connected()
     menu = ui.right_drawer(value=False).props(':press-delay="0"')
 
-    with ui.context.client.content.classes('gap-4 px-0 py-18 pb-4 w-full items-center justify-center min-h-[100svh]') as content:
+    with ui.context.client.content.classes('gap-4 px-0 py-18 pb-4 w-full items-center justify-center') as content:
         with ui.row().classes('fixed top-0 left-0 items-center bg-transparent h-14 px-4 py-2 backdrop-blur-xs flex justify-between z-10'):
             with ui.button().props('flat').classes('py-0 px-2').on('click', lambda: ui.navigate.to('/')):
                 ui.image(logo_gray_path).classes(
@@ -53,7 +53,7 @@ async def frame(show_footer=False):
                                     ui.navigate.to('/profile'),
                                     profile_btn.props(add='loading disable')
                                 ))
-                            ui.link('Log out', f'/logout?redirect_url={login_redirect_url}')
+                            ui.link('Log out', '/logout')
                     btn.on_click(menu.toggle)
 
             else:

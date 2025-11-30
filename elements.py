@@ -249,7 +249,7 @@ def image_carousel(urls):
 
 @contextmanager
 def section(title: str = None, subtitle: str = None):
-    with ui.column().classes('gap-2 p-0 w-full items-center justify-start max-w-96') as main:
+    with ui.column().classes('gap-2 p-2 w-full items-center justify-start max-w-96') as main:
         if title:
             with ui.column().classes('gap-0 items-center'):
                 section_title(title).classes('text-center')
@@ -376,7 +376,7 @@ def google_button(text, url='/'):
 
 def binding_card(card: CardBindingResponse):
     card_type = get_card_type(card.masked_card_number[:6])
-    c = ui.card().classes(f'w-full rounded-full').props('bordered flat')
+    c = ui.card().classes(f'w-full rounded-full h-[40px] py-2').props('bordered flat')
     with c:
         with ui.row(wrap=False):
             with ui.row(wrap=False).classes(remove='justify-between'):
@@ -387,7 +387,7 @@ def binding_card(card: CardBindingResponse):
                 else:
                     ui.icon('card')
 
-                ui.label(f"•••• {card.masked_card_number[-4:]}")
+                ui.label(f"{card_type.capitalize()} •••• {card.masked_card_number[-4:]}")
 
             exp_m = card.card_expiry_date[-2:]
             exp_y = card.card_expiry_date[2:4]

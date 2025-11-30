@@ -274,14 +274,11 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                     )
                 )
 
-                card_binding_id = uuid4()
-
                 payment_id = await init_payment_vpos(
                     order_id=payment.order_id,
                     amount=payment.amount,
                     back_url=f"{APP_BASE_URL}/cardbinding",
-                    cardholder_id=card_binding_id,
-                    opaque=card_binding_id
+                    save_card=True
                 )
 
                 ui.navigate.to(f"{VPOS_BASE_URL}/Payments/Pay?id={payment_id}&lang=en")

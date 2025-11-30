@@ -80,7 +80,7 @@ async def login_page(token: str = None, redirect_url='/', logged_in=Depends(logg
             return await generate_and_set_tokens(person.id)
 
     async with frame() as f:
-        f.classes('px-2 pt-4')
+        f.classes('px-2 pt-4 min-h-[100svh]')
 
         async def magic_link(email_input):
             if not email_input.validate():

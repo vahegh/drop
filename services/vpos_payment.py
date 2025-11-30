@@ -1,5 +1,6 @@
 import os
 import httpx
+from uuid import uuid4
 from consts import APP_BASE_URL
 from api_models import (VposInitPaymentRequest, VPOSPaymentDetailsResponse,
                         VPOSPaymentDetailsRequest, VposBindingsRequest,
@@ -16,10 +17,12 @@ async def init_payment_vpos(
         order_id,
         amount,
         description="",
-        cardholder_id=None,
-        opaque="",
-        back_url=f"{APP_BASE_URL}/{VPOS_CALLBACK_ENDPOINT}"
+        back_url=f"{APP_BASE_URL}/{VPOS_CALLBACK_ENDPOINT}",
+        save_card=False
 ):
+
+    cardholder_id = uuid4() if save_card else None
+
     request = VposInitPaymentRequest(
         ClientID=vpos_client_id,
         Username=vpos_username,
@@ -29,7 +32,7 @@ async def init_payment_vpos(
         Description=description,
         BackURL=back_url,
         CardHolderID=cardholder_id,
-        Opaque=opaque
+        Opaque=cardholder_id
     ).model_dump(exclude_unset=True, exclude_none=True, mode='json')
 
     async with httpx.AsyncClient() as client:

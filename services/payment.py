@@ -26,44 +26,30 @@ async def get_all_payments(db: AsyncSession):
 
 
 @with_db
-async def create_payment(db: AsyncSession, new_payment: Payment):
-    db.add(new_payment)
-    await db.flush()
-    return new_payment
+async def create_payment(db: AsyncSession, payment: Payment):
+    db.add(payment)
+    await db.commit()
+    await db.refresh(payment)
+    return payment
 
 
 @with_db
-async def init_payment(db: AsyncSession, request: PaymentCreate):
-    new_payment = await create_payment(
-        request=Payment(
-            person_id=request.person_id,
-            event_id=request.event_id,
-            amount=request.amount,
-            provider=request.provider
-        )
-    )
+async def init_payment(db: AsyncSession, request: Payment, save_card=False):
 
-    recipient_names = []
+    # recipient_names = []
 
-    for id in request.ticket_holders:
-        recipient = await db.get(Person, id)
-        recipient_names.append(f"{recipient.first_name} {recipient.last_name}")
-        intent = PaymentIntent(
-            order_id=new_payment.order_id,
-            recipient_id=id)
-        db.add(intent)
+    # recipient = await db.get(Person, id)
+    # recipient_names.append(f"{recipient.first_name} {recipient.last_name}")
 
-    await db.commit()
-
-    person = await db.get(Person, request.person_id)
-    await notify_payment_init(person, new_payment, recipient_names)
+    # person = await db.get(Person, request.person_id)
+    # await notify_payment_init(person, new_payment, recipient_names)
 
     match request.provider:
         case PaymentProvider.VPOS:
             try:
-                payment_id = await init_payment_vpos(new_payment.order_id, new_payment.amount)
-                new_payment.upstream_payment_id = payment_id
-                db.add(new_payment)
+                payment_id = await init_payment_vpos(request.order_id, request.amount, save_card=save_card)
+                request.upstream_payment_id = payment_id
+                db.add(request)
                 await db.commit()
 
                 url = f"{VPOS_BASE_URL}/Payments/Pay?id={payment_id}&lang=en"
@@ -73,14 +59,14 @@ async def init_payment(db: AsyncSession, request: PaymentCreate):
 
         case PaymentProvider.MYAMERIA:
             try:
-                await create_payment_myameria(new_payment.order_id, new_payment.amount)
-                url = f"{MYAMERIA_PAY_URL}?merchantName=Drop+Dead+Disco&transactionAmount={str(new_payment.amount)}&transactionId={str(new_payment.order_id)}&merchantId={myameria_merchant_id}&terminalId={myameria_merchant_id}&callbackscheme={APP_BASE_URL_NO_PROTO}"
+                await create_payment_myameria(request.order_id, request.amount)
+                url = f"{MYAMERIA_PAY_URL}?merchantName=Drop+Dead+Disco&transactionAmount={str(request.amount)}&transactionId={str(request.order_id)}&merchantId={myameria_merchant_id}&terminalId={myameria_merchant_id}&callbackscheme={APP_BASE_URL_NO_PROTO}"
                 return url
             except Exception as e:
                 raise HTTPException(500, f"Unable to create MyAmeria payment: {str(e)}")
 
         case PaymentProvider.IDRAM:
-            url = f"idramapp://payment?receiverName=Drop+Dead+Disco&receiverId={idram_merchant_id}&title={str(new_payment.order_id)}&amount={str(new_payment.amount)}"
+            url = f"idramapp://payment?receiverName=Drop+Dead+Disco&receiverId={idram_merchant_id}&title={str(request.order_id)}&amount={str(request.amount)}"
             return url
 
         case _:
