@@ -2,12 +2,11 @@ from nicegui import ui, Client
 from fastapi import HTTPException, Request
 from typing import Literal, Optional
 from frame import frame
-from elements import section_title, secondary_button
+from components import section_title, secondary_button, section
 from enums import PaymentProvider, PaymentStatus
 from api_models import PaymentConfirmRequest, VerifyPersonRequest, PersonResponseFull, CardBindingCreate
 from uuid import UUID
 import logging
-from httpx import HTTPStatusError
 from services.payment import confirm_payment
 from services.person import get_person
 from services.vpos_payment import get_payment_details_vpos, get_card_binding_vpos
@@ -22,68 +21,54 @@ myameria_payment_status = Literal['success', 'failure']
 
 async def callback_page(confirm_request):
     async with frame() as main_col:
-        with ui.column().classes('fixed inset-0 h-full w-full'):
+        main_col.classes('h-[100svh] px-4')
+        with section():
+            status_label = section_title("Confirming your payment")
+            desc_label = ui.label('Please wait...')
+
+        with section():
             status_icon = ui.icon('check', size='100px').classes(
                 'text-green-500')
             status_icon.set_visibility(False)
             sp = ui.spinner(size='100px', thickness=2)
 
-        with ui.column().classes('h-[90vh] gap-8 p-8 justify-between', remove='justify-center'):
-            with ui.column():
-                status_label = section_title("Confirming your payment")
-                desc_label = ui.label('Please wait...')
-
-            try:
-                confirm_response = await confirm_payment(confirm_request)
-            except HTTPStatusError as e:
-                sp.set_visibility(False)
-                status_icon.set_visibility(True)
-
-                if e.response.status_code == 409:
-                    status_icon.set_name('credit_score')
-                    status_icon.classes(replace='')
-                    status_label.text = "This payment is already processed."
-                    desc_label.text = "You should have already received your ticket via email. If not, please contact us via Instagram or email."
-                else:
-                    logger.error(str(e))
-                    status_icon.set_name('close')
-                    status_icon.classes(replace='text-red-500')
-                    status_label.text = "Unable to process payment."
-                    desc_label.text = "Please check your email. If you haven't received a ticket from us, contact us via Instagram or email."
-
-                secondary_button("go home").on_click(
-                    lambda: ui.navigate.to("/"))
-                return main_col
-
+        try:
+            confirm_response = await confirm_payment(confirm_request)
+        except HTTPException as e:
             sp.set_visibility(False)
             status_icon.set_visibility(True)
 
-            if confirm_response.status == PaymentStatus.CONFIRMED:
-                status_label.text = "Payment succesful!"
-                desc_label.text = "Each person will receive their ticket via email."
-                secondary_button("Event Information").on_click(
-                    lambda: ui.navigate.to(f"/event/{confirm_response.event_id}"))
-
+            if e.status_code == 409:
+                status_icon.set_name('credit_score')
+                status_icon.classes(replace='')
+                status_label.text = "This payment is already processed."
+                desc_label.text = "You should have already received your ticket via email. If not, please contact us via Instagram or email."
             else:
-                async def get_new_link(person_id, event_id):
-                    new_link_btn.props(add='loading')
-                    try:
-                        person = await get_person(person_id)
-                        # await client.verify_person(VerifyPersonRequest(email=person.email, event_id=event_id))
-                        ui.notify("Check your email!", type='positive')
-                    except Exception as e:
-                        ui.notify(
-                            "Unable to send a payment link. Please use your existing link in your email or try again later.", type='negative')
-                        logger.error(str(e))
-                    finally:
-                        new_link_btn.props(remove='loading')
-
+                logger.error(str(e))
                 status_icon.set_name('close')
                 status_icon.classes(replace='text-red-500')
-                status_label.text = "Payment Failed"
-                desc_label.text = confirm_response.description if confirm_response.description else ""
-                new_link_btn = secondary_button('get new link').on_click(lambda: get_new_link(
-                    confirm_response.person_id, confirm_response.event_id))
+                status_label.text = "Unable to process payment."
+                desc_label.text = "Please check your email. If you haven't received a ticket from us, contact us via Instagram or email."
+
+            secondary_button("Go Home").on_click(
+                lambda: ui.navigate.to("/"))
+            return main_col
+
+        sp.set_visibility(False)
+        status_icon.set_visibility(True)
+
+        if confirm_response.status == PaymentStatus.CONFIRMED:
+            status_label.text = "Payment succesful!"
+            desc_label.text = "Each person will receive their ticket via email."
+            secondary_button("Event Information").on_click(
+                lambda: ui.navigate.to(f"/event/{confirm_response.event_id}"))
+
+        else:
+            status_icon.set_name('close')
+            status_icon.classes(replace='text-red-500')
+            status_label.text = "Payment Failed"
+            desc_label.text = confirm_response.description if confirm_response.description else ""
+
     return main_col
 
 
@@ -164,3 +149,14 @@ async def card_binding_callback(request: Request, orderID: int, resposneCode: st
             ui.navigate.to("/profile")
         except Exception as e:
             logger.warning(f"Unable to create card binding: {str(e)}")
+
+
+@ui.page('/bindingpayment', title='Payment Confirmation | Drop Dead Disco', response_timeout=100)
+async def binding_payment_callback(request: Request, order_id, payment_id):
+    confirm_request = PaymentConfirmRequest(
+        order_id=int(order_id),
+        provider=PaymentProvider.BINDING,
+        payment_id=payment_id
+    )
+
+    await callback_page(confirm_request)

@@ -1,0 +1,22 @@
+{% extends "base_email.html" %}
+{% from 'components/button.html' import button %}
+{% block content %}
+<h1 style="text-align: center">{{ inviter_name }} invited you to join Drop Dead Disco</h1>
+<p style="text-align: center">
+    We are a curated dance music community and we host events in various secret locations. {{ inviter_first_name }}
+    thought you'd want to join us for our next event - {{ event_name }}.
+</p>
+
+<p style="text-align: center">
+    Sign up using the link below. Your one-time review process will begin immediately after you do. You will be notified
+    via email about your status.
+</p>
+{{ button("Sign Up", signup_url) }}
+
+<p style="text-align: center">
+    <a href="{{ event_url }}">More about {{ event_name }}</a>
+</p>
+<p style="color: #aaa; text-align: center">
+    See you on the dancefloor.
+</p>
+{% endblock %}

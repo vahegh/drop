@@ -35,15 +35,6 @@ async def create_payment(db: AsyncSession, payment: Payment):
 
 @with_db
 async def init_payment(db: AsyncSession, request: Payment, save_card=False):
-
-    # recipient_names = []
-
-    # recipient = await db.get(Person, id)
-    # recipient_names.append(f"{recipient.first_name} {recipient.last_name}")
-
-    # person = await db.get(Person, request.person_id)
-    # await notify_payment_init(person, new_payment, recipient_names)
-
     match request.provider:
         case PaymentProvider.VPOS:
             try:
@@ -52,8 +43,22 @@ async def init_payment(db: AsyncSession, request: Payment, save_card=False):
                 db.add(request)
                 await db.commit()
 
-                url = f"{VPOS_BASE_URL}/Payments/Pay?id={payment_id}&lang=en"
+                url = f"{VPOS_BASE_URL}/Payments/Pay?id={payment_id}&lang=en&type=5"
                 return url
+
+            except Exception as e:
+                raise HTTPException(500, f"Unable to create vPOS payment: {str(e)}")
+
+        case PaymentProvider.APPLEPAY:
+            try:
+                payment_id = await init_payment_vpos(request.order_id, request.amount, save_card=save_card)
+                request.upstream_payment_id = payment_id
+                db.add(request)
+                await db.commit()
+
+                url = f"{VPOS_BASE_URL}/Payments/Pay?id={payment_id}&lang=en&type=13"
+                return url
+
             except Exception as e:
                 raise HTTPException(500, f"Unable to create vPOS payment: {str(e)}")
 
@@ -74,7 +79,7 @@ async def init_payment(db: AsyncSession, request: Payment, save_card=False):
 
 
 @with_db
-async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest):
+async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest, print_receipt=False):
     payment = await db.scalar(select(Payment).where((Payment.order_id == transaction.order_id) & (Payment.provider == transaction.provider)))
     if not payment:
         raise HTTPException(404, "Payment not found")
@@ -90,7 +95,7 @@ async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest):
                                        .where(PaymentIntent.order_id == payment.order_id))).all()
 
     match transaction.provider:
-        case PaymentProvider.VPOS:
+        case PaymentProvider.VPOS | PaymentProvider.APPLEPAY:
             try:
                 payment_details = await get_payment_details_vpos(payment.upstream_payment_id)
                 if payment_details.ResponseCode == "00":
@@ -109,6 +114,40 @@ async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest):
                 )
             except Exception as e:
                 raise HTTPException(500, f"Unable to check vPOS payment status: {str(e)}")
+
+        case PaymentProvider.BINDING:
+            if not transaction.payment_id:
+                confirm_response = PaymentConfirmResponse(
+                    order_id=payment.order_id,
+                    provider=transaction.provider,
+                    status=payment.status,
+                    person_id=payment.person_id,
+                    event_id=payment.event_id,
+                    amount=payment.amount,
+                    num_tickets=len(ticket_holders)
+                )
+            else:
+                try:
+                    payment.upstream_payment_id = transaction.payment_id
+
+                    payment_details = await get_payment_details_vpos(transaction.payment_id)
+                    if payment_details.ResponseCode == "00":
+                        payment.status = PaymentStatus.CONFIRMED
+
+                    confirm_response = PaymentConfirmResponse(
+                        order_id=payment_details.OrderID,
+                        provider=transaction.provider,
+                        payment_id=transaction.payment_id,
+                        status=payment.status,
+                        description=payment_details.Description,
+                        person_id=payment.person_id,
+                        event_id=payment.event_id,
+                        amount=payment.amount,
+                        num_tickets=len(ticket_holders)
+                    )
+
+                except Exception as e:
+                    raise HTTPException(500, f"Unable to check binding payment status: {str(e)}")
 
         case PaymentProvider.MYAMERIA:
             try:
@@ -133,62 +172,63 @@ async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest):
                 raise HTTPException(500, f"Unable to check MyAmeria payment status: {str(e)}")
 
     if payment.status == PaymentStatus.CONFIRMED:
-        event = await db.get(Event, payment.event_id)
-        if event.early_bird_date < datetime.now(timezone.utc):
-            non_member_price = event.general_admission_price
-            non_member_item_code = "0001"
-            non_member_item_name = "General Admission Event Entry"
-        else:
-            non_member_price = event.early_bird_price
-            non_member_item_code = "0002"
-            non_member_item_name = "Early Bird Event Entry"
-
-        member_item_code = "0003"
-        member_item_name = "Member Event Entry"
-        adg_code = "79.90"
-
-        member_qty = 0
-        non_member_qty = 0
-
-        recipient_names = []
-
-        for h in ticket_holders:
-            recipient_names.append(h.name)
-            if h.status == PersonStatus.member:
-                member_qty += 1
+        if print_receipt:
+            event = await db.get(Event, payment.event_id)
+            if event.early_bird_date < datetime.now(timezone.utc):
+                non_member_price = event.general_admission_price
+                non_member_item_code = "0001"
+                non_member_item_name = "General Admission Event Entry"
             else:
-                non_member_qty += 1
-        person = await db.get(Person, payment.person_id)
-        await notify_payment_confirmed(person, payment, recipient_names)
+                non_member_price = event.early_bird_price
+                non_member_item_code = "0002"
+                non_member_item_name = "Early Bird Event Entry"
 
-        items = []
+            member_item_code = "0003"
+            member_item_name = "Member Event Entry"
+            adg_code = "79.90"
 
-        if member_qty:
-            items.append(
-                ECRMItem(
-                    quantity=member_qty,
-                    price=event.member_ticket_price,
-                    adgCode=adg_code,
-                    goodCode=member_item_code,
-                    goodName=member_item_name,
+            member_qty = 0
+            non_member_qty = 0
+
+            recipient_names = []
+
+            for h in ticket_holders:
+                recipient_names.append(h.name)
+                if h.status == PersonStatus.member:
+                    member_qty += 1
+                else:
+                    non_member_qty += 1
+            person = await db.get(Person, payment.person_id)
+            await notify_payment_confirmed(person, payment, recipient_names)
+
+            items = []
+
+            if member_qty:
+                items.append(
+                    ECRMItem(
+                        quantity=member_qty,
+                        price=event.member_ticket_price,
+                        adgCode=adg_code,
+                        goodCode=member_item_code,
+                        goodName=member_item_name,
+                    )
                 )
-            )
 
-        if non_member_qty:
-            items.append(
-                ECRMItem(
-                    quantity=non_member_qty,
-                    price=non_member_price,
-                    adgCode=adg_code,
-                    goodCode=non_member_item_code,
-                    goodName=non_member_item_name,
+            if non_member_qty:
+                items.append(
+                    ECRMItem(
+                        quantity=non_member_qty,
+                        price=non_member_price,
+                        adgCode=adg_code,
+                        goodCode=non_member_item_code,
+                        goodName=non_member_item_name,
+                    )
                 )
-            )
 
-        print_req = ECRMPrintRequest(crn=ecrm_crn, cardAmount=payment.amount, items=items)
+            print_req = ECRMPrintRequest(crn=ecrm_crn, cardAmount=payment.amount, items=items)
 
-        ecrm_response = await ecrm_print(print_req)
-        print(ecrm_response)
+            ecrm_response = await ecrm_print(print_req)
+            print(ecrm_response)
 
         for holder in ticket_holders:
             event_ticket = EventTicket(

@@ -2,22 +2,28 @@ from datetime import datetime, timezone
 from nicegui import ui, app
 from fastapi import Request
 from httpx import HTTPStatusError
-from nicegui.elements.button import Button
 from frame import frame
 from enums import PaymentProvider, PersonStatus
-from api_models import PersonResponseFull, PaymentCreate
+from api_models import PersonResponseFull, PaymentConfirmRequest
 from helpers import get_user_agent
-from elements import (rounded_email_input, secondary_button, primary_button, toast, event_datetime_col,
-                      page_header, section, positive_button, binding_card)
+from components import (rounded_email_input, secondary_button, primary_button, toast, event_datetime_col,
+                        page_header, section, positive_button, binding_card, outline_button, payment_choice)
 
 from storage_cache import get_cache
 from uuid import UUID
 from services.event_ticket import get_tickets_by_person_id
-from services.payment import init_payment, create_payment
+from services.payment import init_payment, create_payment, confirm_payment
 from services.person import get_person_by_email
+from services.mailing import EmailRequest, send_email
+from services.templating import generate_template
+from services.vpos_payment import make_binding_payment_vpos, VposMakeBindingPaymentRequest
 from dependencies import Depends, logged_in
 from db_models import PaymentIntent, Payment
 from services.payment_intent import create_payment_intent
+from consts import APP_BASE_URL
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @ui.page('/buy-ticket', title='Buy Your Ticket | Drop Dead Disco')
@@ -32,10 +38,6 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
 
     event = await cache.fetch_event(event_id)
 
-    # if event.ends_at < datetime.now(timezone.utc):
-    #     ui.navigate.to(f'/event/{event.id}')
-    #     return
-
     # await notify_payment_page(person)
 
     user_agent = await get_user_agent(request)
@@ -43,22 +45,28 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
     attendees = [person]
 
     async def main_page():
-        main_col.classes('gap-2')
+        async def handle_payment():
+            selected = radio.value
+            if selected is None:
+                ui.notify('Please select a payment method', type='warning')
+                return
 
-        async def buy_ticket(payment_provider: PaymentProvider, button: ui.button, save_card=False):
             amount = update_totals()
             if amount == 0:
                 toast('0 AMD?')
                 return
 
-            button.props(add='loading')
+            pay_btn.props(add='loading')
+
+            method = payment_methods[selected]
+            payment_provider = method['provider']
             ticket_holders = [a.id for a in attendees]
 
             new_payment = await create_payment(
                 Payment(
                     person_id=person.id,
                     event_id=event.id,
-                    amount=amount,
+                    amount=10,
                     provider=payment_provider
                 )
             )
@@ -71,19 +79,35 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                     )
                 )
 
-            try:
-                url = await init_payment(new_payment, save_card=save_card)
+            if payment_provider == PaymentProvider.BINDING:
+                card_id = method['data']
+                try:
+                    payment_resp = await make_binding_payment_vpos(card_id, new_payment.order_id, new_payment.amount)
+                except Exception as e:
+                    logger.error(f"Unable to make binding payment: {str(e)}")
 
-            except HTTPStatusError as e:
-                if e.response.status_code == 409:
-                    main_col.clear()
-                    with main_col:
-                        existing_page()
-                    return
+                else:
+                    if payment_resp.PaymentID:
+                        ui.navigate.to(
+                            f"/bindingpayment?order_id={new_payment.order_id}&payment_id={payment_resp.PaymentID}")
+                    else:
+                        ui.navigate.to(
+                            f"/bindingpayment?order_id={new_payment.order_id}&payment_id=None")
+
             else:
-                ui.navigate.to(url)
-            finally:
-                button.props(remove='loading')
+                try:
+                    url = await init_payment(new_payment, save_card=save_tick.value)
+
+                except HTTPStatusError as e:
+                    if e.response.status_code == 409:
+                        main_col.clear()
+                        with main_col:
+                            existing_page()
+                        return
+                else:
+                    ui.navigate.to(url)
+
+            pay_btn.props(remove='loading')
 
         def update_totals():
             ticket_price = event.general_admission_price if datetime.now(
@@ -127,7 +151,40 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
 
             new_attendee = await get_person_by_email(email)
 
-            if not new_attendee or new_attendee.status not in (PersonStatus.verified, PersonStatus.member):
+            async def invite(email):
+                invite_btn.props(add='loading')
+                context = {
+                    "inviter_name": person.full_name,
+                    "inviter_first_name": person.first_name,
+                    "event_name": event.name,
+                    "signup_url": f"{APP_BASE_URL}/login",
+                    "event_url": f"{APP_BASE_URL}/event/{event.id}"
+                }
+
+                body = await generate_template("invite.html", context=context)
+                email_req = EmailRequest(
+                    recipient_email=email,
+                    subject="You have been invited to Drop Dead Disco",
+                    body=body,
+                    transactional=False
+                )
+
+                await send_email(email_req)
+                invite_dl.clear()
+                with invite_dl:
+                    with ui.card():
+                        with section("Invitation sent!"):
+                            ui.markdown(
+                                f"You have invited **{email}** to join Drop Dead Disco. You can buy a ticket for them after they are approved.").classes('text-center')
+
+            if not new_attendee:
+                with ui.dialog(value=True) as invite_dl:
+                    with ui.card():
+                        with section("This person is not registered", subtitle="Send them an invite link"):
+                            invite_btn = primary_button(
+                                "Send invite").on_click(lambda: invite(email))
+
+            elif new_attendee.status not in (PersonStatus.verified, PersonStatus.member):
                 toast('Can\'t buy a ticket for this person', type='warning')
             else:
                 if await get_tickets_by_person_id(new_attendee.id, event.id):
@@ -226,45 +283,73 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
         with section("Choose your payment method:"):
             card_bindings = [b for b in person.card_bindings if b.is_active]
 
+            options = {}
+            payment_methods = {}
+
+            radio = ui.radio(options).classes(
+                'w-full space-y-2 dark:bg-[#24262b]').props('left-label')
+
+            idx = 1
             if card_bindings:
-                for card in card_bindings:
-                    binding_card(card).classes('cursor-pointer')
+                for i, card in enumerate(card_bindings):
+                    options[idx] = ""
+                    payment_methods[idx] = {
+                        'provider': PaymentProvider.BINDING,
+                        'data': card.id
+                    }
 
-            app.add_static_files(url_path='/static/images/',
-                                 local_directory='static/images')
+                    radio.update()
+                    with ui.teleport(f'#{radio.html_id} > div:nth-child({i+1}) .q-radio__label'):
+                        binding_card(card)
+                    idx += 1
 
-            with ui.dialog() as dl:
-                with ui.card():
-                    with section("Save card details?", subtitle="Save card details to pay easily in the future."):
-                        save_card_btn = positive_button("Save card and pay").on_click(lambda: buy_ticket(
-                            PaymentProvider.VPOS, save_card_btn, True))
-                        no_save_btn = primary_button("Continue without saving").on_click(lambda: buy_ticket(
-                            PaymentProvider.VPOS, no_save_btn, False))
+            options[idx] = ""
+            payment_methods[idx] = {
+                'provider': PaymentProvider.VPOS,
+                'data': None
+            }
 
-            with primary_button() as card_pay_button:
-                with ui.row(wrap=False).classes(add='gap-3 justify-center', remove='justify-between'):
+            with ui.teleport(f'#{radio.html_id} > div:nth-child({idx}) .q-radio__label'):
+                card_idx = idx
+                with payment_choice():
+                    ui.image("static/images/visa.svg").classes('w-10')
+                    ui.image("static/images/mastercard.svg").classes('w-10')
+                    ui.image("static/images/arca.svg").classes('w-10')
 
-                    if user_agent == "ios":
-                        ui.html(
-                            f'<img src="/static/images/applePay.svg" class="h-full w-fit object-contain" />', sanitize=False).classes(replace='w-fit')
-                    ui.html(
-                        f'<img src="/static/images/visa.svg" class="h-full w-auto object-contain" />', sanitize=False).classes(replace='w-fit')
-                    ui.html(
-                        f'<img src="/static/images/mastercard.svg" class="h-full w-auto object-contain" />', sanitize=False).classes(replace='w-fit')
-                    ui.html(
-                        f'<img src="/static/images/arca.svg" class="h-full w-auto object-contain" />', sanitize=False).classes(replace='w-fit')
+                save_tick = ui.checkbox("Save card details").classes('w-full justify-center').props('color=dark').bind_visibility_from(
+                    radio, 'value', value=card_idx)
 
-            card_pay_button.on_click(dl.open)
+            radio.update()
+            idx += 1
 
-            with primary_button('MYAMERIA', icon='img:static/images/myameria.png') as myameria_button:
-                myameria_button.on_click(
-                    lambda: buy_ticket(PaymentProvider.MYAMERIA, myameria_button))
+            if user_agent == "ios":
+                options[idx] = ""
+                payment_methods[idx] = {
+                    'provider': PaymentProvider.APPLEPAY,
+                    'data': None
+                }
+                with ui.teleport(f'#{radio.html_id} > div:nth-child({idx}) .q-radio__label'):
+                    with payment_choice():
+                        ui.image("static/images/applePay.svg").classes('w-10')
 
-                # if user_agent in ('ios', 'android'):
-                #     with primary_button() as idram_button:
-                #         ui.image("static/images/idram.png").classes('object-scale-down h-auto w-1/2')
-                #         idram_button.on_click(
-                #             lambda: buy_ticket(PaymentProvider.IDRAM, idram_button))
+                radio.update()
+                idx += 1
+
+            options[idx] = ""
+            payment_methods[idx] = {
+                'provider': PaymentProvider.MYAMERIA,
+                'data': None
+            }
+
+            with ui.teleport(f'#{radio.html_id} > div:nth-child({idx}) .q-radio__label'):
+                with payment_choice():
+                    ui.label('MYAMERIA')
+                    ui.image('static/images/myameria.png').classes('w-6')
+
+            radio.update()
+
+        with section():
+            pay_btn = primary_button('Pay Now').on_click(lambda: handle_payment())
 
     async def existing_page():
         main_col.classes(add='gap-5 p-5')

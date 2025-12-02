@@ -244,6 +244,50 @@ class VposInitPaymentRequest(BaseModel):
     CardHolderID: Optional[str | UUID] = None
 
 
+class VposMakeBindingPaymentRequest(BaseModel):
+    ClientID: str
+    Username: str
+    Password: str
+    Description: str
+    OrderID: int
+    Amount: float
+    BackURL: Optional[str] = None
+    Opaque: Optional[str | UUID] = None
+    CardHolderID: Optional[str | UUID] = None
+    PaymentType: int = 6
+
+
+class VposMakeBindingPaymentResponse(BaseModel):
+    PaymentID: str
+    Amount: float
+    ApprovedAmount: float
+    ApprovalCode: str
+    CardNumber: str
+    ClientName: str
+    Currency: str
+    DateTime: str
+    DepositedAmount: float
+    Description: str
+    MDOrderID: str
+    ExpDate: str
+    MerchantId: str
+    Opaque: str
+    OrderID: int
+    PaymentState: str
+    PaymentType: int
+    PrimaryRC: str
+    ResponseCode: str
+    ProcessingIP: str
+    rrn: str
+    TerminalId: str
+    TranDescription: Optional[str] = None
+    OrderStatus: int
+    RefundedAmount: float
+    CardHolderID: str
+    BindingID: str
+    ActionCode: str
+
+
 class VposBindingsRequest(BaseModel):
     ClientID: str
     Username: str

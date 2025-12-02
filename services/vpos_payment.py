@@ -4,13 +4,36 @@ from uuid import uuid4
 from consts import APP_BASE_URL
 from api_models import (VposInitPaymentRequest, VPOSPaymentDetailsResponse,
                         VPOSPaymentDetailsRequest, VposBindingsRequest,
-                        VposBindingsResponse, VposDeactivateBindingRequest)
+                        VposBindingsResponse, VposDeactivateBindingRequest,
+                        VposMakeBindingPaymentRequest, VposMakeBindingPaymentResponse)
 
 VPOS_BASE_URL = os.environ["vpos_base_url"]
 VPOS_CALLBACK_ENDPOINT = 'vpostransactionstate'
 vpos_client_id = os.environ['vpos_client_id']
 vpos_username = os.environ['vpos_username']
 vpos_password = os.environ['vpos_password']
+
+
+async def make_binding_payment_vpos(
+    binding_id,
+    order_id,
+    amount,
+    description=""
+):
+    request = VposMakeBindingPaymentRequest(
+        ClientID=vpos_client_id,
+        Username=vpos_username,
+        Password=vpos_password,
+        Amount=amount,
+        OrderID=order_id,
+        Description=description,
+        BackURL="",
+        CardHolderID=binding_id,
+        Opaque=binding_id
+    )
+
+    payment_response = await make_binding_payment(request)
+    return payment_response
 
 
 async def init_payment_vpos(
@@ -87,3 +110,11 @@ async def deactivate_binding(id):
         response = await client.post(req_url, json=request)
         response.raise_for_status()
         return response
+
+
+async def make_binding_payment(request: VposMakeBindingPaymentRequest):
+    async with httpx.AsyncClient() as client:
+        req_url = f"{VPOS_BASE_URL}/api/VPOS/MakeBindingPayment"
+        response = await client.post(req_url, json=request.model_dump(mode='json'))
+        response.raise_for_status()
+        return VposMakeBindingPaymentResponse(**response.json())
