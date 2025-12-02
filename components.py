@@ -24,6 +24,7 @@ ui.row.default_classes('w-full items-center justify-between')
 ui.item.default_classes('text-3xl text-center')
 ui.markdown.default_classes('text-base/relaxed w-full')
 ui.separator.default_classes('w-full')
+ui.radio.default_props(''':color="Quasar.Dark.isActive ? 'light' : 'dark'"''')
 
 
 def rectangular_email_input(label="Email address", required=True, **kwargs):
@@ -129,15 +130,22 @@ def ticket_price_col(event: EventResponse):
     return col
 
 
-def event_card(event: EventResponse, venue: VenueResponse, show_venue=False):
-    venue_name = venue.short_name if show_venue else "TBA"
-    with ui.card().classes('rounded-[20px] p-0 w-64 max-w-96 aspect-4/5 h-auto flex-auto').props('flat') as c:
-        with ui.image(event.image_url).classes('event-card-img'):
-            with ui.column().classes(add='bg-transparent h-full justify-between p-6 w-full'):
-                page_header(event.name)
-                with ui.row().classes('justify-between', remove='justify-center'):
-                    ui.label(event.starts_at.astimezone().strftime('%d.%m'))
-                    ui.label(venue_name)
+def event_card(event: EventResponse):
+    def share_event():
+        ui.run_javascript(f'''
+            navigator.share({{
+                title: '{event.name} | Drop Dead Disco',
+                url: '{APP_BASE_URL}/event/{event.id}',
+                text: '{event.description}'
+            }});
+        ''')
+
+    with ui.image(event.image_url).classes('aspect-4/5 rounded-3xl w-full max-w-96') as c:
+        with ui.column().classes(add='bg-transparent h-full justify-between p-6 w-full items-center'):
+            page_header(event.name)
+            with ui.row():
+                ui.label(event.starts_at.astimezone().strftime('%d %B')).classes('text-lg')
+                ui.button(icon='share').props('round color=dark').on_click(share_event)
     return c
 
 
@@ -241,10 +249,10 @@ def event_ticket(ticket: EventTicketResponse, event: EventResponse, user_agent):
 
 
 def image_carousel(urls):
-    with ui.carousel().classes('w-full h-96 aspect-square max-w-96 bg-transparent').props('infinite autoplay="2500" swipeable animated arrows'):
+    with ui.carousel().classes('w-full max-w-96 bg-transparent h-auto').props('infinite autoplay="2500" swipeable animated arrows'):
         for url in urls:
             with ui.carousel_slide().classes('justify-center p-0'):
-                ui.image(f'{url}=w1080-h1080').props('fit="cover"').classes('rounded-xl w-full h-full')
+                ui.image(f'{url}=w1080-h1080').props('fit="scale-down"').classes('w-full aspect-3/2')
 
 
 @contextmanager
@@ -376,7 +384,8 @@ def google_button(text, url='/'):
 
 def binding_card(card: CardBindingResponse):
     card_type = get_card_type(card.masked_card_number[:6])
-    c = ui.card().classes(f'w-full rounded-full h-[40px] py-2').props('bordered flat')
+    c = ui.card().classes(
+        f'w-full rounded-full h-[40px] py-2').props('flat')
     with c:
         with ui.row(wrap=False):
             with ui.row(wrap=False).classes(remove='justify-between'):
@@ -394,3 +403,12 @@ def binding_card(card: CardBindingResponse):
             ui.label(f"{exp_m}/{exp_y}")
 
     return c
+
+
+@contextmanager
+def payment_choice():
+    c = ui.card().classes(
+        'w-full rounded-full h-[40px] p-0 justify-center items-center').props('flat')
+    with c:
+        with ui.row(wrap=False).classes('justify-center items-center'):
+            yield
