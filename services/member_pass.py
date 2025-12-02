@@ -8,7 +8,6 @@ from enums import PersonStatus
 from api_models import MemberCardCreate
 from db_models import MemberPass, Person, Venue
 from routes.attendance import get_attendance
-from services.drive import drive_service
 from services.apple_pass import create_apple_member
 from services.google_pass import create_google_member_pass
 from services.apple_push_notifications import apple_notify_pass_devices
@@ -82,8 +81,6 @@ async def create_member_pass(db: AsyncSession, member_pass: MemberPass):
     member_pass.google_pass_url = google_url
     member_pass.apple_pass_url = apple_url
 
-    person.drive_folder_url = await drive_service.create_and_share_folder(person)
-
     db.add(person)
     db.add(member_pass)
     await db.commit()
@@ -152,7 +149,7 @@ async def send_member_pass(db: AsyncSession, member_pass: MemberPass, purchase=F
 
     context = {
         "name": person.first_name,
-        "pass_page": f"{APP_BASE_URL}/pass/{person.id}",
+        "homepage_url": APP_BASE_URL,
         "serial_no": str(member_pass.serial_number).zfill(3),
         "events_attended": str(await get_attendance(person.id)),
         "total_events": str(len(await get_all_events()))
