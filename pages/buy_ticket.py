@@ -66,7 +66,7 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                 Payment(
                     person_id=person.id,
                     event_id=event.id,
-                    amount=10,
+                    amount=amount,
                     provider=payment_provider
                 )
             )
