@@ -60,9 +60,6 @@ async def event_page(event_id, logged_in=Depends(logged_in)):
                     with section("Tickets"):
                         ticket_price_col(event)
 
-                    primary_button('Get your ticket').on_click(
-                        lambda: ui.navigate.to(f'/buy-ticket?event_id={event.id}'))
-
                 else:
                     if album_url:
                         with section():
@@ -81,6 +78,15 @@ async def event_page(event_id, logged_in=Depends(logged_in)):
                     #         allowfullscreen
                     #         src="https://www.google.com/maps/embed/v1/place?q={name_urlsafe}&key={maps_api_key}"
                     #     ''').classes('rounded-3xl w-full max-w-96 aspect-square h-auto')
+
+            ui.space().classes('h-[40px]')
+            if event_passed:
+                primary_button('This event has ended').props('disabled').classes(
+                    'fixed bottom-6 z-50')
+            else:
+                primary_button('Get your ticket').classes(
+                    'fixed bottom-6 z-50').on_click(
+                    lambda: ui.navigate.to(f'/buy-ticket?event_id={event.id}'))
 
         else:
             ui.image(event.image_url).classes(

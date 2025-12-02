@@ -7,7 +7,8 @@ from enums import PaymentProvider, PersonStatus
 from api_models import PersonResponseFull, PaymentConfirmRequest
 from helpers import get_user_agent
 from components import (rounded_email_input, secondary_button, primary_button, toast, event_datetime_col,
-                        page_header, section, positive_button, binding_card, outline_button, payment_choice)
+                        page_header, section, positive_button, binding_card, outline_button, payment_choice,
+                        section_title)
 
 from storage_cache import get_cache
 from uuid import UUID
@@ -33,15 +34,10 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
         return
 
     cache = get_cache()
-
-    person: PersonResponseFull = request.state.person
-
     event = await cache.fetch_event(event_id)
-
-    # await notify_payment_page(person)
-
+    person: PersonResponseFull = request.state.person
     user_agent = await get_user_agent(request)
-
+    # await notify_payment_page(person)
     attendees = [person]
 
     async def main_page():
@@ -114,70 +110,56 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                 timezone.utc) > event.early_bird_date else event.early_bird_price
 
             total_price = 0
-            totals['members'] = 0
-            totals['non_members'] = 0
 
             for p in attendees:
                 if p.status == PersonStatus.member:
                     total_price += event.member_ticket_price
-                    totals['members'] += 1
                 elif p.status == PersonStatus.verified:
                     total_price += ticket_price
-                    totals['non_members'] += 1
 
-            member_no_label.text = str(totals['members'])
-            non_member_no_label.text = str(totals['non_members'])
-            quantity_label.text = str(totals['members'] + totals['non_members'])
             total_price_label.text = f"{total_price:,d} AMD"
-
             return total_price
 
-        async def validate_and_add_attendee():
-            email = add_attendee_input.value.strip()
-
-            if not add_attendee_input.validate():
+        async def validate_and_add_attendee(email_input: ui.input):
+            if not email_input.validate():
                 return
-            save_btn.props(add='loading')
 
-            for i, att in enumerate(attendees):
+            email = email_input.value
+
+            for att in attendees:
                 if att.email == email:
-                    attendee_card = next((x for n, x in enumerate(
-                        attendee_list_container.descendants()) if n == i), None)
-                    attendee_card.classes(add='pulse-animation')
-                    save_btn.props(remove='loading')
-                    ui.timer(0.5, lambda: attendee_card.classes(
-                        remove='pulse-animation'), once=True)
+                    ui.notify('Person already added')
                     return
 
             new_attendee = await get_person_by_email(email)
 
-            async def invite(email):
-                invite_btn.props(add='loading')
-                context = {
-                    "inviter_name": person.full_name,
-                    "inviter_first_name": person.first_name,
-                    "event_name": event.name,
-                    "signup_url": f"{APP_BASE_URL}/login",
-                    "event_url": f"{APP_BASE_URL}/event/{event.id}"
-                }
-
-                body = await generate_template("invite.html", context=context)
-                email_req = EmailRequest(
-                    recipient_email=email,
-                    subject="You have been invited to Drop Dead Disco",
-                    body=body,
-                    transactional=False
-                )
-
-                await send_email(email_req)
-                invite_dl.clear()
-                with invite_dl:
-                    with ui.card():
-                        with section("Invitation sent!"):
-                            ui.markdown(
-                                f"You have invited **{email}** to join Drop Dead Disco. You can buy a ticket for them after they are approved.").classes('text-center')
-
             if not new_attendee:
+                async def invite(email):
+                    invite_btn.props(add='loading')
+                    context = {
+                        "inviter_name": person.full_name,
+                        "inviter_first_name": person.first_name,
+                        "event_name": event.name,
+                        "signup_url": f"{APP_BASE_URL}/login",
+                        "event_url": f"{APP_BASE_URL}/event/{event.id}"
+                    }
+
+                    body = await generate_template("invite.html", context=context)
+                    email_req = EmailRequest(
+                        recipient_email=email,
+                        subject="You have been invited to Drop Dead Disco",
+                        body=body,
+                        transactional=False
+                    )
+
+                    await send_email(email_req)
+                    invite_dl.clear()
+                    with invite_dl:
+                        with ui.card():
+                            with section("Invitation sent!"):
+                                ui.markdown(
+                                    f"You have invited **{email}** to join Drop Dead Disco. You can buy a ticket for them after they are approved.").classes('text-center')
+
                 with ui.dialog(value=True) as invite_dl:
                     with ui.card():
                         with section("This person is not registered", subtitle="Send them an invite link"):
@@ -188,108 +170,52 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                 toast('Can\'t buy a ticket for this person', type='warning')
             else:
                 if await get_tickets_by_person_id(new_attendee.id, event.id):
-                    with ui.dialog(value=True) as dl:
-                        with ui.card().classes('bg-indigo-50'):
-                            ui.label(f"The person you entered already has a ticket for {event.name}.").classes(
-                                'text-lg')
-                            primary_button("Back").on_click(dl.close)
-                            save_btn.props(remove='loading')
+                    ui.notify(f"This person already has a ticket for {event.name}.")
+                    return
+
                 else:
                     attendees.append(new_attendee)
-                    update_attendee_list()
-                    update_totals()
-
-                add_attendee_input.set_value('')
-
-            save_btn.props(remove='loading')
-
-        def show_add_attendee_input():
-            add_button.set_visibility(False)
-            add_attendee_input.run_method('focus')
-            add_attendee_row.set_visibility(True)
-
-        def hide_add_attendee_input():
-            add_button.set_visibility(True)
-            add_attendee_row.set_visibility(False)
-
-        def remove_attendee(attendee_to_remove):
-            attendees.remove(attendee_to_remove)
-            update_totals()
-            update_attendee_list()
-
-        def update_attendee_list():
-            attendee_list_container.clear()
-            with attendee_list_container:
-                for attendee in attendees:
-                    with ui.card().classes('w-full items-center justify-center rounded-full').props('flat bordered'):
-                        with ui.row(wrap=False).classes('gap-1') as email_row:
-                            ui.label(f'{attendee.email}').classes(
-                                'text-sm')
-                        if attendee == person:
-                            with email_row:
-                                ui.label("You").classes('ml-auto text-green-700')
-                        else:
-                            with email_row:
-                                ui.icon('close').classes('cursor-pointer ml-auto').on('click',
-                                                                                      lambda a=attendee: remove_attendee(a))
+                    attendee_list.refresh()
 
         page_header(event.name)
 
         with section():
             event_datetime_col(event)
 
-        with section("Attendees", subtitle="You can only add people who are verified. They'll see their ticket on their profile."):
+        @ui.refreshable
+        def attendee_list():
+            with section("Attendees", subtitle="You can only add people who are verified. They'll see their ticket on their profile."):
+                for attendee in attendees:
+                    with ui.card().classes('w-full items-center justify-center rounded-full').props('flat'):
+                        with ui.row(wrap=False).classes('gap-1') as email_row:
+                            ui.label(f'{attendee.email}').classes(
+                                'text-sm')
+                        if attendee == person:
+                            with email_row:
+                                ui.label("You").classes('ml-auto text-green-500')
+                        else:
+                            with email_row:
+                                ui.icon('close').classes('cursor-pointer ml-auto').on('click',
+                                                                                      lambda a=attendee: (attendees.remove(a), attendee_list.refresh()))
 
-            attendee_list_container = ui.column().classes('gap-2 w-full')
-            add_button = secondary_button(icon='person_add').on_click(show_add_attendee_input)
-
-            with ui.row(wrap=False).classes('justify-center') as add_attendee_row:
                 add_attendee_input = rounded_email_input()
-                add_attendee_input.on('blur', hide_add_attendee_input)
-                add_attendee_input.on('keydown.enter', lambda: validate_and_add_attendee())
-                append = add_attendee_input.add_slot('append')
-                with append:
+                with add_attendee_input.add_slot('append'):
                     save_btn = primary_button(icon="save").props(
-                        'round dense flat').on_click(validate_and_add_attendee)
+                        'round dense flat').on_click(lambda: validate_and_add_attendee(add_attendee_input))
+                add_attendee_input.on(
+                    'keydown.enter', lambda: save_btn.run_method('click'))
 
-        add_attendee_row.set_visibility(False)
-        update_attendee_list()
-
-        with section('Checkout'):
-            with ui.row(wrap=False).classes('justify-between'):
-                ui.label('Total quantity:').classes('text-lg')
-                quantity_label = ui.label().classes('font-bold text-lg')
-
-            with ui.row(wrap=False).classes('justify-between pl-2') as members_row:
-                ui.label('Members:')
-                member_no_label = ui.label().classes('font-bold')
-
-            with ui.row(wrap=False).classes('justify-between pl-2') as non_members_row:
-                ui.label('Non-members:')
-                non_member_no_label = ui.label().classes('font-bold')
-
-            totals = {'members': 0, 'non_members': 0}
-            members_row.bind_visibility_from(totals, 'members', backward=lambda a: bool(a))
-            non_members_row.bind_visibility_from(
-                totals, 'non_members', backward=lambda a: bool(a))
-
-        with section():
-            with ui.row(wrap=False).classes('justify-between pl-2') as non_members_row:
-                ui.label('Total:').classes('text-2xl')
-                total_price_label = ui.label().classes('font-bold text-3xl')
-
-        update_totals()
+        attendee_list()
 
         with section("Choose your payment method:"):
             card_bindings = [b for b in person.card_bindings if b.is_active]
-
             options = {}
             payment_methods = {}
+            idx = 1
 
             radio = ui.radio(options).classes(
                 'w-full space-y-2 dark:bg-[#24262b]').props('left-label')
 
-            idx = 1
             if card_bindings:
                 for i, card in enumerate(card_bindings):
                     options[idx] = ""
@@ -349,7 +275,16 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
             radio.update()
 
         with section():
-            pay_btn = primary_button('Pay Now').on_click(lambda: handle_payment())
+            with ui.row(wrap=False).classes(' pl-2'):
+                section_title('Total:')
+                total_price_label = section_title()
+
+        update_totals()
+
+        with section():
+            ui.space().classes('h-[40px]')
+            pay_btn = primary_button('Pay Now').classes(
+                'fixed bottom-6 z-50').on_click(lambda: handle_payment())
 
     async def existing_page():
         main_col.classes(add='gap-5 p-5')
