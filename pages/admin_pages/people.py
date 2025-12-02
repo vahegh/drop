@@ -3,10 +3,10 @@ from nicegui import ui
 from helpers import parse_inputs
 from consts import default_date_format, APP_BASE_URL
 from api_models import PersonUpdate, EventTicketResponse, PersonCreate, EventTicketCreate, PersonResponse
-from elements import (primary_button, destructive_button, accented_button,
-                      status_icon, page_header, section_title,
-                      generate_form_from_model, ticket_indicator,
-                      person_card, secondary_button)
+from components import (primary_button, destructive_button, accented_button,
+                        status_icon, page_header, section_title,
+                        generate_form_from_model, ticket_indicator,
+                        person_card, secondary_button)
 from enums import PersonStatus
 from services.person import create_person, update_person, delete_person
 from services.event_ticket import create_event_ticket, delete_event_ticket, get_all_tickets

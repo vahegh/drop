@@ -4,11 +4,11 @@ from datetime import timezone, datetime
 from frame import frame
 from storage_cache import get_cache
 from api_models import EventResponse, PersonResponseFull
-from elements import (event_card, page_header, section_title,
-                      status_icon, member_card, event_ticket,
-                      image_carousel, google_button, primary_button,
-                      section, past_tickets_col, accented_button,
-                      status_colors)
+from components import (event_card, page_header, section_title,
+                        status_icon, member_card, event_ticket,
+                        image_carousel, google_button, primary_button,
+                        section, past_tickets_col, accented_button,
+                        status_colors)
 from helpers import get_user_agent, get_album_urls
 from enums import PersonStatus
 from services.person import get_all_person_stats
@@ -116,7 +116,7 @@ We don't tell you the location beforehand, and every guest has to pass **verific
                     ui.label(person_counts[PersonStatus.verified]).classes(
                         f'text-3xl font-semibold text-[{status_colors.get(PersonStatus.verified)}]')
 
-            with section("Gallery"):
+            with section():
                 album_url = "https://photos.google.com/share/AF1QipNb8__JbXtuax9DJm21Ca666tb2o4voA1u09nj0Z04jhyNjfdzcQ-1KTMqI7N9zNA?key=MG11Qm01N1JRWGxZUElGazdvcGlzOEw4VWVobUdR"
                 image_carousel(await get_album_urls(album_url))
 
@@ -130,14 +130,13 @@ We don't tell you the location beforehand, and every guest has to pass **verific
             page_header("Next event")
             with ui.grid().classes('flex w-full items-center justify-center'):
                 for e in upcoming_events:
-                    event_card(e, venue, show_venue=False).on(
+                    event_card(e).on(
                         'click', lambda i, e=e: ui.navigate.to(f'/event/{e.id}'))
 
         page_header("Previous events")
         with ui.grid().classes('flex w-full justify-center p-2 gap-4'):
             for e in past_events:
-                venue = await cache.fetch_venue(e.venue_id)
-                event_card(e, venue, show_venue=True).on(
+                event_card(e).on(
                     'click', lambda i, e=e: ui.navigate.to(f'/event/{e.id}'))
 
         section_title("Find us on Spotify")

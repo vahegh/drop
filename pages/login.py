@@ -1,8 +1,8 @@
 from uuid import UUID
 from nicegui import ui, app
 from frame import frame
-from elements import (section, google_button, primary_button,
-                      section_title, rectangular_email_input, outline_button)
+from components import (section, google_button, primary_button,
+                        section_title, rectangular_email_input, outline_button)
 from fastapi import Request, HTTPException
 from consts import logo_gray_path, APP_BASE_URL, google_client_id
 from services.mailing import EmailRequest, send_email

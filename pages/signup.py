@@ -1,8 +1,8 @@
 import jwt
 from nicegui import ui
 from frame import frame
-from elements import (rectangular_email_input, instagram_input, accented_button,
-                      name_input, section, primary_button, section_title, instagram_dialog)
+from components import (rectangular_email_input, instagram_input, accented_button,
+                        name_input, section, primary_button, section_title, instagram_dialog)
 from api_models import PersonCreate
 
 from fastapi import HTTPException

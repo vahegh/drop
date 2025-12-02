@@ -2,9 +2,9 @@ import logging
 from nicegui import ui, app
 from nicegui.events import UploadEventArguments
 from consts import APP_BASE_URL, name_validation, email_validation, insta_validation
-from elements import (primary_button, secondary_button, status_icon,
-                      page_header, section, toast, instagram_dialog,
-                      destructive_button, positive_button, binding_card)
+from components import (primary_button, secondary_button, status_icon,
+                        page_header, section, toast, instagram_dialog,
+                        destructive_button, positive_button, binding_card)
 from services.person import update_person, get_person_by_email
 from services.cloud_storage import upload_avatar
 from services.payment import create_payment

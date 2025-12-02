@@ -6,10 +6,10 @@ from plotly.graph_objs import Layout
 from enums import PaymentStatus
 from api_models import EventUpdate, EventCreate
 from helpers import parse_inputs
-from elements import (primary_button, secondary_button, accented_button,
-                      page_header, section_title, event_datetime_col,
-                      ticket_price_col, generate_form_from_model, ticket_indicator,
-                      person_card)
+from components import (primary_button, secondary_button, accented_button,
+                        page_header, section_title, event_datetime_col,
+                        ticket_price_col, generate_form_from_model, ticket_indicator,
+                        person_card)
 from services.event import create_event, update_event, delete_event, get_all_events, get_event_info
 from services.venue import get_all_venues
 from services.payment import get_all_payments

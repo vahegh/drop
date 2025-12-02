@@ -15,7 +15,6 @@ from routes.auth import router as auth_router
 from routes.telegram_webhook import router as tg_webhook_router
 from routes.attendance import router as attendance_router
 from routes.apple_pass_updates import router as apple_pass_updates
-from services.drive import drive_service
 
 from dependencies import AuthMiddleware
 
@@ -33,9 +32,7 @@ async def lifespan(app: FastAPI):
     logging.getLogger("uvicorn.access").handlers.clear()
     logging.getLogger("uvicorn.access").propagate = False
     logging.getLogger("uvicorn.error").addFilter(NoWebSocketFilter())
-    await drive_service.__aenter__()
     yield
-    await drive_service.__aexit__(None, None, None)
 
 fastapi_app = FastAPI(lifespan=lifespan)
 
@@ -95,6 +92,16 @@ head_html = '''
     .q-btn--push.q-btn--actionable {
         transition: transform 0.05s cubic-bezier(0.25,0.8,0.5,1);
     }
+
+    .q-radio__label {
+        width: 100%;
+    }
+
+    .q-radio {
+        width: 100%;
+        align-items: start;
+    }
+        
 </style>
 '''
 
@@ -130,7 +137,7 @@ def main():
     ui.add_head_html(head_html, shared=True)
     ui.add_head_html(gtag_html, shared=True)
 
-    import elements
+    import components
 
     from pages import (about,
                        admin,

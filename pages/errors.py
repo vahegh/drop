@@ -1,7 +1,7 @@
 from nicegui import ui, Client, app
 from nicegui.page import page
 from fastapi import Request, Response
-from elements import secondary_button, page_header, section_title
+from components import secondary_button, page_header, section_title
 from frame import frame
 
 

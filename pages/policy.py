@@ -1,7 +1,7 @@
 from nicegui import ui
 from frame import frame
 from consts import support_email
-from elements import page_header
+from components import page_header
 
 
 @ui.page('/policy', title='Policy | Drop Dead Disco')

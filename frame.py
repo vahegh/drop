@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from nicegui import ui, app
 from consts import (DROP_INSTA_URL, DROP_SPOTIFY_URL,
                     support_email, DROP_YOUTUBE_URL, logo_gray_path)
-from elements import primary_button, destructive_button, section, login_button
+from components import primary_button, section_title, section, login_button
 from api_models import PersonResponseFull
 
 
@@ -18,7 +18,7 @@ async def frame(show_footer=False):
     show_signin = True
     login_redirect_url = request.url.path if request.url.path not in ['/signup', '/login'] else '/'
     await ui.context.client.connected()
-    menu = ui.right_drawer(value=False).props(':press-delay="0"')
+    menu = ui.right_drawer(value=False).props(':press-delay="0"').classes('items-center')
 
     with ui.context.client.content.classes('gap-4 px-0 py-18 pb-4 w-full items-center justify-center') as content:
         with ui.row().classes('fixed top-0 left-0 items-center bg-transparent h-14 px-4 py-2 backdrop-blur-xs flex justify-between z-10'):
@@ -35,25 +35,36 @@ async def frame(show_footer=False):
                         ui.icon('account_circle', size='32px', color="gray")
 
                     with menu:
-                        with section():
+                        with section() as sec:
+                            sec.classes('text-center')
+
                             if person.avatar_url:
                                 ui.image(person.avatar_url).classes(
                                     'w-[80px] rounded-full')
                             else:
                                 ui.icon('account_circle', size='80px')
 
-                        with section(person.full_name) as sec:
+                            section_title(person.full_name)
+
                             ui.link(f"@{person.instagram_handle}",
                                     f"https://instagram.com/{person.instagram_handle}").classes('no-underline')
-                            sec.classes('text-center')
 
-                        with section():
-                            profile_btn = primary_button('Your profile').on_click(
-                                lambda: (
-                                    ui.navigate.to('/profile'),
-                                    profile_btn.props(add='loading disable')
-                                ))
-                            ui.link('Log out', '/logout')
+                        profile_btn = primary_button('Your profile').on_click(
+                            lambda: (
+                                ui.navigate.to('/profile'),
+                                profile_btn.props(add='loading disable')
+                            ))
+
+                        options = {
+                            None: "Auto",
+                            True: "Dark",
+                            False: "Light"
+                        }
+                        ui.toggle(options).props(
+                            'toggle-color=accent').bind_value(ui.dark_mode(None))
+
+                        ui.link('Log out', '/logout')
+
                     btn.on_click(menu.toggle)
 
             else:

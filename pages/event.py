@@ -5,8 +5,8 @@ from fastapi import HTTPException
 from frame import frame
 from consts import album_urls
 from helpers import get_album_urls
-from elements import (event_datetime_col, event_card, image_carousel, primary_button,
-                      secondary_button, section_title, ticket_price_col, toast, section)
+from components import (event_datetime_col, event_card, image_carousel, primary_button,
+                        secondary_button, section_title, ticket_price_col, toast, section)
 import urllib
 from services.event import get_event_info
 from services.venue import get_venue_info
@@ -25,9 +25,8 @@ async def event_page(event_id, logged_in=Depends(logged_in)):
         raise HTTPException(404)
 
     ui.page_title(f'{event.name} | Drop Dead Disco')
-    venue = await get_venue_info(event.venue_id)
 
-    async with frame() as main_col:
+    async with frame():
         event_passed = event.ends_at < datetime.now(timezone.utc)
 
         album_url = album_urls.get(event_id)
@@ -43,17 +42,19 @@ async def event_page(event_id, logged_in=Depends(logged_in)):
             return
 
         if event.shared:
-            event_card(event, venue, show_venue=event_passed).classes(add='w-full')
-            ui.label(event.description).classes('text-center')
+            with section():
+                event_card(event).classes(add='w-full')
+
+            with section():
+                ui.label(event.description)
 
             with ui.grid().classes('flex w-full justify-center p-2 gap-4'):
-
                 if not event_passed:
                     with section():
                         event_datetime_col(event)
 
                     if album_url:
-                        with section("Vibe"):
+                        with section():
                             image_carousel(await get_album_urls(album_url))
 
                     with section("Tickets"):
@@ -64,7 +65,7 @@ async def event_page(event_id, logged_in=Depends(logged_in)):
 
                 else:
                     if album_url:
-                        with section("Photos"):
+                        with section():
                             image_carousel(await get_album_urls(album_url))
 
                     if event.video_url:

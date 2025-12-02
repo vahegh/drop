@@ -1,6 +1,6 @@
 from nicegui import ui
 from frame import frame
-from elements import page_header, section_title, section, google_button, primary_button
+from components import page_header, section_title, section, google_button, primary_button
 from dependencies import Depends, logged_in
 
 
