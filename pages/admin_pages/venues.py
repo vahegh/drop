@@ -33,10 +33,11 @@ async def venues_panel():
     with venues_container:
         venues = await get_all_venues()
         for v in venues:
-            with ui.card().classes('w-full').props(remove='flat').on('click', lambda v=v: ui.navigate.to(f'/gagodzya/venue/{v.id}')):
-                with ui.column().classes('items-center justify-center'):
-                    section_title(v.name)
-                    ui.label(v.address).classes('font-medium')
+            with ui.link(target=f'/gagodzya/venue/{v.id}').classes('w-full'):
+                with ui.card().classes('w-full'):
+                    with ui.column().classes('items-center justify-center'):
+                        section_title(v.name)
+                        ui.label(v.address).classes('font-medium')
 
 
 async def venue_details_panel(venue_id):

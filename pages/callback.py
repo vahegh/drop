@@ -50,8 +50,7 @@ async def callback_page(confirm_request):
                 status_label.text = "Unable to process payment."
                 desc_label.text = "Please check your email. If you haven't received a ticket from us, contact us via Instagram or email."
 
-            secondary_button("Go Home").on_click(
-                lambda: ui.navigate.to("/"))
+            secondary_button("Go Home", target='/')
             return main_col
 
         sp.set_visibility(False)
@@ -60,8 +59,7 @@ async def callback_page(confirm_request):
         if confirm_response.status == PaymentStatus.CONFIRMED:
             status_label.text = "Payment succesful!"
             desc_label.text = "Each person will receive their ticket via email."
-            secondary_button("Event Information").on_click(
-                lambda: ui.navigate.to(f"/event/{confirm_response.event_id}"))
+            secondary_button("Event Information", target=f"/event/{confirm_response.event_id}")
 
         else:
             status_icon.set_name('close')

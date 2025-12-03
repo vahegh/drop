@@ -76,8 +76,8 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
 
                             ui.markdown(
                                 "As a Member, you get access to **all photos of you** captured during Drop events, in full quality.").classes('text-center')
-                            primary_button("Open in Google Photos", icon=f"img:{svg_url}").on_click(
-                                lambda: ui.navigate.to(f"{person.drive_folder_url}?authuser={person.email}"))
+                            primary_button(
+                                "Open in Google Photos", icon=f"img:{svg_url}", target=f"{person.drive_folder_url}?authuser={person.email}")
                             ui.markdown(
                                 "*note: this album is only visible to you*").classes('text-center')
 
@@ -100,7 +100,7 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
 We host our events in unexpected locations - whatever has the most sparkle.  
 We don't tell you the location beforehand, and every guest has to pass **verification** before they're able to buy tickets and attend.
 ''').classes('text-center px-4 max-w-[800px]')
-        accented_button("Read more").on_click(lambda: ui.navigate.to('/about'))
+        accented_button("Read more", target='/about')
 
         with ui.grid().classes('flex w-full justify-center p-2 gap-4'):
             with section("Stats", subtitle="Our community numbers as of right now.") as s:
@@ -130,14 +130,14 @@ We don't tell you the location beforehand, and every guest has to pass **verific
             page_header("Next event")
             with ui.grid().classes('flex w-full items-center justify-center'):
                 for e in upcoming_events:
-                    event_card(e).on(
-                        'click', lambda i, e=e: ui.navigate.to(f'/event/{e.id}'))
+                    with ui.link(target=f"/event/{e.id}").classes('w-full max-w-96 justify-center items-center'):
+                        event_card(e)
 
         page_header("Previous events")
         with ui.grid().classes('flex w-full justify-center p-2 gap-4'):
             for e in past_events:
-                event_card(e).on(
-                    'click', lambda i, e=e: ui.navigate.to(f'/event/{e.id}'))
+                with ui.link(target=f"/event/{e.id}").classes('w-full max-w-96 justify-center items-center'):
+                    event_card(e)
 
         section_title("Find us on Spotify")
         ui.element('iframe').props('''

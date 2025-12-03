@@ -63,14 +63,14 @@ async def login_page(token: str = None, redirect_url='/', logged_in=Depends(logg
             async with frame():
                 with ui.card().classes('gap-4 w-full max-w-96'):
                     section_title("Magic link expired")
-                    primary_button("Try again").on_click(lambda: ui.navigate.to('/login'))
+                    primary_button("Try again", target='/login')
                 return
 
         except jwt.InvalidTokenError:
             async with frame():
                 with ui.card().classes('gap-4 w-full max-w-96'):
                     section_title("Invalid magic link")
-                    primary_button("Try again").on_click(lambda: ui.navigate.to('/login'))
+                    primary_button("Try again", target='/login')
                 return
 
         else:

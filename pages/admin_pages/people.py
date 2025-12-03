@@ -245,8 +245,7 @@ async def person_details_panel(person_id):
         with ui.row().classes('justify-center'):
             primary_button('Edit').on_click(create_dialog)
             destructive_button('Delete').on_click(delete)
-        secondary_button('Login as user').on('click',
-                                             lambda: ui.navigate.to(f"/login-as?person_id={person.id}"))
+        secondary_button('Login as user', target=f"/login-as?person_id={person.id}")
 
     all_tickets = await get_all_tickets()
     person_tickets = [t for t in all_tickets if t.person_id == person.id]
@@ -268,8 +267,8 @@ async def person_details_panel(person_id):
                         with ui.card():
                             with ui.row(wrap=False).classes('justify-between items-center w-full'):
                                 ticket_indicator(ticket, bool(ticket.attended_at))
-                                ui.label(event.name).classes('text-lg font-semibold').on('click',
-                                                                                         lambda: ui.navigate.to(f"{APP_BASE_URL}/pass/{person.id}", new_tab=True))
+                                ui.link(
+                                    event.name, target=f"{APP_BASE_URL}/pass/{person.id}").classes('text-lg font-semibold')
                                 ui.icon('delete').on('click', lambda: delete_ticket(ticket.id))
 
             primary_button('Create Ticket').on_click(lambda: create_ticket_dialog())

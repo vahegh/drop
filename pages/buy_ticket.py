@@ -297,7 +297,7 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
 
         with ui.column():
             ui.label("You can see it in your profile").classes('text-lg')
-            secondary_button('Go to your profile').on_click(lambda: ui.navigate.to('/'))
+            secondary_button('Go to your profile', target='/')
             primary_button('Buy another ticket').on_click(create_main_page)
 
     async def create_main_page():

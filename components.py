@@ -1,3 +1,4 @@
+import json
 import secrets
 import urllib.parse
 from uuid import UUID
@@ -58,38 +59,61 @@ def name_input(label, placeholder, **kwargs):
     return inp
 
 
-def primary_button(text='', **kwargs):
+def primary_button(text='', target=None, **kwargs):
     btn = ui.button(text, color=None, **kwargs).classes('h-[40px] w-full max-w-96')
     btn.props(add='''rounded no-caps unelevated :color="Quasar.Dark.isActive ? 'light' : 'dark'"''')
     btn.props(add=''':text-color="Quasar.Dark.isActive ? 'black' : 'light'"''')
+    if target:
+        btn.props(add=f'href={target}')
     return btn
 
 
-def login_button():
+def login_button(target=""):
     btn = ui.button("Log in", color=None)
     btn.props(add='''size="12px" unelevated rounded no-caps :color="Quasar.Dark.isActive ? 'light' : 'dark'"''')
     btn.props(add=''':text-color="Quasar.Dark.isActive ? 'dark' : 'light'"''')
+    btn.props(add=f'href={target}')
     return btn
 
 
-def outline_button(text='', **kwargs):
-    return ui.button(text, color=None, **kwargs).props(add='rounded no-caps outline').classes('h-[40px] w-full max-w-96')
+def outline_button(text='', target=None, **kwargs):
+    btn = ui.button(text, color=None, **
+                    kwargs).props(add='rounded no-caps outline').classes('h-[40px] w-full max-w-96')
+    if target:
+        btn.props(add=f'href={target}')
+    return btn
 
 
-def secondary_button(text='', **kwargs):
-    return ui.button(text, **kwargs).props(add='color="secondary" rounded no-caps unelevated').classes('h-[40px] w-full max-w-96')
+def secondary_button(text='', target=None, **kwargs):
+    btn = ui.button(
+        text, **kwargs).props(add='color="secondary" rounded no-caps unelevated').classes('h-[40px] w-full max-w-96')
+    if target:
+        btn.props(add=f'href={target}')
+    return btn
 
 
-def accented_button(text='', **kwargs):
-    return ui.button(text, **kwargs).props(add='color="accent" rounded no-caps outline').classes('h-[40px] w-full max-w-96')
+def accented_button(text='', target=None, **kwargs):
+    btn = ui.button(
+        text, **kwargs).props(add='color="accent" rounded no-caps outline').classes('h-[40px] w-full max-w-96')
+    if target:
+        btn.props(add=f'href={target}')
+    return btn
 
 
-def destructive_button(text='', **kwargs):
-    return ui.button(text, **kwargs).props(add='color="negative" rounded no-caps unelevated').classes('h-[40px] w-full max-w-96')
+def destructive_button(text='', target=None, **kwargs):
+    btn = ui.button(
+        text, **kwargs).props(add='color="negative" rounded no-caps unelevated').classes('h-[40px] w-full max-w-96')
+    if target:
+        btn.props(add=f'href={target}')
+    return btn
 
 
-def positive_button(text='', **kwargs):
-    return ui.button(text, **kwargs).props(add='color="positive" rounded no-caps unelevated').classes('h-[40px] w-full max-w-96')
+def positive_button(text='', target=None, **kwargs):
+    btn = ui.button(
+        text, **kwargs).props(add='color="positive" rounded no-caps unelevated').classes('h-[40px] w-full max-w-96')
+    if target:
+        btn.props(add=f'href={target}')
+    return btn
 
 
 def toast(text, timeout=1.5, **kwargs):
@@ -113,10 +137,11 @@ def event_datetime_col(event: EventResponse):
         start_dt_google = event.starts_at.strftime("%Y%m%dT%H%M%SZ")
         end_dt_google = event.ends_at.strftime("%Y%m%dT%H%M%SZ")
 
-        with primary_button("Add to Google Calendar", icon=f'img:{google_calendar_img_url}') as cal_btn:
-            cal_btn.on_click(lambda: ui.navigate.to(
-                f"{calendar_base_url}&dates={start_dt_google}/{end_dt_google}&details={urllib.parse.quote_plus(event.description)}&location=Yerevan&text={urllib.parse.quote_plus(event.name)}")
-            )
+        primary_button(
+            "Add to Calendar",
+            icon=f'img:{google_calendar_img_url}',
+            target=f"{calendar_base_url}&dates={start_dt_google}/{end_dt_google}&details={urllib.parse.quote_plus(event.description)}&location=Yerevan&text={urllib.parse.quote_plus(event.name)}"
+        )
     return col
 
 
@@ -130,13 +155,13 @@ def ticket_price_col(event: EventResponse):
     return col
 
 
-def event_card(event: EventResponse):
+def event_card(event: EventResponse, share=False):
     def share_event():
         ui.run_javascript(f'''
             navigator.share({{
-                title: '{event.name} | Drop Dead Disco',
-                url: '{APP_BASE_URL}/event/{event.id}',
-                text: '{event.description}'
+                title: {json.dumps(f'{event.name} | Drop Dead Disco')},
+                url: {json.dumps(f'{APP_BASE_URL}/event/{event.id}')},
+                text: {json.dumps(event.description)}
             }});
         ''')
 
@@ -145,7 +170,8 @@ def event_card(event: EventResponse):
             page_header(event.name)
             with ui.row():
                 ui.label(event.starts_at.astimezone().strftime('%d %B')).classes('text-lg')
-                ui.button(icon='share').props('round color=dark').on_click(share_event)
+                if share:
+                    ui.button(icon='share').props('round color=dark').on('click', share_event)
     return c
 
 
@@ -306,22 +332,22 @@ def generate_form_from_model(model: Type[BaseModel], default_values={}, venues: 
 
 def person_card(person: PersonResponse):
     status_color = status_colors.get(person.status)
-    card = ui.card().classes(
-        f'w-full border-l-6 border-s-[{status_color}] cursor-pointer', remove='rounded-3xl').props('bordered flat')
-    card.on('click', lambda p=person: ui.navigate.to(f'/gagodzya/person/{p.id}'))
+    with ui.link(target=f'/gagodzya/person/{person.id}').classes('w-full') as card:
+        ui.card().classes(
+            f'w-full border-l-6 border-s-[{status_color}] cursor-pointer', remove='rounded-3xl').props('bordered flat')
     return card
 
 
 def past_tickets_col(event_tickets, event_map):
     with section("Your past events"):
         if event_tickets:
-            with ui.grid().classes('flex justify-center gap-2 p-0'):
+            with ui.grid().classes('flex justify-center gap-2 p-0 w-full max-w-96'):
                 for ticket in event_tickets:
                     event = event_map.get(ticket.event_id)
                     if event:
-                        with ui.card().classes('w-full max-w-96').props('flat'):
+                        with ui.card().classes('w-full').props('flat'):
                             with ui.row(wrap=False).classes('justify-between items-center w-full'):
-                                ui.label(event.name).classes(
+                                ui.label(f"🎟️ {event.name}").classes(
                                     'text-lg font-medium')
                                 ticket_indicator(
                                     ticket, bool(ticket.attended_at))

@@ -162,10 +162,11 @@ async def events_panel():
         ui.label('No ticket data available yet').classes('text-gray-500 italic')
 
     for e in events:
-        with ui.card().classes('w-80').on('click', lambda e=e: ui.navigate.to(f'/gagodzya/event/{e.id}')).classes('w-32 cursor-pointer'):
-            with ui.column().classes('w-full justify-between'):
-                section_title(e.name)
-                ui.label(e.starts_at.astimezone().strftime("%d %B")).classes('font-medium')
+        with ui.link(target=f'/gagodzya/event/{e.id}').classes('w-80'):
+            with ui.card().classes('w-full cursor-pointer'):
+                with ui.column().classes('w-full justify-between'):
+                    section_title(e.name)
+                    ui.label(e.starts_at.astimezone().strftime("%d %B")).classes('font-medium')
 
 
 async def event_details_panel(event_id):

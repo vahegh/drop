@@ -74,4 +74,4 @@ async def about_page(logged_in=Depends(logged_in)):
             with section("Wanna join the fun?", subtitle="Sign up to get verified."):
                 google_button("Sign up with Google", ui.context.client.request.url.path)
         else:
-            primary_button("Go home").on_click(lambda: ui.navigate.to('/'))
+            primary_button("Go home", target='/')

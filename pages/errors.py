@@ -14,7 +14,7 @@ async def exception_handler_404(request: Request, exception: Exception) -> Respo
             ui.image('static/images/404.gif')
             with ui.column().classes('p-4'):
                 ui.label('Lost?').classes('text-lg')
-                secondary_button("Go home").on_click(lambda: ui.navigate.to('/'))
+                secondary_button("Go home", target='/')
         return ui.context.client.build_response(request, 404)
 
 
@@ -27,5 +27,5 @@ async def exception_handler_401(request: Request, exception: Exception) -> Respo
             ui.image('static/images/401.webp')
             with ui.column().classes('p-4'):
                 ui.label('You can always go back home').classes('text-lg')
-                secondary_button("Go home").on_click(lambda: ui.navigate.to('/'))
+                secondary_button("Go home", target='/')
         return ui.context.client.build_response(request, 401)

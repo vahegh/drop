@@ -22,7 +22,7 @@ async def frame(show_footer=False):
 
     with ui.context.client.content.classes('gap-4 px-0 py-18 pb-4 w-full items-center justify-center') as content:
         with ui.row().classes('fixed top-0 left-0 items-center bg-transparent h-14 px-4 py-2 backdrop-blur-xs flex justify-between z-10'):
-            with ui.button().props('flat').classes('py-0 px-2').on('click', lambda: ui.navigate.to('/')):
+            with ui.button().props('flat href="/"').classes('py-0 px-2'):
                 ui.image(logo_gray_path).classes(
                     'w-14 h-8')
             ui.space()
@@ -49,11 +49,7 @@ async def frame(show_footer=False):
                             ui.link(f"@{person.instagram_handle}",
                                     f"https://instagram.com/{person.instagram_handle}").classes('no-underline')
 
-                        profile_btn = primary_button('Your profile').on_click(
-                            lambda: (
-                                ui.navigate.to('/profile'),
-                                profile_btn.props(add='loading disable')
-                            ))
+                        primary_button('Your profile', target='/profile')
 
                         options = {
                             None: "Auto",
@@ -69,16 +65,15 @@ async def frame(show_footer=False):
 
             else:
                 if show_signin:
-                    login_button().on_click(lambda: ui.navigate.to(
-                        f'/login?redirect_url={login_redirect_url}'))
+                    login_button(target=f'/login?redirect_url={login_redirect_url}')
 
         yield content
 
     if show_footer:
         with ui.column().classes('border-t-1 border-gray-300 dark:border-gray-700 h-auto z-0 w-full gap-1'):
             with ui.column().classes('gap-1 w-full items-center'):
-                ui.image(logo_gray_path).props(
-                    'no-spinner').classes('w-20 h-10').on('click', lambda: ui.navigate.to('/'))
+                with ui.link(target='/'):
+                    ui.image(logo_gray_path).classes('w-20 h-10').props('no-spinner')
                 ui.link("Home", '/')
                 ui.link("About us", '/about')
                 ui.link("Policy", '/policy')
@@ -86,11 +81,11 @@ async def frame(show_footer=False):
             with ui.row().classes('justify-center gap-0'):
                 app.add_static_files(url_path='/static/images', local_directory='static/images')
                 ui.button(icon="img:/static/images/instagram.svg",
-                          color=None).props('flat').classes('dark:invert').on_click(lambda: ui.navigate.to(DROP_INSTA_URL))
+                          color=None).props(f'flat href={DROP_INSTA_URL}').classes('dark:invert')
                 ui.button(icon="img:/static/images/spotify.svg",
-                          color=None).props('flat').classes('dark:invert').on_click(lambda: ui.navigate.to(DROP_SPOTIFY_URL))
+                          color=None).props(f'flat href={DROP_SPOTIFY_URL}').classes('dark:invert')
                 ui.button(icon="img:/static/images/youtube.svg",
-                          color=None).props('flat').classes('dark:invert').on_click(lambda: ui.navigate.to(DROP_YOUTUBE_URL))
+                          color=None).props(f'flat href={DROP_YOUTUBE_URL}').classes('dark:invert')
 
             with ui.column().classes('gap-1 w-full items-center'):
                 ui.link(support_email,
