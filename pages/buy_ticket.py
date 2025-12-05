@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from nicegui import ui, app
+from collections import defaultdict
 from fastapi import Request
 from httpx import HTTPStatusError
 from frame import frame
@@ -17,6 +18,7 @@ from services.payment import init_payment, create_payment, confirm_payment
 from services.person import get_person_by_email
 from services.mailing import EmailRequest, send_email
 from services.templating import generate_template
+from services.drink import get_all_drinks
 from services.vpos_payment import make_binding_payment_vpos, VposMakeBindingPaymentRequest
 from dependencies import Depends, logged_in
 from db_models import PaymentIntent, Payment
@@ -37,10 +39,18 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
     event = await cache.fetch_event(event_id)
     person: PersonResponseFull = request.state.person
     user_agent = await get_user_agent(request)
-    # await notify_payment_page(person)
-    attendees = [person]
+
+    cart = {
+        'tickets': [],
+        'drinks': defaultdict(int)
+    }
 
     async def main_page():
+        nonlocal cart
+
+        pay_btn = None
+        total_price_label = None
+
         async def handle_payment():
             selected = radio.value
             if selected is None:
@@ -52,11 +62,11 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                 toast('0 AMD?')
                 return
 
-            pay_btn.props(add='loading')
+            if pay_btn:
+                pay_btn.props(add='loading')
 
             method = payment_methods[selected]
             payment_provider = method['provider']
-            ticket_holders = [a.id for a in attendees]
 
             new_payment = await create_payment(
                 Payment(
@@ -67,13 +77,14 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                 )
             )
 
-            for id in ticket_holders:
-                await create_payment_intent(
-                    PaymentIntent(
-                        order_id=new_payment.order_id,
-                        recipient_id=id
+            if cart['tickets']:
+                for attendee in cart['tickets']:
+                    await create_payment_intent(
+                        PaymentIntent(
+                            order_id=new_payment.order_id,
+                            recipient_id=attendee.id
+                        )
                     )
-                )
 
             if payment_provider == PaymentProvider.BINDING:
                 card_id = method['data']
@@ -103,7 +114,10 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                 else:
                     ui.navigate.to(url)
 
-            pay_btn.props(remove='loading')
+            if pay_btn:
+                pay_btn.props(remove='loading')
+
+        drinks = await get_all_drinks()
 
         def update_totals():
             ticket_price = event.general_admission_price if datetime.now(
@@ -111,13 +125,21 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
 
             total_price = 0
 
-            for p in attendees:
-                if p.status == PersonStatus.member:
+            for attendee in cart['tickets']:
+                if attendee.status == PersonStatus.member:
                     total_price += event.member_ticket_price
-                elif p.status == PersonStatus.verified:
+                elif attendee.status == PersonStatus.verified:
                     total_price += ticket_price
 
-            total_price_label.text = f"{total_price:,d} AMD"
+            for drink_id, quantity in cart['drinks'].items():
+                if quantity > 0:
+                    drink = next((d for d in drinks if d.id == drink_id), None)
+                    if drink:
+                        total_price += quantity * drink.price
+
+            cart_summary.refresh()
+            if total_price_label:
+                total_price_label.text = f"{total_price:,d} AMD"
             return total_price
 
         async def validate_and_add_attendee(email_input: ui.input):
@@ -126,8 +148,8 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
 
             email = email_input.value
 
-            for att in attendees:
-                if att.email == email:
+            for attendee in cart['tickets']:
+                if attendee.email == email:
                     ui.notify('Person already added')
                     return
 
@@ -174,8 +196,10 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                     return
 
                 else:
-                    attendees.append(new_attendee)
+                    # Add to cart tickets
+                    cart['tickets'].append(new_attendee)
                     attendee_list.refresh()
+                    update_totals()
 
         page_header(event.name)
 
@@ -183,20 +207,57 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
             event_datetime_col(event)
 
         @ui.refreshable
+        def cart_summary():
+            nonlocal pay_btn, total_price_label
+
+            with section("Checkout"):
+                with ui.card().classes(
+                        'w-full items-center border-1', remove='rounded-3xl').props('flat'):
+                    ticket_price = event.general_admission_price if datetime.now(
+                        timezone.utc) > event.early_bird_date else event.early_bird_price
+
+                    # Display tickets from cart
+                    for attendee in cart['tickets']:
+                        price = 0
+                        if attendee.status == PersonStatus.member:
+                            price = event.member_ticket_price
+                        elif attendee.status == PersonStatus.verified:
+                            price = ticket_price
+
+                        if price > 0:
+                            with ui.row().classes('justify-between w-full'):
+                                ui.label(f"Ticket | {attendee.first_name}").classes('text-sm')
+                                ui.label(f"{price:,d} AMD").classes('text-sm')
+
+                    # Display drinks from cart
+                    for drink_id, quantity in cart['drinks'].items():
+                        if quantity > 0:
+                            drink = next((d for d in drinks if d.id == drink_id), None)
+                            if drink:
+                                with ui.row().classes('justify-between w-full'):
+                                    ui.label(f"{drink.name} x{quantity}").classes('text-sm')
+                                    ui.label(
+                                        f"{drink.price * quantity:,d} AMD").classes('text-sm')
+
+                    ui.separator()
+                    with ui.row().classes('justify-between w-full px-4 pt-2'):
+                        section_title('Total:')
+                        total_price_label = section_title()
+
+        @ui.refreshable
         def attendee_list():
             with section("Attendees", subtitle="You can only add people who are verified. They'll see their ticket on their profile."):
-                for attendee in attendees:
+                for attendee in cart['tickets']:
                     with ui.card().classes('w-full items-center justify-center rounded-full').props('flat'):
                         with ui.row(wrap=False).classes('gap-1') as email_row:
-                            ui.label(f'{attendee.email}').classes(
-                                'text-sm')
-                        if attendee == person:
+                            ui.label(f'{attendee.email}').classes('text-sm')
+                        if attendee.id == person.id:
                             with email_row:
                                 ui.label("You").classes('ml-auto text-green-500')
                         else:
                             with email_row:
                                 ui.icon('close').classes('cursor-pointer ml-auto').on('click',
-                                                                                      lambda a=attendee: (attendees.remove(a), attendee_list.refresh()))
+                                                                                      lambda a=attendee: (cart['tickets'].remove(a), attendee_list.refresh(), update_totals()))
 
                 add_attendee_input = rounded_email_input()
                 with add_attendee_input.add_slot('append'):
@@ -205,9 +266,37 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                 add_attendee_input.on(
                     'keydown.enter', lambda: save_btn.run_method('click'))
 
+        cart['tickets'].append(person)
         attendee_list()
 
-        with section("Choose your payment method:"):
+        with section("Drinks", subtitle="Buy drink vouchers to skip the bar line."):
+            for drink in drinks:
+                with ui.card().classes(
+                        'w-full rounded-full h-[40px] py-0 justify-center items-center').props('flat'):
+                    with ui.row(wrap=False):
+                        ui.label(f"{drink.name} - {drink.price} AMD")
+
+                        def add(d, label):
+                            cart['drinks'][d.id] += 1
+                            label.text = str(cart['drinks'][d.id])
+                            update_totals()
+
+                        def remove(d, label):
+                            if cart['drinks'][d.id] > 0:
+                                cart['drinks'][d.id] -= 1
+                                label.text = str(cart['drinks'][d.id])
+                                update_totals()
+
+                        with ui.row(wrap=False).classes(remove='w-full'):
+                            remove_btn = ui.button(icon='remove').props(
+                                'round flat text-color=black size="8px"')
+                            count_label = section_title('0')
+                            remove_btn.on_click(lambda d=drink,
+                                                l=count_label: remove(d, l))
+                            ui.button(icon='add', on_click=lambda d=drink,
+                                      l=count_label: add(d, l)).props('round flat text-color=black size="8px"')
+
+        with section("Payment method"):
             card_bindings = [b for b in person.card_bindings if b.is_active]
             options = {}
             payment_methods = {}
@@ -274,11 +363,7 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
 
             radio.update()
 
-        with section():
-            with ui.row(wrap=False).classes(' pl-2'):
-                section_title('Total:')
-                total_price_label = section_title()
-
+        cart_summary()
         update_totals()
 
         with section():
@@ -301,7 +386,8 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
             primary_button('Buy another ticket').on_click(create_main_page)
 
     async def create_main_page():
-        attendees.clear()
+        cart['tickets'].clear()
+        cart['drinks'].clear()
         main_col.clear()
         with main_col:
             await main_page()
