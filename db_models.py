@@ -156,3 +156,30 @@ class CardBinding(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class Drink(Base):
+    __tablename__ = 'drink'
+
+    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True,
+                                     server_default=text("gen_random_uuid()"))
+    name: Mapped[str] = mapped_column(String)
+    price: Mapped[int] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class DrinkVoucher(Base):
+    __tablename__ = 'drink_voucher'
+
+    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True,
+                                     server_default=text("gen_random_uuid()"))
+    person_id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), ForeignKey('person.id'))
+    drink_id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), ForeignKey('drink.id'))
+    payment_order_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey('payment.order_id'), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    used_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
