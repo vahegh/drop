@@ -95,15 +95,15 @@ async def login_page(token: str = None, redirect_url='/', logged_in=Depends(logg
             if person:
                 jwt = await create_jwt(person.email)
 
-            context = {"name": person.first_name,
-                       "magic_link": f"{APP_BASE_URL}/login?token={jwt}"}
-            template = await generate_template("magic_link.html", context)
-            outgoing_email = EmailRequest(
-                recipient_email=email,
-                subject="Your Signin Link",
-                body=template
-            )
-            await send_email(outgoing_email)
+                context = {"name": person.first_name,
+                           "magic_link": f"{APP_BASE_URL}/login?token={jwt}"}
+                template = await generate_template("magic_link.html", context)
+                outgoing_email = EmailRequest(
+                    recipient_email=email,
+                    subject="Your Signin Link",
+                    body=template
+                )
+                await send_email(outgoing_email)
 
             with main_card:
                 main_card.clear()
