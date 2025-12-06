@@ -22,3 +22,8 @@ async def create_drink(db: AsyncSession, drink: Drink):
 async def get_all_drinks(db: AsyncSession):
     drinks = await db.scalars(select(Drink))
     return drinks.all()
+
+
+@with_db
+async def get_drink(db: AsyncSession, id: UUID):
+    return await db.get(Drink, id)

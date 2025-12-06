@@ -13,6 +13,8 @@ from helpers import get_user_agent, get_album_urls
 from enums import PersonStatus
 from services.person import get_all_person_stats
 from dependencies import Depends, logged_in
+from services.drink_voucher import get_drink_vouchers_by_person_id
+from services.drink import get_drink
 
 
 @ui.page('/', title='Home | Drop Dead Disco', response_timeout=50)
@@ -33,6 +35,7 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
 
         if logged_in:
             person: PersonResponseFull = request.state.person
+            vouchers = await get_drink_vouchers_by_person_id(person.id)
             with section():
                 with ui.row(wrap=False).classes('flex max-w-96 px-4'):
                     with ui.column().classes('gap-0 items-start'):
@@ -63,11 +66,31 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                             with section("Upcoming:"):
                                 event_ticket(next_event_ticket, next_event, user_agent)
 
+                    if vouchers:
+                        with section("Your drinks"):
+                            for id, qty in vouchers.items():
+                                drink = await get_drink(id)
+                                with ui.card().classes(
+                                        'w-full rounded-full h-[40px] py-0 justify-center items-center').props('flat'):
+                                    with ui.row(wrap=False):
+                                        ui.label(drink.name)
+                                        ui.label(qty)
+
                     past_tickets_col(event_tickets, event_map)
 
                 elif person.status == PersonStatus.member:
                     with section("Your Membership pass"):
                         member_card(person.member_pass, person.events_attended, user_agent)
+
+                    if vouchers:
+                        with section("Your drinks"):
+                            for id, qty in vouchers.items():
+                                drink = await get_drink(id)
+                                with ui.card().classes(
+                                        'w-full rounded-full h-[40px] py-0 justify-center items-center').props('flat'):
+                                    with ui.row(wrap=False):
+                                        ui.label(drink.name)
+                                        ui.label(qty)
 
                     if person.drive_folder_url:
                         with section("You at Drop"):
@@ -90,6 +113,7 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                                 We are working day and night to review all of your applications!  
 
                                 We'll get back to you ASAP. You'll receive an email about your status.""").classes('text-center')
+
         else:
             with section("Wanna join the fun?", subtitle="Sign up to get verified."):
                 google_button("Sign up with Google", request.url.path)

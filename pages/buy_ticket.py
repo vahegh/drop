@@ -280,32 +280,32 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
         cart['tickets'].append(person)
         attendee_list()
 
-        with section("Drinks", subtitle="Buy drink vouchers to skip the bar line."):
-            for drink in drinks:
-                with ui.card().classes(
-                        'w-full rounded-full h-[40px] py-0 justify-center items-center').props('flat'):
-                    with ui.row(wrap=False):
-                        ui.label(f"{drink.name} - {drink.price} AMD")
+        # with section("Drinks", subtitle="Buy drink vouchers to skip the bar line."):
+        #     for drink in drinks:
+        #         with ui.card().classes(
+        #                 'w-full rounded-full h-[40px] py-0 justify-center items-center').props('flat'):
+        #             with ui.row(wrap=False):
+        #                 ui.label(f"{drink.name} - {drink.price} AMD")
 
-                        def add(d, label):
-                            cart['drinks'][d.id] += 1
-                            label.text = str(cart['drinks'][d.id])
-                            update_totals()
+        #                 def add(d, label):
+        #                     cart['drinks'][d.id] += 1
+        #                     label.text = str(cart['drinks'][d.id])
+        #                     update_totals()
 
-                        def remove(d, label):
-                            if cart['drinks'][d.id] > 0:
-                                cart['drinks'][d.id] -= 1
-                                label.text = str(cart['drinks'][d.id])
-                                update_totals()
+        #                 def remove(d, label):
+        #                     if cart['drinks'][d.id] > 0:
+        #                         cart['drinks'][d.id] -= 1
+        #                         label.text = str(cart['drinks'][d.id])
+        #                         update_totals()
 
-                        with ui.row(wrap=False).classes(remove='w-full'):
-                            remove_btn = ui.button(icon='remove').props(
-                                'round flat text-color=black size="8px"')
-                            count_label = section_title('0')
-                            remove_btn.on_click(lambda d=drink,
-                                                l=count_label: remove(d, l))
-                            ui.button(icon='add', on_click=lambda d=drink,
-                                      l=count_label: add(d, l)).props('round flat text-color=black size="8px"')
+        #                 with ui.row(wrap=False).classes(remove='w-full'):
+        #                     remove_btn = ui.button(icon='remove').props(
+        #                         'round flat text-color=black size="8px"')
+        #                     count_label = section_title('0')
+        #                     remove_btn.on_click(lambda d=drink,
+        #                                         l=count_label: remove(d, l))
+        #                     ui.button(icon='add', on_click=lambda d=drink,
+        #                               l=count_label: add(d, l)).props('round flat text-color=black size="8px"')
 
         with section("Payment method"):
             card_bindings = [b for b in person.card_bindings if b.is_active]

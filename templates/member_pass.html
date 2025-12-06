@@ -5,28 +5,24 @@
 <h1 style="text-align: center">{{ name }},</h1>
 <p>
     {% if purchase %}
-    Your purchase for <b>{{ event_name }}</b> is confirmed.<br>
-    Thank you for your support.
+    Your purchase for <b>{{ event_name }}</b> is confirmed. Thank you for your support.
     {% else %}
-    You did it. <b>You're now a Drop Dead Disco Member.</b><br>
-    Welcome to the core community.
+    You did it. <b>You're now a Drop Dead Disco Member.</b> Welcome to the core community.
     {% endif %}
 </p>
 <p style="text-align: center">
-    Your stats: <br><br>
-
     <strong>Member ID</strong><br>
-    <span style="font-size: 32px; font-weight: bold;">{{ serial_no }}</span>
+    <span style="font-size: 24px; font-weight: bold;">{{ serial_no }}</span>
 </p>
 
 <p style="text-align: center">
     <strong>Events attended</strong><br>
-    <span style="font-size: 32px; font-weight: bold;">{{ events_attended }} out of {{ total_events }}</span>
+    <span style="font-size: 24px; font-weight: bold;">{{ events_attended }} out of {{ total_events }}</span>
 </p>
 <p>
     Sign in to Drop Dead Disco to see your Membership pass. <b>Add it to Google/Apple Wallet</b> to get updates.
 </p>
-{{ button("see your pass", homepage_url) }}
+{{ button("sign in", homepage_url) }}
 <p>
     You can use this pass to <b>attend all our events</b>. Event information will automatically update as it
     becomes available.
@@ -37,9 +33,6 @@
 </p>
 <p>
     Thank you for being a core part of our community.
-</p>
-<p style="text-align: center">
-    <b>Note: do not share your Membership pass with anyone.</b>
 </p>
 <p style="color: #aaa; text-align: center">
     See you on the dancefloor.

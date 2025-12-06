@@ -1,6 +1,7 @@
 import logging
 from uuid import UUID
 from sqlalchemy import select
+from sqlalchemy.sql import func
 from datetime import datetime, timezone
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -26,8 +27,12 @@ async def get_all_drink_vouchers(db: AsyncSession):
 
 @with_db
 async def get_drink_vouchers_by_person_id(db: AsyncSession, person_id: UUID):
-    result = await db.scalars(select(DrinkVoucher).where(DrinkVoucher.person_id == person_id))
-    return result.all()
+    result = await db.execute(
+        select(DrinkVoucher.drink_id, func.count(DrinkVoucher.id))
+        .where(DrinkVoucher.person_id == person_id)
+        .group_by(DrinkVoucher.drink_id)
+    )
+    return dict(result.all())
 
 
 @with_db
