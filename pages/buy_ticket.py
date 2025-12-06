@@ -21,8 +21,9 @@ from services.templating import generate_template
 from services.drink import get_all_drinks
 from services.vpos_payment import make_binding_payment_vpos, VposMakeBindingPaymentRequest
 from dependencies import Depends, logged_in
-from db_models import PaymentIntent, Payment
+from db_models import PaymentIntent, Payment, DrinkPaymentIntent
 from services.payment_intent import create_payment_intent
+from services.drink_payment_intent import create_drink_payment_intent
 from consts import APP_BASE_URL
 import logging
 
@@ -85,6 +86,16 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                             recipient_id=attendee.id
                         )
                     )
+
+            if cart['drinks']:
+                for drink_id, qty in cart['drinks'].items():
+                    for _ in range(qty):
+                        await create_drink_payment_intent(
+                            DrinkPaymentIntent(
+                                order_id=new_payment.order_id,
+                                drink_id=drink_id
+                            )
+                        )
 
             if payment_provider == PaymentProvider.BINDING:
                 card_id = method['data']

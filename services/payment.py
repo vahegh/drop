@@ -8,13 +8,16 @@ from services.ecrm import ecrm_print
 from services.member_pass import send_member_pass
 from consts import APP_BASE_URL_NO_PROTO, idram_merchant_id
 from enums import PersonStatus, PaymentStatus, PaymentProvider
-from services.telegram import notify_payment_init, notify_payment_confirmed
+from services.telegram import notify_payment_confirmed
 from services.myameria_payment import MYAMERIA_PAY_URL, myameria_merchant_id
-from db_models import Payment, Person, EventTicket, PaymentIntent, Event, MemberPass
+from db_models import Payment, Person, EventTicket, PaymentIntent, Event, MemberPass, DrinkVoucher
 from services.event_ticket import add_ticket_to_db, create_event_ticket, send_event_ticket
 from services.myameria_payment import create_payment_myameria, get_payment_details_myameria
 from services.vpos_payment import init_payment_vpos, get_payment_details_vpos, VPOS_BASE_URL
-from api_models import PaymentCreate, PaymentConfirmRequest, PaymentConfirmResponse, ECRMPrintRequest, ECRMItem
+from services.drink_payment_intent import get_drink_payments_intents, delete_drink_payment_intents
+from services.drink_voucher import create_drink_voucher
+from services.payment_intent import delete_payment_intents
+from api_models import PaymentConfirmRequest, PaymentConfirmResponse, ECRMPrintRequest, ECRMItem
 
 ecrm_crn = os.environ['ecrm_crn']
 
@@ -172,6 +175,46 @@ async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest, 
                 raise HTTPException(500, f"Unable to check MyAmeria payment status: {str(e)}")
 
     if payment.status == PaymentStatus.CONFIRMED:
+        person = await db.get(Person, payment.person_id)
+
+        recipient_names = []
+        items = []
+        member_qty = 0
+        non_member_qty = 0
+
+        if ticket_holders:
+            for h in ticket_holders:
+                recipient_names.append(f"{h.first_name} {h.last_name}")
+                if h.status == PersonStatus.member:
+                    member_qty += 1
+                else:
+                    non_member_qty += 1
+
+                event_ticket = EventTicket(
+                    person_id=h.id, event_id=payment.event_id, payment_order_id=payment.order_id)
+
+                if h.status == PersonStatus.member:
+                    await add_ticket_to_db(event_ticket)
+                    member_pass = await db.scalar(select(MemberPass).where(MemberPass.person_id == h.id))
+                    await send_member_pass(member_pass, purchase=True)
+
+                else:
+                    await create_event_ticket(event_ticket)
+                    await send_event_ticket(event_ticket)
+            await delete_payment_intents(payment.order_id)
+
+        drinks = await get_drink_payments_intents(payment.order_id)
+        if drinks:
+            for d in drinks:
+                await create_drink_voucher(
+                    DrinkVoucher(
+                        person_id=person.id,
+                        drink_id=d.drink_id,
+                        payment_order_id=payment.order_id
+                    )
+                )
+            await delete_drink_payment_intents(payment.order_id)
+
         if print_receipt:
             event = await db.get(Event, payment.event_id)
             if event.early_bird_date < datetime.now(timezone.utc):
@@ -186,22 +229,6 @@ async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest, 
             member_item_code = "0003"
             member_item_name = "Member Event Entry"
             adg_code = "79.90"
-
-            member_qty = 0
-            non_member_qty = 0
-
-            recipient_names = []
-
-            for h in ticket_holders:
-                recipient_names.append(h.name)
-                if h.status == PersonStatus.member:
-                    member_qty += 1
-                else:
-                    non_member_qty += 1
-            person = await db.get(Person, payment.person_id)
-            await notify_payment_confirmed(person, payment, recipient_names)
-
-            items = []
 
             if member_qty:
                 items.append(
@@ -230,17 +257,7 @@ async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest, 
             ecrm_response = await ecrm_print(print_req)
             print(ecrm_response)
 
-        for holder in ticket_holders:
-            event_ticket = EventTicket(
-                person_id=holder.id, event_id=payment.event_id, payment_order_id=payment.order_id)
-            if holder.status == PersonStatus.member:
-                await add_ticket_to_db(event_ticket)
-                member_pass = await db.scalar(select(MemberPass).where(MemberPass.person_id == holder.id))
-                await send_member_pass(member_pass, purchase=True)
-
-            else:
-                await create_event_ticket(event_ticket)
-                await send_event_ticket(event_ticket)
+    await notify_payment_confirmed(person, payment, recipient_names)
 
     db.add(payment)
     await db.commit()

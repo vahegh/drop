@@ -183,3 +183,14 @@ class DrinkVoucher(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     used_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class DrinkPaymentIntent(Base):
+    __tablename__ = 'drink_payment_intent'
+    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True,
+                                     server_default=text("gen_random_uuid()"))
+    order_id: Mapped[int] = mapped_column(BigInteger, ForeignKey('payment.order_id'))
+    drink_id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), ForeignKey('drink.id'))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True),
+                                                 server_default=func.now(),
+                                                 onupdate=func.now())

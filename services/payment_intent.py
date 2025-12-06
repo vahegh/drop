@@ -1,4 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import delete
 from decorators import with_db
 from db_models import PaymentIntent
 
@@ -9,3 +10,8 @@ async def create_payment_intent(db: AsyncSession, payment_intent: PaymentIntent)
     await db.commit()
     await db.refresh(payment_intent)
     return payment_intent
+
+
+@with_db
+async def delete_payment_intents(db: AsyncSession, order_id: int):
+    await db.execute(delete(PaymentIntent).where(PaymentIntent.order_id == order_id))
