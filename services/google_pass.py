@@ -54,8 +54,7 @@ async def create_ticket_class(
         venue_name: str,
         venue_address: str,
         starts_at: datetime,
-        ends_at: datetime,
-        notify: bool = False
+        ends_at: datetime
 ):
 
     body = {
@@ -104,9 +103,6 @@ async def create_ticket_class(
             ]
         },
     }
-
-    if notify:
-        body['notifyPreference'] = "NOTIFY_ON_UPDATE"
 
     try:
         async with httpx.AsyncClient() as client:

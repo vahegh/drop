@@ -42,10 +42,11 @@ async def create_event(db: AsyncSession, event: EventCreate):
     db.add(db_event)
     await db.commit()
     await db.refresh(db_event)
-    db_venue = await db.get(Venue, event.venue_id)
-    starts_at = event.starts_at.astimezone(TIMEZONE).strftime("%Y-%m-%dT%H:%M")
-    event_url = f"{APP_BASE_URL}/event/{event.id}"
-    await create_ticket_class(db_event.id, event.name, event_url, db_venue.name, db_venue.address, starts_at)
+    venue = await db.get(Venue, event.venue_id)
+    starts_at = event.starts_at.astimezone(TIMEZONE)
+    ends_at = event.ends_at.astimezone(TIMEZONE)
+    event_url = f"{APP_BASE_URL}/event/{db_event.id}"
+    await create_ticket_class(db_event.id, event.name, event_url, venue.name, venue.address, starts_at, ends_at)
     return db_event
 
 

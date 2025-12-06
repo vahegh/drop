@@ -108,7 +108,7 @@ async def login_page(token: str = None, redirect_url='/', logged_in=Depends(logg
             with main_card:
                 main_card.clear()
                 with section("Check your email!", subtitle="If verified, you'll receive a link to log in."):
-                    pass
+                    pass  # TODO add "open gmail" button
 
         async def toggle_login() -> None:
             google_login_section.set_visibility(not google_login_section.visible)
