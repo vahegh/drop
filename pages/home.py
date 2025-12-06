@@ -122,7 +122,8 @@ We don't tell you the location beforehand, and every guest has to pass **verific
 
         for e in events:
             if e.ends_at >= datetime.now(timezone.utc):
-                upcoming_events.append(e)
+                if e.shared:
+                    upcoming_events.append(e)
             else:
                 past_events.append(e)
 
