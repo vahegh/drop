@@ -150,7 +150,7 @@ def ticket_price_col(event: EventResponse):
         price_row("Members", event.member_ticket_price)
         if event.early_bird_date and event.early_bird_price:
             price_row(
-                f"Early Bird (until {event.early_bird_date.strftime("%d.%m")})", event.early_bird_price)
+                "Early Bird", event.early_bird_price)
         price_row("Standard", event.general_admission_price)
     return col
 
