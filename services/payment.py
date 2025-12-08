@@ -83,7 +83,7 @@ async def init_payment(db: AsyncSession, request: Payment, save_card=False):
 
 @with_db
 async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest, print_receipt=True):
-    payment = await db.scalar(select(Payment).where((Payment.order_id == transaction.order_id) & (Payment.provider == transaction.provider)))
+    payment = await db.scalar(select(Payment).where((Payment.order_id == transaction.order_id)))
     if not payment:
         raise HTTPException(404, "Payment not found")
 
