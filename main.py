@@ -18,6 +18,11 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+logging.getLogger('socketio').setLevel(logging.ERROR)
+logging.getLogger('engineio').setLevel(logging.ERROR)
+logging.getLogger('werkzeug').setLevel(logging.ERROR)
+
+
 env = os.getenv('env')
 storage_secret = os.getenv('storage_secret')
 
