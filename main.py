@@ -5,50 +5,24 @@ if os.path.exists('.env'):
     load_dotenv()
 
 
-import logging
 from helpers import is_cloud_run
-
-from contextlib import asynccontextmanager
-from fastapi import FastAPI
-
 from routes.auth import router as auth_router
 from routes.telegram_webhook import router as tg_webhook_router
 from routes.attendance import router as attendance_router
 from routes.apple_pass_updates import router as apple_pass_updates
-
+from routes.event import router as event_router
 from dependencies import AuthMiddleware
+import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-class NoWebSocketFilter(logging.Filter):
-    def filter(self, record):
-        return "WebSocket" not in record.getMessage()
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    logging.getLogger("uvicorn.access").handlers.clear()
-    logging.getLogger("uvicorn.access").propagate = False
-    logging.getLogger("uvicorn.error").addFilter(NoWebSocketFilter())
-    yield
-
-fastapi_app = FastAPI(lifespan=lifespan)
-
 env = os.getenv('env')
-
-
-fastapi_app.include_router(auth_router)
-fastapi_app.include_router(tg_webhook_router)
-fastapi_app.include_router(attendance_router)
-fastapi_app.include_router(apple_pass_updates)
-
 storage_secret = os.getenv('storage_secret')
 
 head_html = '''
 <meta name="description" content="Drop Dead Disco - it's like a cult, but you can keep your job.">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet">
@@ -138,30 +112,48 @@ def main():
     ui.add_head_html(gtag_html, shared=True)
 
     import components
+    from pages import (
+        about,
+        admin,
+        event,
+        errors,
+        home,
+        unsubscribe,
+        buy_ticket,
+        callback,
+        policy,
+        signup,
+        login,
+        logout,
+        profile,
+    )
 
-    from pages import (about,
-                       admin,
-                       event,
-                       home,
-                       unsubscribe,
-                       buy_ticket,
-                       callback,
-                       policy,
-                       signup,
-                       login,
-                       logout,
-                       profile,
-                       errors)
-
-    ui.run_with(
-        fastapi_app,
+    app.include_router(auth_router)
+    app.include_router(tg_webhook_router)
+    app.include_router(attendance_router)
+    app.include_router(apple_pass_updates)
+    app.include_router(event_router)
+    app.add_middleware(AuthMiddleware)
+    ui.run(
         favicon="static/images/favicon.png",
         title="Drop Dead Disco",
+        viewport="width=device-width, initial-scale=1, maximum-scale=1",
         reconnect_timeout=30.0,
         dark=None,
         storage_secret=storage_secret,
+        reload=False,
+        show=False,
+        fastapi_docs=True
     )
-    app.add_middleware(AuthMiddleware)
+
+    # ui.run_with(
+    #     fastapi_app,
+    #     favicon="static/images/favicon.png",
+    #     title="Drop Dead Disco",
+    #     reconnect_timeout=30.0,
+    #     dark=None,
+    #     storage_secret=storage_secret,
+    # )
 
 
 main()

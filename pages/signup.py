@@ -31,7 +31,7 @@ async def signup_page(token):
                     section_title("Sign up")
 
                     ui.markdown("""Welcome to Drop Dead Disco! 
-                                Before we proceed, we need your **Instagram profile** for review. This is a one-time process.""").classes('text-sm text-gray-700 text-center')
+                                Before we proceed, we need your **Instagram profile** for review. This is a one-time process.""").classes('text-sm text-gray-500 text-center')
 
                 with ui.column().classes('w-full gap-0'):
                     firstname_input = name_input(

@@ -6,7 +6,7 @@ from httpx import HTTPStatusError
 from frame import frame
 from enums import PaymentProvider, PersonStatus
 from api_models import PersonResponseFull, PaymentConfirmRequest
-from helpers import get_user_agent
+from helpers import get_user_agent, gtag
 from components import (rounded_email_input, secondary_button, primary_button, toast,
                         event_datetime_col, page_header, section, positive_button,
                         binding_card, outline_button, payment_choice, section_title)
@@ -169,6 +169,7 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
 
             if not new_attendee:
                 async def invite(email):
+
                     invite_btn.props(add='loading')
                     context = {
                         "inviter_name": person.full_name,
@@ -185,6 +186,7 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                         transactional=False
                     )
                     await send_email(email_req)
+                    gtag("invite_friend", {"person_id": str(person.id)})
 
                     invite_dl.clear()
                     with invite_dl:
@@ -207,7 +209,6 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                     ui.notify(f"This person already has a ticket for {event.name}.")
                     return
                 else:
-                    # Add to cart tickets
                     cart['tickets'].append(new_attendee)
                     attendee_list.refresh()
                     update_totals()

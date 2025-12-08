@@ -1,7 +1,7 @@
 from nicegui import ui, Client, app
 from nicegui.page import page
 from fastapi import Request, Response
-from components import secondary_button, page_header, section_title
+from components import primary_button, page_header, section
 from frame import frame
 
 
@@ -9,12 +9,12 @@ from frame import frame
 async def exception_handler_404(request: Request, exception: Exception) -> Response:
     with Client(page('', title='404 Not Found'), request=request) as client:
         async with frame():
-            with ui.column():
+            with section():
                 page_header('404 - Not Found')
-            ui.image('static/images/404.gif')
-            with ui.column().classes('p-4'):
-                ui.label('Lost?').classes('text-lg')
-                secondary_button("Go home", target='/')
+            with section():
+                ui.image('static/images/404.gif')
+            with section("Lost?"):
+                primary_button("Go home", target='/')
         return ui.context.client.build_response(request, 404)
 
 
@@ -22,10 +22,10 @@ async def exception_handler_404(request: Request, exception: Exception) -> Respo
 async def exception_handler_401(request: Request, exception: Exception) -> Response:
     with Client(page('', title='401 Unauthorized'), request=request) as client:
         async with frame():
-            with ui.column():
+            with section():
                 page_header('401 - Unauthorized')
-            ui.image('static/images/401.webp')
-            with ui.column().classes('p-4'):
-                ui.label('You can always go back home').classes('text-lg')
-                secondary_button("Go home", target='/')
+            with section():
+                ui.image('static/images/401.webp')
+            with section("You can always go back home"):
+                primary_button("Go home", target='/')
         return ui.context.client.build_response(request, 401)

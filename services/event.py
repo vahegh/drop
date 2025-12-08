@@ -12,6 +12,7 @@ from consts import GOOGLE_MEMBER_CLASS_ID, APP_BASE_URL, TIMEZONE
 from services.google_pass import create_ticket_class, update_member_class
 from services.mailing import EmailRequest, send_email
 from decorators import with_db
+from markdown2 import markdown
 
 logger = logging.getLogger(__name__)
 
@@ -145,6 +146,7 @@ async def event_announcement(db: AsyncSession, event_id: UUID):
     event = await db.get(Event, event_id)
     if not event:
         raise HTTPException(404, "No such event")
+
     all_verified_without_tickets = (
         await db.scalars(
             select(Person)
@@ -154,12 +156,14 @@ async def event_announcement(db: AsyncSession, event_id: UUID):
         )
     ).all()
 
+    # all_verified_without_tickets = (await db.scalars(select(Person).where(Person.id == "c8571072-a0b6-4e27-b646-0090070fa74c"))).all()
+
     starts_at_local = event.starts_at.astimezone()
     ends_at_local = event.ends_at.astimezone()
 
     context = {
         "event_name": event.name,
-        "description": event.description,
+        "description": markdown(event.description),
         "event_date": event.starts_at.astimezone().strftime("%A, %d %B"),
         "start_time": starts_at_local.strftime("%H:%M"),
         "end_time": ends_at_local.strftime("%H:%M"),
@@ -198,7 +202,7 @@ async def event_notify(db: AsyncSession, event_id: UUID):
 
     context = {
         "event_name": event.name,
-        "description": event.description,
+        "description": markdown(event.description),
         "event_date": event.starts_at.astimezone().strftime("%A, %d %B"),
         "start_time": starts_at_local.strftime("%H:%M"),
         "end_time": ends_at_local.strftime("%H:%M"),

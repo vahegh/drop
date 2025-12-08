@@ -62,8 +62,12 @@ async def add_attendance(db: AsyncSession, pass_id: UUID):
     return person
 
 
-# @router.get("/attendance")
+@router.get("/attendance")
 @with_db
 async def get_attendance(db: AsyncSession, person_id):
+    person = await db.get(Person, person_id)
+    if not person:
+        raise HTTPException(404, "No such person")
+
     attendance = await db.scalars(select(EventTicket).where((EventTicket.person_id == person_id) & (EventTicket.attended_at != None)))
     return len(attendance.all())

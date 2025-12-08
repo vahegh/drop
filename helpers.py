@@ -12,6 +12,12 @@ from pydantic import BaseModel
 from qrcode.image.styledpil import StyledPilImage
 from qrcode.image.styles.colormasks import SolidFillColorMask
 from qrcode.image.styles.moduledrawers.pil import RoundedModuleDrawer
+from nicegui import ui
+
+
+def gtag(event_name, params: dict = {}):
+    ui.run_javascript(f"""gtag('event', '{event_name}', {params});
+""")
 
 
 def is_cloud_run():

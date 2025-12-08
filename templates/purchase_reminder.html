@@ -11,9 +11,7 @@
     <b>The next Drop happens tomorrow - this Saturday:</b>
 </p>
 <h2 style="text-align: center">{{ event_name }}</h2>
-{% if description %}
-<p style="text-align: center; font-size: 14px;">{{ description }}</p>
-{% endif %}
+{{ description | default('', true) }}
 <p>
     Date: <b>{{ event_date }}</b><br>
     Time: <b>{{ start_time }}</b> - <b>{{ end_time }}</b><br>

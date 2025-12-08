@@ -1,10 +1,9 @@
 from fastapi import APIRouter
-from services.event import create_event
-from api_models import EventCreate
+from services.event import event_announcement
 
 router = APIRouter(tags=['Event'], prefix="/api/event")
 
 
-@router.post("/")
-async def create_event_api(event: EventCreate):
-    return await create_event(event)
+# @router.post("/announce")
+# async def create_event_api(event_id):
+#     return await event_announcement(event_id)

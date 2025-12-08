@@ -7,16 +7,16 @@
     We made you wait, but it was worth it. Here's the latest edition of <b>Drop Dead Disco</b>:
 </p>
 <h2 style="text-align: center">{{ event_name }}</h2>
-{% if description %}
-<p style="text-align: center; font-size: 14px;">{{ description }}</p>
-{% endif %}
+{{ description | default('', true) }}
 <p>
     Date: <b>{{ event_date }}</b><br>
     Time: <b>{{ start_time }}</b> - <b>{{ end_time }}</b><br>
+    Location: <i><b>Yerevan. </b>Exact location will appear on your ticket <b>one day in advance</b>.</i>
+</p>
+<p>
+    Member ticket price: <b>{{ member_price }}</b><br>
     Early bird ticket price: <b>{{ early_bird_price }}</b><br>
     Standard ticket price: <b>{{ standard_price }}</b><br>
-    Member ticket price: <b>{{ member_price }}</b><br>
-    Location: <i><b>Yerevan. </b>Exact location will appear on your ticket <b>one day before</b>.</i><br>
 </p>
 {{ button("info & tickets", event_url) }}
 {{ buy_for_others() }}
