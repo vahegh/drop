@@ -17,6 +17,12 @@ PHOTO_STORAGE_DIR = "photos"
 maps_api_key = os.getenv('maps_api_key')
 
 
+@ui.page('/drop-5')
+async def drop_5():
+    ui.navigate.to("/event/d350a039-2316-41b4-9dfd-5d9c1e715d71")
+    return
+
+
 @ui.page('/event/{event_id}', response_timeout=10)
 async def event_page(event_id, logged_in=Depends(logged_in)):
     event = await get_event_info(event_id)
