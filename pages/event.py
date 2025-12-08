@@ -35,7 +35,7 @@ async def event_page(event_id, logged_in=Depends(logged_in)):
             event_card(event, share=True)
 
         with section("About the event"):
-            ui.label(event.description)
+            ui.markdown(event.description)
 
         with ui.grid().classes('flex w-full justify-center p-2 gap-4'):
             if not event_passed:
