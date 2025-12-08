@@ -39,6 +39,11 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
     cache = get_cache()
     event = await cache.fetch_event(event_id)
     person: PersonResponseFull = request.state.person
+
+    if person.status not in (PersonStatus.member, PersonStatus.verified):
+        ui.navigate.to("/")
+        return
+
     await notify_payment_page_view(person)
     user_agent = await get_user_agent(request)
 
