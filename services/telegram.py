@@ -78,8 +78,7 @@ async def send_tg_message(message: TelegramMessage):
         async with httpx.AsyncClient() as client:
             resp = await client.post(url, json=payload)
             resp.raise_for_status()
-    except httpx.HTTPStatusError as e:
-        logger.error("Failed to send Telegram message")
-        logger.error(e.response.json())
+    except Exception as e:
+        logger.error(f"Failed to send Telegram message: {str(e)}")
     else:
         logger.info("Successfully sent Telegram message")

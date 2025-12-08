@@ -27,11 +27,19 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
     async with frame(show_footer=True) as f:
         cache = get_cache()
         events = await cache.fetch_all_events()
+        upcoming_events: list[EventResponse] = []
+        past_events: list[EventResponse] = []
+
+        for e in events:
+            if e.ends_at >= datetime.now(timezone.utc):
+                if e.shared:
+                    upcoming_events.append(e)
+            else:
+                past_events.append(e)
+
         f.classes('pt-0')
         ui.video(video_url, controls=False).classes(
             f'object-cover h-{video_h} w-full').props('autoplay loop muted playsinline')
-        upcoming_events: list[EventResponse] = []
-        past_events: list[EventResponse] = []
 
         if logged_in:
             person: PersonResponseFull = request.state.person
@@ -118,6 +126,12 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
             with section("Wanna join the fun?", subtitle="Sign up to get verified."):
                 google_button("Sign up with Google", request.url.path)
 
+        if upcoming_events:
+            page_header("Next event")
+            for e in upcoming_events:
+                with ui.link(target=f"/event/{e.id}").classes('w-full max-w-96 justify-center items-center'):
+                    event_card(e)
+
         page_header("The Community")
         ui.markdown('''
 **Drop Dead Disco** is a dance music community for those who want more from a night out.  
@@ -143,20 +157,6 @@ We don't tell you the location beforehand, and every guest has to pass **verific
             with section():
                 album_url = "https://photos.google.com/share/AF1QipNb8__JbXtuax9DJm21Ca666tb2o4voA1u09nj0Z04jhyNjfdzcQ-1KTMqI7N9zNA?key=MG11Qm01N1JRWGxZUElGazdvcGlzOEw4VWVobUdR"
                 image_carousel(await get_album_urls(album_url))
-
-        for e in events:
-            if e.ends_at >= datetime.now(timezone.utc):
-                if e.shared:
-                    upcoming_events.append(e)
-            else:
-                past_events.append(e)
-
-        if upcoming_events:
-            page_header("Next event")
-            with ui.grid().classes('flex w-full items-center justify-center'):
-                for e in upcoming_events:
-                    with ui.link(target=f"/event/{e.id}").classes('w-full max-w-96 justify-center items-center'):
-                        event_card(e)
 
         page_header("Previous events")
         with ui.grid().classes('flex w-full justify-center p-2 gap-4'):

@@ -23,6 +23,7 @@ from dependencies import Depends, logged_in
 from db_models import PaymentIntent, Payment, DrinkPaymentIntent
 from services.payment_intent import create_payment_intent
 from services.drink_payment_intent import create_drink_payment_intent
+from services.telegram import notify_payment_page_view
 from consts import APP_BASE_URL
 import logging
 
@@ -38,6 +39,7 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
     cache = get_cache()
     event = await cache.fetch_event(event_id)
     person: PersonResponseFull = request.state.person
+    await notify_payment_page_view(person)
     user_agent = await get_user_agent(request)
 
     cart = {
