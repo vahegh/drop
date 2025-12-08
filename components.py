@@ -258,10 +258,9 @@ def event_ticket(ticket: EventTicketResponse, event: EventResponse, user_agent):
 
     with ui.card().props('bordered flat').classes('w-full max-w-96 gap-4 px-0 justify-around border-black'):
         with ui.column().classes('gap-0 items-center'):
-            ui.link(event.name, f"/event/{event.id}")
-            subsection_title("Your ticket")
+            ui.link(event.name, f"/event/{event.id}").classes('text-lg')
         with ui.column().classes('w-full items-center px-6 py-0'):
-            ui.image(f'data:image/png;base64,{img}').classes('w-3/4 ')
+            ui.image(f'data:image/png;base64,{img}').classes('w-3/4')
             with ui.row(wrap=False):
                 with ui.column().classes(replace='gap-0'):
                     ui.label("Event date")

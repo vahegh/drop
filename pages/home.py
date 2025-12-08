@@ -71,7 +71,7 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                             (t for t in event_tickets if t.event_id == next_event.id), None)
 
                         if next_event_ticket:
-                            with section("Upcoming:"):
+                            with section("Your ticket"):
                                 event_ticket(next_event_ticket, next_event, user_agent)
 
                     if vouchers:
