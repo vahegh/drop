@@ -340,7 +340,7 @@ def person_card(person: PersonResponse):
 
 
 def past_tickets_col(event_tickets, event_map):
-    with section("Your past events"):
+    with section("Your events"):
         if event_tickets:
             with ui.grid().classes('flex justify-center gap-2 p-0 w-full max-w-96'):
                 for ticket in event_tickets:
