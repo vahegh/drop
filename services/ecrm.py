@@ -2,6 +2,9 @@ import os
 import httpx
 from tempfile import NamedTemporaryFile
 from api_models import ECRMPrintRequest, ECRMResponse, ECRMCheckConnRequest
+import logging
+
+logger = logging.getLogger(__name__)
 
 ecrm_base_url = os.environ['ecrm_base_url']
 ecrm_cert_pem = os.environ['ecrm_cert_pem']
@@ -19,7 +22,7 @@ async def ecrm_request(body, path):
             resp = await client.post(f"{ecrm_base_url}/{path}", json=body, headers={"language": "en"})
             parsed_resp = ECRMResponse(**resp.json())
             if parsed_resp.code != 0:
-                raise Exception(parsed_resp.__str__)
+                logger.error(f"Unable to make ECRM request: {parsed_resp.__dict__}")
             return parsed_resp
 
 

@@ -82,7 +82,7 @@ async def init_payment(db: AsyncSession, request: Payment, save_card=False):
 
 
 @with_db
-async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest, print_receipt=False):
+async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest, print_receipt=True):
     payment = await db.scalar(select(Payment).where((Payment.order_id == transaction.order_id) & (Payment.provider == transaction.provider)))
     if not payment:
         raise HTTPException(404, "Payment not found")
@@ -254,8 +254,7 @@ async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest, 
 
             print_req = ECRMPrintRequest(crn=ecrm_crn, cardAmount=payment.amount, items=items)
 
-            ecrm_response = await ecrm_print(print_req)
-            print(ecrm_response)
+            await ecrm_print(print_req)
 
     await notify_payment_confirmed(person, payment, recipient_names)
 
