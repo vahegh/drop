@@ -147,7 +147,7 @@ async def send_event_ticket(db: AsyncSession, event_ticket: EventTicket):
     event = await db.get(Event, event_ticket.event_id)
 
     starts_at_local = event.starts_at.astimezone(TIMEZONE)
-    ends_at_local = event.starts_at.astimezone(TIMEZONE)
+    ends_at_local = event.ends_at.astimezone(TIMEZONE)
     context = {
         "name": person.first_name,
         "event_name": event.name,
