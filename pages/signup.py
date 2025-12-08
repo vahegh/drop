@@ -19,7 +19,7 @@ async def signup_page(token):
         raise HTTPException(401, "Invalid token")
 
     async with frame() as main_col:
-        main_col.classes('px-2 pt-4')
+        main_col.classes('px-2 pt-4 min-h-[100svh]')
         main_card = ui.card().classes('gap-4 w-full max-w-96').props('flat')
 
         with main_card:
