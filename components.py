@@ -26,6 +26,7 @@ ui.item.default_classes('text-3xl text-center')
 ui.markdown.default_classes('text-base/relaxed w-full')
 ui.separator.default_classes('w-full')
 ui.radio.default_props(''':color="Quasar.Dark.isActive ? 'light' : 'dark'"''')
+ui.link.default_classes('no-underline')
 
 
 def rectangular_email_input(label="Email address", required=True, **kwargs):
