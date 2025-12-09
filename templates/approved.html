@@ -4,17 +4,17 @@
 {% block content %}
 <h1 style="text-align: center">Hey {{ name }},</h1>
 <p>
-    Your application to Drop Dead Disco has been <b>approved</b>.
+    Congratulations! Your application to Drop Dead Disco has been <b>approved</b>.
 </p>
 <p>
     You're now part of a curated community of music lovers.
     You can purchase tickets to all our upcoming events.
 </p>
-{% if event_name and event_link %}
+{% if event_name and event_url %}
 <p>
     <b>{{ event_name }}</b> is coming up. Get your ticket now by signing into your account:
 </p>
-{{ button("get your ticket", payment_link) }}
+{{ button("get your ticket", event_url) }}
 {{ buy_for_others() }}
 {% else %}
 <p>

@@ -104,9 +104,8 @@ async def update_person(db: AsyncSession, id: UUID, updated_person: PersonUpdate
             next_event = await get_next_event()
 
             if next_event:
-                token = await create_jwt(person.email, str(next_event.id), expires_in=1440)
                 context["event_name"] = next_event.name
-                context["payment_link"] = f"{APP_BASE_URL}/buy-ticket?token={token}"
+                context["event_url"] = f"{APP_BASE_URL}/buy-ticket?event_id={next_event.id}"
 
             template = await generate_template(APPROVED_TEMPLATE, context)
 
