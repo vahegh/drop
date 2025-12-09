@@ -8,7 +8,7 @@ from api_models import PersonResponseFull
 
 @asynccontextmanager
 async def frame(show_footer=False):
-    ui.colors(primary="#f3f4f6", dark="#2a2e38", secondary="#f6339a", light="#f3f4f6",
+    ui.colors(primary="#f3f4f6", dark="#2a2e38", secondary="#ff50ad", light="#f3f4f6",
               accent="#8e51ff", positive="#50bf5a", warning="#ff8904", negative="#fb2c36")
 
     request = ui.context.client.request

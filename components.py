@@ -20,7 +20,7 @@ from helpers import get_card_type, gtag
 ui.button.default_props(':ripple="{ center: true, early: true }" :press-delay="0"')
 ui.input.default_classes('w-full max-w-96 items-center justify-center')
 ui.input.default_props('color=accent no-error-icon outlined clearable clear-icon="clear"')
-ui.card.default_classes('rounded-3xl items-center')
+ui.card.default_classes('rounded-3xl items-center w-full')
 ui.row.default_classes('w-full items-center justify-between')
 ui.item.default_classes('text-3xl text-center')
 ui.markdown.default_classes('text-base/relaxed w-full')
@@ -28,8 +28,10 @@ ui.separator.default_classes('w-full')
 ui.radio.default_props(''':color="Quasar.Dark.isActive ? 'light' : 'dark'"''')
 ui.link.default_classes('no-underline')
 ui.image.default_props('no-spinner')
+ui.select.default_classes('w-full')
 
 
+# Inputs
 def rectangular_email_input(label="Email address", required=True, **kwargs):
     inp = ui.input(label=label, placeholder=email_placeholder, validation=email_validation, **kwargs).props(
         'type=email').on('blur', lambda: inp.validate()).without_auto_validation()
@@ -61,26 +63,11 @@ def name_input(label, placeholder, **kwargs):
     return inp
 
 
+# Buttons
 def primary_button(text='', target=None, **kwargs):
     btn = ui.button(text, color=None, **kwargs).classes('h-[40px] w-full max-w-96')
     btn.props(add='''rounded no-caps unelevated :color="Quasar.Dark.isActive ? 'light' : 'dark'"''')
     btn.props(add=''':text-color="Quasar.Dark.isActive ? 'black' : 'light'"''')
-    if target:
-        btn.props(add=f'href={target}')
-    return btn
-
-
-def login_button(target=""):
-    btn = ui.button("Log in", color=None)
-    btn.props(add='''size="12px" unelevated rounded no-caps :color="Quasar.Dark.isActive ? 'light' : 'dark'"''')
-    btn.props(add=''':text-color="Quasar.Dark.isActive ? 'dark' : 'light'"''')
-    btn.props(add=f'href={target}')
-    return btn
-
-
-def outline_button(text='', target=None, **kwargs):
-    btn = ui.button(text, color=None, **
-                    kwargs).props(add='rounded no-caps outline').classes('h-[40px] w-full max-w-96')
     if target:
         btn.props(add=f'href={target}')
     return btn
@@ -94,9 +81,9 @@ def secondary_button(text='', target=None, **kwargs):
     return btn
 
 
-def accented_button(text='', target=None, **kwargs):
+def positive_button(text='', target=None, **kwargs):
     btn = ui.button(
-        text, **kwargs).props(add='color="accent" rounded no-caps outline').classes('h-[40px] w-full max-w-96')
+        text, **kwargs).props(add='color="positive" rounded no-caps unelevated').classes('h-[40px] w-full max-w-96')
     if target:
         btn.props(add=f'href={target}')
     return btn
@@ -110,11 +97,27 @@ def destructive_button(text='', target=None, **kwargs):
     return btn
 
 
-def positive_button(text='', target=None, **kwargs):
+def accented_button(text='', target=None, **kwargs):
     btn = ui.button(
-        text, **kwargs).props(add='color="positive" rounded no-caps unelevated').classes('h-[40px] w-full max-w-96')
+        text, **kwargs).props(add='color="accent" rounded no-caps outline').classes('h-[40px] w-full max-w-96')
     if target:
         btn.props(add=f'href={target}')
+    return btn
+
+
+def outline_button(text='', target=None, **kwargs):
+    btn = ui.button(text, color=None, **
+                    kwargs).props(add='rounded no-caps outline').classes('h-[40px] w-full max-w-96')
+    if target:
+        btn.props(add=f'href={target}')
+    return btn
+
+
+def login_button(target):
+    btn = ui.button("Log in", color=None)
+    btn.props(add='''size="12px" unelevated rounded no-caps :color="Quasar.Dark.isActive ? 'light' : 'dark'"''')
+    btn.props(add=''':text-color="Quasar.Dark.isActive ? 'dark' : 'light'"''')
+    btn.props(add=f'href={target}')
     return btn
 
 
@@ -159,6 +162,7 @@ def ticket_price_col(event: EventResponse):
 
 def event_card(event: EventResponse, share=False):
     def share_event():
+        gtag("share_event")
         ui.run_javascript(f'''
             navigator.share({{
                 title: {json.dumps(f'{event.name} | Drop Dead Disco')},
@@ -211,7 +215,7 @@ status_colors = {
 
 
 def ticket_indicator(exists: bool, used: bool):
-    ticket_indicator = ui.element('div').classes('rounded size-4')
+    ticket_indicator = ui.element('div').classes('rounded size-2')
     if exists:
         bg_color = 'bg-positive' if used else 'bg-warning'
         ticket_indicator.classes(add=bg_color)
@@ -333,9 +337,9 @@ def generate_form_from_model(model: Type[BaseModel], default_values={}, venues: 
 
 def person_card(person: PersonResponse):
     status_color = status_colors.get(person.status)
-    with ui.link(target=f'/gagodzya/person/{person.id}').classes('w-full') as card:
-        ui.card().classes(
-            f'w-full border-l-6 border-s-[{status_color}] cursor-pointer', remove='rounded-3xl').props('bordered flat')
+    with ui.link(target=f'/gagodzya/person/{person.id}').classes('w-full'):
+        card = ui.card().classes(
+            f'w-full border-l-4 border-s-[{status_color}]', remove='rounded-3xl').props('bordered flat')
     return card
 
 
