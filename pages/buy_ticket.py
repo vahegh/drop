@@ -2,23 +2,22 @@ from datetime import datetime, timezone
 from nicegui import ui, app
 from collections import defaultdict
 from fastapi import Request
-from httpx import HTTPStatusError
 from frame import frame
 from enums import PaymentProvider, PersonStatus
-from api_models import PersonResponseFull, PaymentConfirmRequest
+from api_models import PersonResponseFull
 from helpers import get_user_agent, gtag
-from components import (rounded_email_input, secondary_button, primary_button, toast,
-                        event_datetime_col, page_header, section, positive_button,
-                        binding_card, outline_button, payment_choice, section_title)
+from components import (rounded_email_input, primary_button, toast,
+                        event_datetime_col, page_header, section,
+                        binding_card, accented_button, payment_choice, section_title)
 from storage_cache import get_cache
 from uuid import UUID
 from services.event_ticket import get_tickets_by_person_id
-from services.payment import init_payment, create_payment, confirm_payment
+from services.payment import init_payment, create_payment
 from services.person import get_person_by_email
 from services.mailing import EmailRequest, send_email
 from services.templating import generate_template
 from services.drink import get_all_drinks
-from services.vpos_payment import make_binding_payment_vpos, VposMakeBindingPaymentRequest
+from services.vpos_payment import make_binding_payment_vpos
 from dependencies import Depends, logged_in
 from db_models import PaymentIntent, Payment, DrinkPaymentIntent
 from services.payment_intent import create_payment_intent
@@ -44,11 +43,11 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
         ui.navigate.to("/")
         return
 
-    await notify_payment_page_view(person)
+    # await notify_payment_page_view(person)
     user_agent = await get_user_agent(request)
 
     cart = {
-        'tickets': [],
+        'tickets': [person],
         'drinks': defaultdict(int)
     }
 
@@ -119,12 +118,8 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
             else:
                 try:
                     url = await init_payment(new_payment, save_card=save_tick.value)
-                except HTTPStatusError as e:
-                    if e.response.status_code == 409:
-                        main_col.clear()
-                        with main_col:
-                            existing_page()
-                        return
+                except Exception as e:
+                    toast(f"Unable to start payment: {str(e)}")
                 else:
                     ui.navigate.to(url)
 
@@ -227,7 +222,6 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                     ticket_price = event.general_admission_price if datetime.now(
                         timezone.utc) > event.early_bird_date else event.early_bird_price
 
-                    # Display tickets from cart
                     for attendee in cart['tickets']:
                         price = 0
                         if attendee.status == PersonStatus.member:
@@ -240,7 +234,6 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                                 ui.label(f"Ticket | {attendee.first_name}").classes('text-sm')
                                 ui.label(f"{price:,d} AMD").classes('text-sm')
 
-                    # Display drinks from cart
                     for drink_id, quantity in cart['drinks'].items():
                         if quantity > 0:
                             drink = next((d for d in drinks if d.id == drink_id), None)
@@ -286,7 +279,6 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                 add_attendee_input.on(
                     'keydown.enter', lambda: save_btn.run_method('click'))
 
-        cart['tickets'].append(person)
         attendee_list()
 
         # with section("Drinks", subtitle="Buy drink vouchers to skip the bar line."):
@@ -385,28 +377,20 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
             pay_btn = primary_button('Pay Now').classes(
                 'fixed bottom-6 z-50').on_click(lambda: handle_payment())
 
-    async def existing_page():
-        main_col.classes(add='gap-5 p-5')
-        ui.row()
-        title = ui.label().classes('text-3xl font-bold p-4')
-
-        if person.status == PersonStatus.verified:
-            title.text = f"You already have a ticket for {event.name}"
-        elif person.status == PersonStatus.member:
-            title.text = f"You can use your Membership pass to access {event.name}"
-
-        with ui.column():
-            ui.label("You can see it in your profile").classes('text-lg')
-            secondary_button('Go to your profile', target='/')
-            primary_button('Buy another ticket').on_click(create_main_page)
-
-    async def create_main_page():
-        cart['tickets'].clear()
-        cart['drinks'].clear()
-        main_col.clear()
-        with main_col:
-            await main_page()
-
-    async with frame() as main_col:
+    async with frame():
         await ui.context.client.connected()
-        await main_page()
+        if await get_tickets_by_person_id(person.id, event_id):
+            with ui.dialog() as dl:
+                if person.status == PersonStatus.verified:
+                    text = f"You already have a ticket for {event.name}"
+                elif person.status == PersonStatus.member:
+                    text = f"You can use your Membership pass to access {event.name}"
+                with ui.card():
+                    with section(text, subtitle="It's on your homepage."):
+                        primary_button('Buy another ticket').on_click(dl.submit)
+                        accented_button('Go to homepage', target='/')
+
+            result = await dl
+            if result:
+                cart['tickets'] = []
+                await main_page()

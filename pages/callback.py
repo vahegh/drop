@@ -1,4 +1,4 @@
-from nicegui import ui, Client
+from nicegui import ui
 from fastapi import HTTPException, Request
 from typing import Literal, Optional
 from frame import frame
@@ -8,9 +8,8 @@ from api_models import PaymentConfirmRequest, VerifyPersonRequest, PersonRespons
 from uuid import UUID
 import logging
 from services.payment import confirm_payment
-from services.person import get_person
 from services.vpos_payment import get_payment_details_vpos, get_card_binding_vpos
-from services.card_binding import update_card_binding, create_card_binding
+from services.card_binding import create_card_binding
 from dependencies import Depends, logged_in
 
 

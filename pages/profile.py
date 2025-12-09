@@ -19,11 +19,10 @@ import random
 from services.mailing import EmailRequest, send_email
 from services.templating import generate_template
 from services.vpos_payment import init_payment_vpos, VPOS_BASE_URL, deactivate_binding
-from services.card_binding import create_card_binding, update_card_binding
+from services.card_binding import update_card_binding
 import io
 from PIL import Image
 import base64
-from uuid import uuid4
 
 logger = logging.getLogger(__name__)
 

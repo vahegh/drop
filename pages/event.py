@@ -6,10 +6,8 @@ from frame import frame
 from consts import album_urls
 from helpers import get_album_urls
 from components import (event_datetime_col, event_card, image_carousel, primary_button,
-                        secondary_button, section_title, ticket_price_col, toast, section)
-import urllib
+                        ticket_price_col, section)
 from services.event import get_event_info
-from services.venue import get_venue_info
 from dependencies import Depends, logged_in
 
 PHOTO_STORAGE_DIR = "photos"

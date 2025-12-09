@@ -1,4 +1,4 @@
-from nicegui import ui, app
+from nicegui import ui
 from fastapi import Request
 from datetime import timezone, datetime
 from frame import frame
@@ -124,8 +124,9 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
         if upcoming_events:
             page_header("Next event")
             for e in upcoming_events:
-                with ui.link(target=f"/event/{e.id}").classes('w-full max-w-96 justify-center items-center'):
-                    event_card(e)
+                with section():
+                    with ui.link(target=f"/event/{e.id}").classes('w-full max-w-96 justify-center items-center'):
+                        event_card(e)
 
         page_header("The Community")
         ui.markdown('''
