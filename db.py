@@ -9,12 +9,13 @@ db_conn_string = os.environ["db_conn_string"]
 engine = create_async_engine(
     db_conn_string,
     echo=False,
-    pool_size=20,
-    max_overflow=10,
+    pool_size=10,
+    max_overflow=5,
     pool_pre_ping=True,
     pool_recycle=3600,
-
+    pool_timeout=30,
 )
+
 SessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 
