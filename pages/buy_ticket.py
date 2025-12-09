@@ -394,3 +394,5 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
             if result:
                 cart['tickets'] = []
                 await main_page()
+        else:
+            await main_page()
