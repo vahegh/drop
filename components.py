@@ -14,7 +14,7 @@ from consts import (email_validation, insta_validation, name_validation,
                     email_non_required, email_placeholder, calendar_base_url,
                     google_calendar_img_url, instagram_placeholder, google_wallet_img_url,
                     apple_wallet_img_url, google_client_id, APP_BASE_URL)
-from helpers import get_card_type
+from helpers import get_card_type, gtag
 
 
 ui.button.default_props(':ripple="{ center: true, early: true }" :press-delay="0"')
@@ -27,6 +27,7 @@ ui.markdown.default_classes('text-base/relaxed w-full')
 ui.separator.default_classes('w-full')
 ui.radio.default_props(''':color="Quasar.Dark.isActive ? 'light' : 'dark'"''')
 ui.link.default_classes('no-underline')
+ui.image.default_props('no-spinner')
 
 
 def rectangular_email_input(label="Email address", required=True, **kwargs):
@@ -142,7 +143,7 @@ def event_datetime_col(event: EventResponse):
             "Add to Calendar",
             icon=f'img:{google_calendar_img_url}',
             target=f"{calendar_base_url}&dates={start_dt_google}/{end_dt_google}&details={urllib.parse.quote_plus(event.description)}&location=Yerevan&text={urllib.parse.quote_plus(event.name)}"
-        )
+        ).on_click(lambda: gtag("add_to_calendar"))
     return col
 
 
@@ -384,8 +385,6 @@ def instagram_dialog(instagram_info):
 
 
 def google_button(text, url='/'):
-    img_uri = app.add_static_file(local_file="static/images/google.svg")
-
     async def redirect_to_auth():
         csrf_token = secrets.token_urlsafe(32)
         app.storage.user['csrf_token'] = csrf_token
@@ -402,7 +401,7 @@ def google_button(text, url='/'):
         auth_uri = f"https://accounts.google.com/o/oauth2/v2/auth?{urllib.parse.urlencode(params)}"
         ui.navigate.to(auth_uri)
 
-    with primary_button(text, icon=f'img:{img_uri}') as btn:
+    with primary_button(text, icon="img:google.svg") as btn:
         btn.on_click(lambda: redirect_to_auth())
 
     return btn
@@ -416,9 +415,9 @@ def binding_card(card: CardBindingResponse):
         with ui.row(wrap=False):
             with ui.row(wrap=False).classes(remove='justify-between'):
                 if card_type == 'visa':
-                    ui.image('static/images/visa.svg').classes('w-6')
+                    ui.image('/static/images/visa.svg').classes('w-6')
                 elif card_type == 'mastercard':
-                    ui.image('static/images/mastercard.svg').classes('w-6')
+                    ui.image('/static/images/mastercard.svg').classes('w-6')
                 else:
                     ui.icon('card')
 

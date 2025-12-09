@@ -12,7 +12,7 @@ async def exception_handler_404(request: Request, exception: Exception) -> Respo
             with section():
                 page_header('404 - Not Found')
             with section():
-                ui.image('static/images/404.gif')
+                ui.image('/static/images/404.gif')
             with section("Lost?"):
                 primary_button("Go home", target='/')
         return ui.context.client.build_response(request, 404)
@@ -25,7 +25,7 @@ async def exception_handler_401(request: Request, exception: Exception) -> Respo
             with section():
                 page_header('401 - Unauthorized')
             with section():
-                ui.image('static/images/401.webp')
+                ui.image('/static/images/401.webp')
             with section("You can always go back home"):
                 primary_button("Go home", target='/')
         return ui.context.client.build_response(request, 401)

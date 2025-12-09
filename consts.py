@@ -39,7 +39,7 @@ google_client_id = '759529195467-d4dt9f5do5iu4g4itndu2v0q9vpmip93.apps.googleuse
 google_wallet_img_url = 'https://storage.googleapis.com/dropdeadisco/images/add_to_google.svg'
 apple_wallet_img_url = 'https://storage.googleapis.com/dropdeadisco/images/add_to_apple.svg'
 
-logo_gray_path = os.path.relpath("static/images/logo_gray.png")
+logo_gray_path = os.path.relpath("/static/images/logo_gray.png")
 
 
 album_urls = {

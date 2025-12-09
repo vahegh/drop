@@ -139,6 +139,8 @@ def main():
     app.include_router(apple_pass_updates)
     app.include_router(event_router)
     app.add_middleware(AuthMiddleware)
+    app.add_static_files(url_path='/static',
+                         local_directory=os.path.join(os.path.dirname(__file__), 'static'))
     ui.run(
         favicon="static/images/favicon.png",
         title="Drop Dead Disco",
@@ -150,15 +152,6 @@ def main():
         show=False,
         fastapi_docs=True
     )
-
-    # ui.run_with(
-    #     fastapi_app,
-    #     favicon="static/images/favicon.png",
-    #     title="Drop Dead Disco",
-    #     reconnect_timeout=30.0,
-    #     dark=None,
-    #     storage_secret=storage_secret,
-    # )
 
 
 main()

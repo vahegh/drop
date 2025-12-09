@@ -20,8 +20,6 @@ from services.drink import get_drink
 @ui.page('/', title='Home | Drop Dead Disco', response_timeout=50)
 async def home_page(request: Request, logged_in=Depends(logged_in)):
 
-    video_url = app.add_static_file(local_file="static/images/bg_video.mp4")
-
     video_h = "[20vh]" if logged_in else "[80vh]"
 
     async with frame(show_footer=True) as f:
@@ -38,7 +36,7 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                 past_events.append(e)
 
         f.classes('pt-0')
-        ui.video(video_url, controls=False).classes(
+        ui.video("/static/images/bg_video.mp4", controls=False).classes(
             f'object-cover h-{video_h} w-full').props('autoplay loop muted playsinline')
 
         if logged_in:
@@ -102,13 +100,10 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
 
                     if person.drive_folder_url:
                         with section("You at Drop"):
-                            svg_url = app.add_static_file(
-                                local_file='static/images/google_photos.svg')
-
                             ui.markdown(
                                 "As a Member, you get access to **all photos of you** captured during Drop events, in full quality.").classes('text-center')
                             primary_button(
-                                "Open in Google Photos", icon=f"img:{svg_url}", target=f"{person.drive_folder_url}?authuser={person.email}")
+                                "Open in Google Photos", icon=f"img:/static/images/google_photos.svg", target=f"{person.drive_folder_url}?authuser={person.email}")
                             ui.markdown(
                                 "*note: this album is only visible to you*").classes('text-center')
 
@@ -116,7 +111,7 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
 
                 elif person.status == PersonStatus.pending:
                     with section("Review in progress"):
-                        ui.image('static/images/review.gif')
+                        ui.image('/static/images/review.gif')
                         ui.markdown("""
                                 We are working day and night to review all of your applications!  
 

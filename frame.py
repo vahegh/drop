@@ -79,7 +79,6 @@ async def frame(show_footer=False):
                 ui.link("Policy", '/policy')
 
             with ui.row().classes('justify-center gap-0'):
-                app.add_static_files(url_path='/static/images', local_directory='static/images')
                 ui.button(icon="img:/static/images/instagram.svg",
                           color=None).props(f'flat href={DROP_INSTA_URL}').classes('dark:invert')
                 ui.button(icon="img:/static/images/spotify.svg",

@@ -2,22 +2,20 @@
 {% from 'components/button.html' import button %}
 {% from 'components/buy_for_others.html' import buy_for_others %}
 {% block content %}
-<h1 style="text-align: center">Hey {{ name }},</h1>
-<p>
-    We made you wait, but it was worth it. Here's the latest edition of <b>Drop Dead Disco</b>:
-</p>
 <h2 style="text-align: center">{{ event_name }}</h2>
 {{ description | default('', true) }}
 <p>
-    Date: <b>{{ event_date }}</b><br>
-    Time: <b>{{ start_time }}</b> - <b>{{ end_time }}</b><br>
-    Location: <i><b>Yerevan. </b>Exact location will appear on your ticket <b>one day in advance</b>.</i>
+    🗓️ Date: <b>{{ event_date }}</b><br>
+    🕜 Time: <b>{{ start_time }}</b> - <b>{{ end_time }}</b><br>
+    📍 Location: <b>Yerevan. </b>Exact location will appear on your ticket one day in advance.
 </p>
 <p>
-    Member ticket price: <b>{{ member_price }}</b><br>
-    Early bird ticket price: <b>{{ early_bird_price }}</b><br>
-    Standard ticket price: <b>{{ standard_price }}</b><br>
+    <b>Tickets:</b><br>
+    🪪 Members | <b>{{ member_price }}</b><br>
+    🦜 Early bird | <b>{{ early_bird_price }}</b> (first 40 tickets)<br>
+    🎟️ General admission | <b>{{ standard_price }}</b>
 </p>
+
 {{ button("info & tickets", event_url) }}
 {{ buy_for_others() }}
 <p style="color: #aaa; text-align: center">

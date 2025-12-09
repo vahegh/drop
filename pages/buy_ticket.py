@@ -344,9 +344,9 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
             with ui.teleport(f'#{radio.html_id} > div:nth-child({idx}) .q-radio__label'):
                 card_idx = idx
                 with payment_choice():
-                    ui.image("static/images/visa.svg").classes('w-10')
-                    ui.image("static/images/mastercard.svg").classes('w-10')
-                    ui.image("static/images/arca.svg").classes('w-10')
+                    ui.image("/static/images/visa.svg").classes('w-10')
+                    ui.image("/static/images/mastercard.svg").classes('w-10')
+                    ui.image("/static/images/arca.svg").classes('w-10')
 
                 save_tick = ui.checkbox("Save card details").classes('w-full justify-center').props('color=dark').bind_visibility_from(
                     radio, 'value', value=card_idx)
@@ -362,7 +362,7 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                 }
                 with ui.teleport(f'#{radio.html_id} > div:nth-child({idx}) .q-radio__label'):
                     with payment_choice():
-                        ui.image("static/images/applePay.svg").classes('w-10')
+                        ui.image("/static/images/applePay.svg").classes('w-10')
                 radio.update()
                 idx += 1
 
@@ -374,7 +374,7 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
             with ui.teleport(f'#{radio.html_id} > div:nth-child({idx}) .q-radio__label'):
                 with payment_choice():
                     ui.label('MYAMERIA')
-                    ui.image('static/images/myameria.png').classes('w-6')
+                    ui.image('/static/images/myameria.png').classes('w-6')
             radio.update()
 
         cart_summary()
