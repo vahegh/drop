@@ -25,7 +25,7 @@ async def get_all_events(db: AsyncSession):
 
 @with_db
 async def get_next_event(db: AsyncSession):
-    event = await db.scalar(select(Event).where(Event.starts_at >= date.today()).limit(1))
+    event = await db.scalar(select(Event).where(Event.ends_at >= date.today()).limit(1))
     return event
 
 
@@ -57,37 +57,37 @@ async def update_event(db: AsyncSession, id: UUID, request: EventUpdate):
     if not event:
         raise HTTPException(404, "Event not found")
 
-    # venue = await db.get(Venue, event.venue_id)
-    # event_start_local = event.starts_at.astimezone(TIMEZONE)
-    # event_end_local = event.ends_at.astimezone(TIMEZONE)
-    # event_url = f"{APP_BASE_URL}/event/{event.id}"
+    venue = await db.get(Venue, event.venue_id)
+    event_start_local = event.starts_at.astimezone(TIMEZONE)
+    event_end_local = event.ends_at.astimezone(TIMEZONE)
+    event_url = f"{APP_BASE_URL}/event/{event.id}"
 
     for field, value in request.model_dump(exclude_unset=True).items():
         setattr(event, field, value)
 
-    # await update_member_class(
-    #     GOOGLE_MEMBER_CLASS_ID,
-    #     event.name,
-    #     event_url,
-    #     venue.name,
-    #     venue.google_maps_link,
-    #     # venue.yandex_maps_link,
-    #     event_start_local.strftime("%B %d, %Y"),
-    #     event_start_local.strftime('%H:%M'),
-    #     event_end_local.strftime('%H:%M'),
-    #     notify=True
-    # )
+    await update_member_class(
+        class_id=GOOGLE_MEMBER_CLASS_ID,
+        event_name=event.name,
+        event_date=event_start_local.strftime("%B %d, %Y"),
+        starts_at=event_start_local.strftime('%H:%M'),
+        ends_at=event_end_local.strftime('%H:%M'),
+        event_url=event_url,
+        venue_name=venue.name,
+        google_maps_url=venue.google_maps_link,
+        yandex_maps_url=venue.yandex_maps_link,
+    )
 
-    # await create_ticket_class(
-    #     event.id,
-    #     event.name,
-    #     event_url,
-    #     venue.name,
-    #     venue.address,
-    #     event_start_local,
-    #     event_end_local,
-    #     notify=True
-    # )
+    await create_ticket_class(
+        class_id=event.id,
+        event_name=event.name,
+        starts_at=event_start_local,
+        ends_at=event_end_local,
+        event_url=event_url,
+        venue_name=venue.name,
+        venue_address=venue.address,
+        yandex_maps_url=venue.yandex_maps_link,
+    )
+
     await db.commit()
     await db.refresh(event)
     return event
@@ -156,8 +156,6 @@ async def event_announcement(db: AsyncSession, event_id: UUID):
         )
     ).all()
 
-    # all_verified_without_tickets = (await db.scalars(select(Person).where(Person.id == "c8571072-a0b6-4e27-b646-0090070fa74c"))).all()
-
     starts_at_local = event.starts_at.astimezone()
     ends_at_local = event.ends_at.astimezone()
 
@@ -171,15 +169,16 @@ async def event_announcement(db: AsyncSession, event_id: UUID):
         "early_bird_price": f"{event.early_bird_price} AMD",
         "standard_price": f"{event.general_admission_price} AMD",
         "member_price": f"{event.member_ticket_price} AMD",
-        "event_url": f"{APP_BASE_URL}/event/{event.id}"
+        "event_url": f"{APP_BASE_URL}/event/{event.id}",
     }
 
     for p in all_verified_without_tickets:
-        context['name'] = p.first_name
+        context["unsubscribe_url"] = f"{APP_BASE_URL}/unsubscribe?email={p.email}"
         outgoing_email = EmailRequest(
             recipient_email=p.email,
-            subject=f"{event.name} is live",
-            body=await generate_template("event_announcement.html", context)
+            subject=f"🪩 {event.starts_at.astimezone().strftime("%A %d %B")} | {event.name}",
+            body=await generate_template("event_announcement.html", context),
+            transactional=False
         )
         await send_email(outgoing_email)
 

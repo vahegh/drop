@@ -50,11 +50,12 @@ async def create_jwt(object_id):
 async def create_ticket_class(
         class_id: UUID,
         event_name: str,
+        starts_at: datetime,
+        ends_at: datetime,
         event_url: str,
         venue_name: str,
         venue_address: str,
-        starts_at: datetime,
-        ends_at: datetime
+        yandex_maps_url: str,
 ):
 
     body = {
@@ -99,7 +100,12 @@ async def create_ticket_class(
                 {
                     "description": "Event Info",
                     "uri": event_url
+                },
+                {
+                    "description": "Yandex Maps",
+                    "uri": yandex_maps_url,
                 }
+
             ]
         },
     }
@@ -121,7 +127,17 @@ async def create_ticket_class(
         return resp.json()
 
 
-async def update_member_class(class_id, event_name, event_url, venue_name, venue_maps_link, event_date, starts_at, ends_at, notify=False):
+async def update_member_class(
+        class_id,
+        event_name=None,
+        event_date=None,
+        starts_at=None,
+        ends_at=None,
+        event_url=None,
+        venue_name=None,
+        google_maps_url=None,
+        yandex_maps_url=None
+):
     google_member_pass_id = f"{GOOGLE_ISSUER_ID}.{class_id}"
     body = {
         "id": google_member_pass_id,
@@ -170,11 +186,6 @@ async def update_member_class(class_id, event_name, event_url, venue_name, venue
                 "body": ends_at,
                 "id": "next_event_end_time"
             },
-            {
-                "header": "Venue",
-                "body": venue_name,
-                "id": "next_event_venue"
-            }
         ]
 
         links_data["uris"].insert(
@@ -183,6 +194,29 @@ async def update_member_class(class_id, event_name, event_url, venue_name, venue
                 "description": "Tickets and Information",
                 "uri": event_url,
                 "id": "event_url_back"
+            }
+        )
+
+    if venue_name:
+        body['textModulesData'].append(
+            {
+                "header": "Venue",
+                "body": venue_name,
+                "id": "next_event_venue"
+            }
+        )
+        links_data["uris"].append(
+            {
+                "description": "Google Maps",
+                "uri": google_maps_url,
+                "id": "google_maps_url_back"
+            }
+        )
+        links_data["uris"].append(
+            {
+                "description": "Yandex Maps",
+                "uri": yandex_maps_url,
+                "id": "yandex_maps_url_back"
             }
         )
 
@@ -224,7 +258,7 @@ async def create_google_ticket(ticket_id, class_id, name):
     return f'https://pay.google.com/gp/v/save/{token}'
 
 
-async def create_google_member_pass(pass_id, class_id, member_no, name, attendance):
+async def create_google_member_pass(pass_id, class_id, member_id, name, attendance):
     google_member_pass_id = f"{GOOGLE_ISSUER_ID}.{pass_id}"
     body = {
         "id": google_member_pass_id,
@@ -236,11 +270,11 @@ async def create_google_member_pass(pass_id, class_id, member_no, name, attendan
             "alternateText": name
         },
         "accountName": name,
-        "accountId": member_no,
+        "accountId": member_id,
         "loyaltyPoints": {
             "label": "Member ID",
             "balance": {
-                "string": member_no,
+                "string": member_id,
             },
         },
         "secondaryLoyaltyPoints": {

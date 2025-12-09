@@ -9,10 +9,12 @@ from components import (primary_button, destructive_button, accented_button,
                         person_card, secondary_button)
 from enums import PersonStatus
 from services.person import create_person, update_person, delete_person
-from services.event_ticket import create_event_ticket, delete_event_ticket, get_all_tickets
+from services.event_ticket import create_event_ticket, delete_event_ticket, get_all_tickets, add_ticket_to_db
 from services.event import get_all_events
 from services.member_pass import get_all_member_passes
 from services.person import get_all_persons, get_person
+from db_models import EventTicket
+from services.event_ticket import send_event_ticket
 
 
 async def persons_panel():
@@ -170,22 +172,12 @@ async def person_details_panel(person_id):
 
     async def create_ticket_dialog():
         events = await get_all_events()
-        all_tickets = await get_all_tickets()
-        person_tickets = [t for t in all_tickets if t.person_id == person.id]
-        person_event_ids = {t.event_id for t in person_tickets}
-
-        available_events = [e for e in events if e.id not in person_event_ids]
-
-        if not available_events:
-            ui.notify("No available events to create tickets for", type='warning')
-            return
-
         with ui.dialog(value=True) as dialog:
             with ui.card().classes('w-full gap-4 p-4'):
                 section_title('Create Ticket')
 
                 event_options = {str(e.id): f"{e.name} - {e.starts_at.astimezone().strftime(default_date_format)}"
-                                 for e in sorted(available_events, key=lambda e: e.starts_at)}
+                                 for e in sorted(events, key=lambda e: e.starts_at)}
 
                 selected_event = ui.select(
                     options=event_options,
@@ -197,11 +189,18 @@ async def person_details_panel(person_id):
                         ui.notify("Please select an event", type='warning')
                         return
 
+                    event_ticket = EventTicket(
+                        person_id=person.id,
+                        event_id=selected_event.value,
+                    )
+
                     try:
-                        await create_event_ticket(EventTicketCreate(
-                            event_id=selected_event.value,
-                            person_id=person.id
-                        ))
+                        if person.status == PersonStatus.verified:
+                            await create_event_ticket(event_ticket)
+                            await send_event_ticket(event_ticket)
+
+                        elif person.status == PersonStatus.member:
+                            await add_ticket_to_db(event_ticket)
                         ui.notify("Ticket created successfully", type='positive')
                         dialog.close()
                         ui.navigate.reload()

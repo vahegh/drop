@@ -52,6 +52,14 @@ async def create_member_pass(db: AsyncSession, member_pass: MemberPass):
     next_event = await get_next_event()
     person = await db.get(Person, member_pass.person_id)
 
+    google_url = await create_google_member_pass(
+        pass_id=pass_id,
+        class_id=GOOGLE_MEMBER_CLASS_ID,
+        member_id=member_id,
+        name=f"{person.first_name} {person.last_name}",
+        attendance=attendance
+    )
+
     if next_event:
         venue = await db.get(Venue, next_event.venue_id)
         if not venue:
@@ -60,21 +68,27 @@ async def create_member_pass(db: AsyncSession, member_pass: MemberPass):
         ends_at = next_event.ends_at.astimezone(TIMEZONE).isoformat()
         event_url = f"{APP_BASE_URL}/event/{next_event.id}"
 
-        google_url = await create_google_member_pass(pass_id, GOOGLE_MEMBER_CLASS_ID, member_id, f"{person.first_name} {person.last_name}", attendance)
-        apple_url = await create_apple_member(pass_id,
-                                              f"{person.first_name} {person.last_name}",
-                                              member_id,
-                                              attendance,
-                                              next_event.name,
-                                              event_url,
-                                              venue.name,
-                                              venue.latitude,
-                                              venue.longitude,
-                                              starts_at,
-                                              ends_at)
+        apple_url = await create_apple_member(
+            pass_id=pass_id,
+            name=f"{person.first_name} {person.last_name}",
+            member_id=member_id,
+            attendance=attendance,
+            event_name=next_event.name,
+            event_url=event_url,
+            venue_name=venue.name,
+            lat=venue.latitude,
+            long=venue.longitude,
+            starts_at=starts_at,
+            ends_at=ends_at
+        )
+
     else:
-        google_url = await create_google_member_pass(pass_id, GOOGLE_MEMBER_CLASS_ID, member_id, f"{person.first_name} {person.last_name}", attendance)
-        apple_url = await create_apple_member(pass_id, f"{person.first_name} {person.last_name}", member_id, attendance)
+        apple_url = await create_apple_member(
+            pass_id=pass_id,
+            name=f"{person.first_name} {person.last_name}",
+            member_id=member_id,
+            attendance=attendance
+        )
 
     await apple_notify_pass_devices(pass_id)
 
