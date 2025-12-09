@@ -401,7 +401,7 @@ def google_button(text, url='/'):
         auth_uri = f"https://accounts.google.com/o/oauth2/v2/auth?{urllib.parse.urlencode(params)}"
         ui.navigate.to(auth_uri)
 
-    with primary_button(text, icon="img:google.svg") as btn:
+    with primary_button(text, icon="img:/static/images/google.svg") as btn:
         btn.on_click(lambda: redirect_to_auth())
 
     return btn
