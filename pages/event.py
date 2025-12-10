@@ -24,11 +24,11 @@ async def drop_5():
 @ui.page('/event/{event_id}', response_timeout=10)
 async def event_page(event_id, logged_in=Depends(logged_in)):
     event = await get_event_info(event_id)
-    if logged_in:
-        person: PersonResponseFull = ui.context.client.request.state.person
-
     if not event:
         raise HTTPException(404)
+
+    if logged_in:
+        person: PersonResponseFull = ui.context.client.request.state.person
 
     ui.page_title(f'{event.name} | Drop Dead Disco')
 

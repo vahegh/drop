@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from nicegui import ui, app
+from nicegui import ui
 from collections import defaultdict
 from fastapi import Request
 from frame import frame
@@ -22,7 +22,6 @@ from dependencies import Depends, logged_in
 from db_models import PaymentIntent, Payment, DrinkPaymentIntent
 from services.payment_intent import create_payment_intent
 from services.drink_payment_intent import create_drink_payment_intent
-from services.telegram import notify_payment_page_view
 from consts import APP_BASE_URL
 import logging
 
@@ -35,15 +34,14 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
         ui.navigate.to(f'/login?redirect_url=/buy-ticket?event_id={event_id}')
         return
 
-    cache = get_cache()
-    event = await cache.fetch_event(event_id)
     person: PersonResponseFull = request.state.person
 
     if person.status not in (PersonStatus.member, PersonStatus.verified):
         ui.navigate.to("/")
         return
 
-    # await notify_payment_page_view(person)
+    cache = get_cache()
+    event = await cache.fetch_event(event_id)
     user_agent = await get_user_agent(request)
 
     cart = {
@@ -380,7 +378,7 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
     async with frame():
         await ui.context.client.connected()
         if await get_tickets_by_person_id(person.id, event_id):
-            with ui.dialog() as dl:
+            with ui.dialog().props('persistent') as dl:
                 if person.status == PersonStatus.verified:
                     text = f"You already have a ticket for {event.name}"
                 elif person.status == PersonStatus.member:
