@@ -9,6 +9,8 @@ from components import (event_datetime_col, event_card, image_carousel, primary_
                         ticket_price_col, section)
 from services.event import get_event_info
 from dependencies import Depends, logged_in
+from api_models import PersonResponseFull
+from enums import PersonStatus
 
 PHOTO_STORAGE_DIR = "photos"
 
@@ -78,4 +80,12 @@ async def event_page(event_id, logged_in=Depends(logged_in)):
             if event_passed:
                 primary_button('This event has ended').props('disabled')
             else:
-                primary_button('Get your ticket', target=f'/buy-ticket?event_id={event.id}')
+                if logged_in:
+                    person: PersonResponseFull = ui.context.client.request.state.person
+                    if person.status in (PersonStatus.member, PersonStatus.verified):
+                        primary_button('Get your ticket', target=f'/buy-ticket?event_id={event.id}')
+                    else:
+                        primary_button('You can buy a ticket after verification')
+                else:
+                    primary_button('Sign up to get your ticket',
+                                   target=f'/buy-ticket?event_id={event.id}')

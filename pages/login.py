@@ -2,7 +2,8 @@ from uuid import UUID
 from nicegui import ui, app
 from frame import frame
 from components import (section, google_button, primary_button,
-                        section_title, rectangular_email_input, outline_button)
+                        section_title, rectangular_email_input, outline_button,
+                        outline_google_button)
 from fastapi import Request, HTTPException
 from consts import logo_gray_path, APP_BASE_URL, google_client_id
 from services.mailing import EmailRequest, send_email
@@ -21,7 +22,7 @@ from decorators import verify_admin_token
 client_secret = os.environ['google_client_secret']
 
 
-@ui.page("/google-login", response_timeout=20)
+@ui.page("/google-login", title="Google Log In | Drop Dead Disco", response_timeout=20)
 async def google_login(request: Request):
     state_parts = urllib.parse.parse_qs(request.query_params.get('state', ''))
     cstf_token = state_parts.get('csrf_token', [None])[0]
@@ -50,10 +51,10 @@ async def google_login(request: Request):
         return await login_user(token, redirect_url)
 
 
-@ui.page('/login')
+@ui.page("/login", title="Log In | Drop Dead Disco")
 async def login_page(token: str = None, redirect_url='/', logged_in=Depends(logged_in)):
     if logged_in:
-        ui.navigate.to('/profile')
+        ui.navigate.to(redirect_url)
         return
 
     if token:
@@ -62,14 +63,14 @@ async def login_page(token: str = None, redirect_url='/', logged_in=Depends(logg
         except jwt.ExpiredSignatureError:
             async with frame():
                 with ui.card().classes('gap-4 w-full max-w-96'):
-                    section_title("Magic link expired")
+                    section_title("Link expired")
                     primary_button("Try again", target='/login')
                 return
 
         except jwt.InvalidTokenError:
             async with frame():
                 with ui.card().classes('gap-4 w-full max-w-96'):
-                    section_title("Invalid magic link")
+                    section_title("Invalid link")
                     primary_button("Try again", target='/login')
                 return
 
@@ -81,6 +82,14 @@ async def login_page(token: str = None, redirect_url='/', logged_in=Depends(logg
 
     async with frame() as f:
         f.classes('px-2 pt-4 min-h-[100svh]')
+
+        with ui.dialog() as dl:
+            with ui.card() as c:
+                with section("Log in with email link", subtitle="If you are already registered, you can log in using a link sent to your email."):
+                    email_input = rectangular_email_input("Verified email")
+                    send_link_btn = primary_button("Send link")
+                    send_link_btn.on_click(
+                        lambda: magic_link(email_input))
 
         async def magic_link(email_input):
             if not email_input.validate():
@@ -104,32 +113,28 @@ async def login_page(token: str = None, redirect_url='/', logged_in=Depends(logg
                     body=template
                 )
                 await send_email(outgoing_email)
+            else:
+                print(f"Person not registered: {email}")
 
-            with main_card:
-                main_card.clear()
+            c.clear()
+            with c:
                 with section("Check your email!", subtitle="If verified, you'll receive a link to log in."):
-                    pass  # TODO add "open gmail" button
+                    b = primary_button(
+                        "Open Gmail", target="https://mail.google.com", icon="img:/static/images/gmail.svg").on_click(lambda: b.props(add='loading disable'))
+            send_link_btn.props(remove='loading disable')
 
-        async def toggle_login() -> None:
-            google_login_section.set_visibility(not google_login_section.visible)
-            link_login_section.set_visibility(not link_login_section.visible)
-
-        with ui.card().classes('gap-4 w-full max-w-96 justify-center').props('flat') as main_card:
+        with ui.card().classes('gap-4 w-full max-w-96 justify-center').props('flat'):
             ui.image(logo_gray_path).classes('w-24 h-8')
 
-            with section() as google_login_section:
-                section_title("Login or sign up")
-                google_button("Continue with Google", redirect_url)
-                ui.label("OR")
-                outline_button("Login using magic link").on_click(toggle_login)
+            with section("Sign Up", subtitle="You must be verified to purchase tickets."):
+                google_button("Sign up with Google", redirect_url)
 
-            with section('Login with magic link') as link_login_section:
-                link_login_section.set_visibility(False)
-                email_input = rectangular_email_input("Verified email")
-                send_link_btn = outline_button('Send link')
-                send_link_btn.on_click(
-                    lambda: magic_link(email_input))
-                google_button("Continue with Google", redirect_url)
+            ui.separator()
+
+            with section("Log In", subtitle="Log in using your verified Google account or a link sent to your email.") as google_login_section:
+                outline_google_button("Log in with Google", redirect_url)
+                ui.label("OR")
+                outline_button("Log in with email link").on_click(dl.open)
 
 
 @ui.page('/login-as')

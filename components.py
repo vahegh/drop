@@ -193,6 +193,10 @@ def subsection_title(text=''):
     return ui.label(text).classes('text-lg font-medium')
 
 
+def section_subtitle(text=''):
+    return ui.label(text).classes('text-center text-gray-500')
+
+
 def price_row(type, price):
     if price == 0:
         price_label = 'Free Entry'
@@ -293,7 +297,7 @@ def section(title: str = None, subtitle: str = None):
             with ui.column().classes('gap-0 items-center'):
                 section_title(title).classes('text-center')
                 if subtitle:
-                    ui.label(subtitle).classes('text-center text-gray-500')
+                    section_subtitle(subtitle)
         yield main
 
 
@@ -406,6 +410,29 @@ def google_button(text, url='/'):
         ui.navigate.to(auth_uri)
 
     with primary_button(text, icon="img:/static/images/google.svg") as btn:
+        btn.on_click(lambda: redirect_to_auth())
+
+    return btn
+
+
+def outline_google_button(text, url='/'):
+    async def redirect_to_auth():
+        csrf_token = secrets.token_urlsafe(32)
+        app.storage.user['csrf_token'] = csrf_token
+
+        params = {
+            "client_id": google_client_id,
+            "redirect_uri": f"{APP_BASE_URL}/google-login",
+            "response_type": "code",
+            "scope": "openid email profile",
+            "hl": "en",
+            "state": f"csrf_token={csrf_token}&url={url}"
+        }
+
+        auth_uri = f"https://accounts.google.com/o/oauth2/v2/auth?{urllib.parse.urlencode(params)}"
+        ui.navigate.to(auth_uri)
+
+    with outline_button(text, icon="img:/static/images/google.svg") as btn:
         btn.on_click(lambda: redirect_to_auth())
 
     return btn

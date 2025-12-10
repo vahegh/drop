@@ -15,7 +15,7 @@ async def frame(show_footer=False):
 
     person: PersonResponseFull = request.state.person
     logged_in = request.state.logged_in
-    show_signin = True
+    show_signin = request.url.path not in ['/signup', '/login']
     login_redirect_url = request.url.path if request.url.path not in ['/signup', '/login'] else '/'
     # await ui.context.client.connected()
     menu = ui.right_drawer(value=False).props(':press-delay="0"').classes('items-center')
