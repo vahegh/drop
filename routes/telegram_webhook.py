@@ -1,10 +1,9 @@
 import httpx
 from fastapi.responses import Response
 from fastapi import APIRouter, Request
-from db_models import Person
-from api_models import PersonUpdate, PersonResponse
+from api_models import PersonUpdate
 from services.person import update_person
-from services.telegram import telegram_api_url, notify_payment_page_view
+from services.telegram import telegram_api_url
 
 router = APIRouter(tags=['Telegram Webhook'], prefix="/api/telegram")
 
@@ -26,8 +25,8 @@ async def webhook(request: Request):
         db_person = await update_person(person_id, person)
 
         message = (
-            f"<b>First name:</b> {person.first_name}\n"
-            f"<b>Last name:</b> {person.last_name}\n"
+            f"<b>First name:</b> {db_person.first_name}\n"
+            f"<b>Last name:</b> {db_person.last_name}\n"
             f"<b>Email:</b> {db_person.email}\n"
             f"<b>Instagram:</b> <a href='https://www.instagram.com/{db_person.instagram_handle}'>@{db_person.instagram_handle}</a>\n"
             f"Status: {status}."
@@ -47,7 +46,3 @@ async def webhook(request: Request):
             })
 
     return Response(status_code=200)
-
-
-async def payment_page_view(person: PersonResponse):
-    await notify_payment_page_view(Person(**person.model_dump()))
