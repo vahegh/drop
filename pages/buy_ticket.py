@@ -7,7 +7,7 @@ from enums import PaymentProvider, PersonStatus
 from api_models import PersonResponseFull
 from helpers import get_user_agent, gtag
 from components import (rounded_email_input, primary_button, toast,
-                        event_datetime_col, page_header, section,
+                        event_datetime_card, page_header, section,
                         binding_card, outline_button, payment_choice, section_title)
 from storage_cache import get_cache
 from uuid import UUID
@@ -211,7 +211,7 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
         page_header(event.name)
 
         with section():
-            event_datetime_col(event)
+            event_datetime_card(event)
 
         @ui.refreshable
         def cart_summary():

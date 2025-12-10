@@ -33,9 +33,6 @@ head_html = '''
 <link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet">
 
 <style>
-    .nicegui-markdown p {
-        margin: 0;
-    }
 
     body.body--light {
         background-color: #f3f4f6;

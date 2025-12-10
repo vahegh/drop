@@ -1,3 +1,4 @@
+import os
 import json
 import secrets
 import urllib.parse
@@ -15,7 +16,16 @@ from consts import (email_validation, insta_validation, name_validation,
                     google_calendar_img_url, instagram_placeholder, google_wallet_img_url,
                     apple_wallet_img_url, google_client_id, APP_BASE_URL)
 from helpers import get_card_type, gtag
+from markdown2 import markdown
 
+maps_api_key = os.getenv('maps_api_key')
+
+status_colors = {
+    PersonStatus.verified: "#00c951",
+    PersonStatus.member: "#ad46ff",
+    PersonStatus.rejected: "#fb2c36",
+    PersonStatus.pending: "#ff6900"
+}
 
 ui.button.default_props(':ripple="{ center: true, early: true }" :press-delay="0"')
 ui.input.default_classes('w-full max-w-96 items-center justify-center')
@@ -125,39 +135,39 @@ def toast(text, timeout=1.5, **kwargs):
     ui.notification(text, timeout=timeout, **kwargs)
 
 
-def event_datetime_col(event: EventResponse):
-    col = ui.column().classes('items-center')
-    with col:
+def event_datetime_card(event: EventResponse):
+    with ui.card().classes('p-2').props('flat') as card:
         start_time_local = event.starts_at.astimezone()
         end_time_local = event.ends_at.astimezone()
-        ui.label(start_time_local.strftime("%A %d %B")).classes('text-2xl')
+        with section(start_time_local.strftime("%A, %d %B")):
+            with ui.row().classes('flex px-8'):
+                ui.label(start_time_local.strftime("%I %p").lstrip('0')
+                         )
+                ui.separator().props('color=secondary').classes('flex-1')
+                ui.label(end_time_local.strftime("%I %p").lstrip('0')
+                         )
 
-        with ui.row().classes('flex px-8'):
-            ui.label(start_time_local.strftime("%I %p").lstrip('0')
-                     )
-            ui.separator().props('color=secondary').classes('flex-1')
-            ui.label(end_time_local.strftime("%I %p").lstrip('0')
-                     )
+            start_dt_google = event.starts_at.strftime("%Y%m%dT%H%M%SZ")
+            end_dt_google = event.ends_at.strftime("%Y%m%dT%H%M%SZ")
 
-        start_dt_google = event.starts_at.strftime("%Y%m%dT%H%M%SZ")
-        end_dt_google = event.ends_at.strftime("%Y%m%dT%H%M%SZ")
+            outline_button(
+                "Add to Calendar",
+                icon=f'img:{google_calendar_img_url}',
+                target=f"{calendar_base_url}&dates={start_dt_google}/{end_dt_google}&details={urllib.parse.quote_plus(event.description)}&location=Yerevan&text={urllib.parse.quote_plus(event.name)}"
+            ).on_click(lambda: gtag("add_to_calendar"))
 
-        outline_button(
-            "Add to Calendar",
-            icon=f'img:{google_calendar_img_url}',
-            target=f"{calendar_base_url}&dates={start_dt_google}/{end_dt_google}&details={urllib.parse.quote_plus(event.description)}&location=Yerevan&text={urllib.parse.quote_plus(event.name)}"
-        ).on_click(lambda: gtag("add_to_calendar"))
-    return col
+    return card
 
 
-def ticket_price_col(event: EventResponse):
-    with ui.column().classes('w-full') as col:
-        price_row("Members", event.member_ticket_price)
-        if event.early_bird_date and event.early_bird_price:
-            price_row(
-                "Early Bird", event.early_bird_price)
-        price_row("Standard", event.general_admission_price)
-    return col
+def location_card():
+    with ui.card().classes('p-2').props('flat') as card:
+        with section("Location: TBA", subtitle="Kentron, Yerevan"):
+            ui.element('iframe').props(f'''
+                loading="lazy"
+                src="https://www.google.com/maps/embed/v1/place?q=Kentron&key={maps_api_key}"
+            ''').classes('rounded-3xl w-full aspect-square h-auto invert-90 hue-rotate-180')
+
+    return card
 
 
 def event_card(event: EventResponse, share=False):
@@ -181,6 +191,20 @@ def event_card(event: EventResponse, share=False):
     return c
 
 
+def ticket_card(type, price):
+    if price == 0:
+        price_label = 'Free Entry'
+    else:
+        price_label = f"{price} AMD"
+
+    with ui.card().props('flat bordered') as card:
+        with ui.row(wrap=False):
+            ui.label(type)
+            ui.separator().classes('flex-1')
+            ui.label(price_label).classes('font-bold')
+    return card
+
+
 def page_header(text=''):
     return ui.label(text).classes('text-3xl font-semibold')
 
@@ -195,27 +219,6 @@ def subsection_title(text=''):
 
 def section_subtitle(text=''):
     return ui.label(text).classes('text-center text-gray-500')
-
-
-def price_row(type, price):
-    if price == 0:
-        price_label = 'Free Entry'
-    else:
-        price_label = f"{price} AMD"
-
-    with ui.row().classes('px-2 justify-between') as row:
-        ui.label(type)
-        ui.separator().classes('flex-1')
-        ui.label(price_label).classes('font-bold')
-    return row
-
-
-status_colors = {
-    PersonStatus.verified: "#00c951",
-    PersonStatus.member: "#ad46ff",
-    PersonStatus.rejected: "#fb2c36",
-    PersonStatus.pending: "#ff6900"
-}
 
 
 def ticket_indicator(exists: bool, used: bool):
