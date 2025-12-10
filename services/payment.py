@@ -256,7 +256,7 @@ async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest, 
 
             await ecrm_print(print_req)
 
-    await notify_payment_confirmed(person, payment, recipient_names)
+        await notify_payment_confirmed(person, payment, recipient_names)
 
     db.add(payment)
     await db.commit()
