@@ -27,7 +27,7 @@ import base64
 logger = logging.getLogger(__name__)
 
 
-@ui.page('/profile', title='Drop Dead Disco')
+@ui.page('/profile', title="Your Profile | Drop Dead Disco")
 async def home_page(request: Request, logged_in=Depends(logged_in)):
 
     async with frame() as f:
@@ -37,7 +37,6 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
             return
 
         person: PersonResponseFull = request.state.person
-        ui.context.client.page.title = f"{person.first_name}'s profile | Drop Dead Disco"
 
         async def modify_fn(first_name):
             if not first_name.validate():

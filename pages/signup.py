@@ -11,7 +11,7 @@ from services.instagram_check import instagram_check
 from consts import logo_gray_path
 
 
-@ui.page('/signup')
+@ui.page('/signup', title="Sign Up | Drop Dead Disco")
 async def signup_page(token):
     try:
         token_info = jwt.decode(token, options={"verify_signature": False}, algorithms=["HS256"])

@@ -25,7 +25,7 @@ async def unsubscribe(request: Request):
     )
 
 
-@ui.page('/unsubscribe')
+@ui.page('/unsubscribe', title="Unsubscribe | Drop Dead Disco")
 async def unsubscribe_page(email):
     if not email:
         raise HTTPException(400, "Email is required.")
