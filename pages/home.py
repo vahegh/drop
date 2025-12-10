@@ -41,7 +41,7 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
 
         if logged_in:
             person: PersonResponseFull = request.state.person
-            vouchers = await get_drink_vouchers_by_person_id(person.id)
+            # vouchers = await get_drink_vouchers_by_person_id(person.id)
             with section():
                 with ui.row(wrap=False).classes('flex max-w-96 px-4'):
                     with ui.column().classes('gap-0 items-start'):
@@ -72,15 +72,15 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                             with section("Your ticket"):
                                 event_ticket(next_event_ticket, next_event, user_agent)
 
-                    if vouchers:
-                        with section("Your drinks"):
-                            for id, qty in vouchers.items():
-                                drink = await get_drink(id)
-                                with ui.card().classes(
-                                        'w-full rounded-full h-[40px] py-0 justify-center items-center').props('flat'):
-                                    with ui.row(wrap=False):
-                                        ui.label(drink.name)
-                                        ui.label(qty)
+                    # if vouchers:
+                    #     with section("Your drinks"):
+                    #         for id, qty in vouchers.items():
+                    #             drink = await get_drink(id)
+                    #             with ui.card().classes(
+                    #                     'w-full rounded-full h-[40px] py-0 justify-center items-center').props('flat'):
+                    #                 with ui.row(wrap=False):
+                    #                     ui.label(drink.name)
+                    #                     ui.label(qty)
 
                     past_tickets_col(event_tickets, event_map)
 
@@ -88,15 +88,15 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                     with section("Your Membership pass"):
                         member_card(person.member_pass, person.events_attended, user_agent)
 
-                    if vouchers:
-                        with section("Your drinks"):
-                            for id, qty in vouchers.items():
-                                drink = await get_drink(id)
-                                with ui.card().classes(
-                                        'w-full rounded-full h-[40px] py-0 justify-center items-center').props('flat'):
-                                    with ui.row(wrap=False):
-                                        ui.label(drink.name)
-                                        ui.label(qty)
+                    # if vouchers:
+                    #     with section("Your drinks"):
+                    #         for id, qty in vouchers.items():
+                    #             drink = await get_drink(id)
+                    #             with ui.card().classes(
+                    #                     'w-full rounded-full h-[40px] py-0 justify-center items-center').props('flat'):
+                    #                 with ui.row(wrap=False):
+                    #                     ui.label(drink.name)
+                    #                     ui.label(qty)
 
                     if person.drive_folder_url:
                         with section("You at Drop"):
