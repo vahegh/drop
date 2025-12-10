@@ -1,8 +1,8 @@
 from nicegui import ui
 from helpers import parse_inputs
 from api_models import VenueCreate, VenueUpdate
-from components import (primary_button, secondary_button, accented_button,
-                        page_header, section_title, generate_form_from_model)
+from components import (outline_button, destructive_button, positive_button,
+                        page_header, section_title, generate_form_from_model, section, primary_button)
 from services.venue import create_venue, update_venue, delete_venue, get_all_venues, get_venue_info
 
 
@@ -21,23 +21,21 @@ async def venues_panel():
 
                     except Exception as e:
                         ui.notify(f"Unable to create venue: {str(e)}", type='negative')
-                accented_button('Save').on_click(submit)
-                primary_button('Cancel').on_click(dialog.close)
+                positive_button('Save').on_click(submit)
+                outline_button('Cancel').on_click(dialog.close)
 
-    with ui.row():
-        ui.element('div').classes('w-[38px]')
-        page_header('Venues')
-        ui.icon('add', size='lg', color='secondary').on('click', create_dialog)
+    page_header('Venues')
 
-    venues_container = ui.column().classes('w-full')
-    with venues_container:
-        venues = await get_all_venues()
+    venues = await get_all_venues()
+    with section():
         for v in venues:
             with ui.link(target=f'/gagodzya/venue/{v.id}').classes('w-full'):
-                with ui.card().classes('w-full'):
-                    with ui.column().classes('items-center justify-center'):
-                        section_title(v.name)
-                        ui.label(v.address).classes('font-medium')
+                with ui.card().props('flat bordered'):
+                    with section(v.short_name, subtitle=v.address):
+                        pass
+
+    with section():
+        primary_button("New venue").on_click(create_dialog)
 
 
 async def venue_details_panel(venue_id):
@@ -66,14 +64,17 @@ async def venue_details_panel(venue_id):
                         ui.navigate.reload()
                     except Exception as e:
                         ui.notify(f"Unable to update venue: {str(e)}", type='negative')
-                accented_button('Save').on_click(submit)
-                primary_button('Cancel').on_click(dialog.close)
+                positive_button('Save').on_click(submit)
+                outline_button('Cancel').on_click(dialog.close)
 
     page_header(venue.name)
-    ui.label(f'Address: {venue.address}')
-    ui.label(f'Coordinates: {venue.latitude}, {venue.longitude}')
-    ui.link("Google Maps", venue.google_maps_link)
-    ui.link("Yandex Maps", venue.yandex_maps_link)
+    with section():
+        ui.label(f'Address: {venue.address}')
+        ui.label(f'Coordinates: {venue.latitude}, {venue.longitude}')
+        ui.link("Google Maps", venue.google_maps_link)
+        ui.link("Yandex Maps", venue.yandex_maps_link)
 
-    primary_button('Edit').on_click(create_dialog)
-    secondary_button('Delete').on_click(delete)
+    with section():
+        with ui.row(wrap=False):
+            outline_button('Edit').on_click(create_dialog)
+            destructive_button('Delete').on_click(delete)

@@ -6,10 +6,10 @@ from plotly.graph_objs import Layout
 from enums import PaymentStatus
 from api_models import EventUpdate, EventCreate
 from helpers import parse_inputs
-from components import (primary_button, secondary_button, accented_button,
+from components import (outline_button, destructive_button, positive_button,
                         page_header, section_title, event_datetime_col,
                         ticket_price_col, generate_form_from_model, ticket_indicator,
-                        person_card)
+                        person_card, section, primary_button)
 from services.event import create_event, update_event, delete_event, get_all_events, get_event_info
 from services.venue import get_all_venues
 from services.payment import get_all_payments
@@ -21,7 +21,7 @@ async def events_panel():
     venues = await get_all_venues()
     events = await get_all_events()
 
-    async def create():
+    async def create_dialog():
         with ui.dialog(value=True) as dialog:
             with ui.card():
                 section_title('New Event')
@@ -37,15 +37,10 @@ async def events_panel():
                     except Exception as e:
                         ui.notify(f"Unable to create event: {str(e)}", type='negative')
 
-                accented_button('Save').on_click(submit)
-                primary_button('Cancel').on_click(dialog.close)
+                positive_button('Save').on_click(submit)
+                outline_button('Cancel').on_click(dialog.close)
 
-    with ui.row():
-        ui.element('div').classes('w-[38px]')
-        page_header('Events')
-        ui.icon('add', size='lg', color='secondary').on('click', create)
-
-    section_title('Ticket Purchase Trends')
+    page_header('Events')
 
     all_payments = await get_all_payments()
 
@@ -122,51 +117,51 @@ async def events_panel():
                 'trace_index': len(traces) - 1
             })
 
-    if traces:
-        fig = go.Figure(
-            data=traces,
-            layout=Layout(
-                xaxis=dict(
-                    rangemode='tozero',
-                    dtick=1
-                ),
-                yaxis=dict(
-                    rangemode='tozero'
-                ),
-                hovermode='closest',
-                margin=dict(l=60, r=20, t=40, b=100),
-                autosize=True,
-                legend=dict(
-                    orientation="h",
-                    yanchor="top",
-                    y=-0.2,
-                    xanchor="center",
-                    x=0.5
-                )
+    fig = go.Figure(
+        data=traces,
+        layout=Layout(
+            xaxis=dict(
+                rangemode='tozero',
+                dtick=1
+            ),
+            yaxis=dict(
+                rangemode='tozero'
+            ),
+            hovermode='closest',
+            margin=dict(l=60, r=20, t=40, b=100),
+            autosize=True,
+            legend=dict(
+                orientation="h",
+                yanchor="top",
+                y=-0.2,
+                xanchor="center",
+                x=0.5
             )
         )
+    )
 
-        for info in event_start_info:
-            trace_color = fig.data[info['trace_index']].line.color if hasattr(
-                fig.data[info['trace_index']], 'line') else None
+    for info in event_start_info:
+        trace_color = fig.data[info['trace_index']].line.color if hasattr(
+            fig.data[info['trace_index']], 'line') else None
 
-            fig.add_vline(
-                x=info['day'],
-                line_dash="dash",
-                line_color=trace_color,
-                opacity=0.6
-            )
+        fig.add_vline(
+            x=info['day'],
+            line_dash="dash",
+            line_color=trace_color,
+            opacity=0.6
+        )
 
-        ui.plotly(fig).classes('w-full h-96')
-    else:
-        ui.label('No ticket data available yet').classes('text-gray-500 italic')
+    ui.plotly(fig).classes('w-full h-64')
 
-    for e in events:
-        with ui.link(target=f'/gagodzya/event/{e.id}').classes('w-80'):
-            with ui.card().classes('w-full cursor-pointer'):
-                with ui.column().classes('w-full justify-between'):
-                    section_title(e.name)
-                    ui.label(e.starts_at.astimezone().strftime("%d %B")).classes('font-medium')
+    with section():
+        for e in events:
+            with ui.link(target=f'/gagodzya/event/{e.id}').classes('w-full'):
+                with ui.card().props('flat bordered'):
+                    with section(e.name, subtitle=e.starts_at.astimezone().strftime("%d %B")):
+                        pass
+
+    with section():
+        primary_button("New event").on_click(create_dialog)
 
 
 async def event_details_panel(event_id):
@@ -190,8 +185,8 @@ async def event_details_panel(event_id):
                     except Exception as e:
                         ui.notify(f"Unable to update event: {str(e)}", type='negative')
 
-                accented_button('Save').on_click(submit)
-                primary_button('Cancel').on_click(dialog.close)
+                positive_button('Save').on_click(submit)
+                outline_button('Cancel').on_click(dialog.close)
 
     async def delete():
         if await ui.run_javascript('confirm("Are you sure you want to delete this event?")', timeout=10):
@@ -278,30 +273,35 @@ async def event_details_panel(event_id):
 
     page_header(event.name)
 
-    with ui.card():
-        event_datetime_col(event)
-        section_title('Tickets')
-        ticket_price_col(event)
+    with section():
+        with ui.card():
+            event_datetime_col(event)
+            section_title('Tickets')
+            ticket_price_col(event)
 
-    primary_button('Edit').on_click(edit_event)
-    secondary_button('Delete').on_click(delete)
+    with section():
+        with ui.row(wrap=False):
+            outline_button('Edit').on_click(edit_event)
+            destructive_button('Delete').on_click(delete)
 
-    section_title('Attendance')
+    with section('Attendance'):
+        with section(f"{people_attended} / {total_tickets_no}"):
+            people_attended
+            ui.circular_progress(value=people_attended, min=0, max=total_tickets_no,
+                                 show_value=False, color='green').classes('w-64 h-auto').props('rounded track-color="orange" thickness="0.15"')
 
-    with ui.column():
-        progress = people_attended
-        ui.circular_progress(value=progress, min=0, max=total_tickets_no,
-                             show_value=False, color='green').classes('w-64 h-auto').props('rounded track-color="orange" thickness="0.15"')
-        ui.label(f"{progress} / {total_tickets_no}").classes('text-lg')
+        ui.plotly(fig).classes('w-full h-96')
 
-    ui.plotly(fig).classes('w-full h-96')
+        with section("People"):
+            for t in sorted(ticket_map.values(), key=lambda t: (t.attended_at or datetime.min.replace(tzinfo=timezone.utc))):
+                p = await get_person(t.person_id)
+                with person_card(p):
+                    with ui.row(wrap=False):
+                        with ui.row(wrap=False).classes('justify-start', remove='w-full'):
+                            if p.avatar_url:
+                                ui.image(p.avatar_url).classes('w-[32px] rounded-full')
+                            else:
+                                ui.icon('account_circle', size='32px', color="gray")
 
-    with ui.grid().classes('flex justify-center gap-2 p-0'):
-        for t in sorted(ticket_map.values(), key=lambda t: (t.attended_at or datetime.min.replace(tzinfo=timezone.utc))):
-            p = await get_person(t.person_id)
-            with person_card(p):
-                with ui.row(wrap=False).classes('items-center'):
-                    ui.label(f"{p.first_name} {p.last_name}").classes('text-center')
-                    ui.label(t.attended_at.astimezone().strftime(
-                        "%H:%M") if t.attended_at else "").classes('text-sm ml-auto')
-                    ticket_indicator(True, bool(t.attended_at))
+                            ui.label(f"{p.first_name} {p.last_name}").classes('w-48 text-left')
+                        ticket_indicator(True, bool(t.attended_at))

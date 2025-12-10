@@ -7,7 +7,7 @@ from api_models import EventResponse, PersonResponseFull
 from components import (event_card, page_header, section_title,
                         status_icon, member_card, event_ticket,
                         image_carousel, google_button, primary_button,
-                        section, past_tickets_col, accented_button,
+                        section, past_tickets_col, outline_button,
                         status_colors)
 from helpers import get_user_agent, get_album_urls, gtag
 from enums import PersonStatus
@@ -134,7 +134,7 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
 We host our events in unexpected locations - whatever has the most sparkle.  
 We don't tell you the location beforehand, and every guest has to pass **verification** before they're able to buy tickets and attend.
 ''').classes('text-center px-4 max-w-[800px]')
-        accented_button("Read more", target='/about')
+        outline_button("Read more", target='/about')
 
         with ui.grid().classes('flex w-full justify-center p-2 gap-4'):
             with section("Stats", subtitle="Our community numbers as of right now.") as s:

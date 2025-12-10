@@ -142,7 +142,7 @@ def event_datetime_col(event: EventResponse):
         start_dt_google = event.starts_at.strftime("%Y%m%dT%H%M%SZ")
         end_dt_google = event.ends_at.strftime("%Y%m%dT%H%M%SZ")
 
-        primary_button(
+        outline_button(
             "Add to Calendar",
             icon=f'img:{google_calendar_img_url}',
             target=f"{calendar_base_url}&dates={start_dt_google}/{end_dt_google}&details={urllib.parse.quote_plus(event.description)}&location=Yerevan&text={urllib.parse.quote_plus(event.name)}"
@@ -343,7 +343,7 @@ def person_card(person: PersonResponse):
     status_color = status_colors.get(person.status)
     with ui.link(target=f'/gagodzya/person/{person.id}').classes('w-full'):
         card = ui.card().classes(
-            f'w-full border-l-4 border-s-[{status_color}]', remove='rounded-3xl').props('bordered flat')
+            f'w-full border-l-4 border-s-[{status_color}] p-2', remove='rounded-3xl').props('bordered flat')
     return card
 
 
@@ -383,8 +383,8 @@ def instagram_dialog(instagram_info):
                 with section():
                     section_title("Is this you?")
                     with ui.row(wrap=False):
-                        primary_button("No").on_click(lambda: dl.submit(False))
-                        accented_button("Yes, submit").on_click(
+                        outline_button("No").on_click(lambda: dl.submit(False))
+                        primary_button("Yes, submit").on_click(
                             lambda: dl.submit(True))
             else:
                 with section(f"Instagram user not found", subtitle="Please check your username."):

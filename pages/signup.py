@@ -1,7 +1,7 @@
 import jwt
 from nicegui import ui
 from frame import frame
-from components import (rectangular_email_input, instagram_input, accented_button,
+from components import (rectangular_email_input, instagram_input, primary_button,
                         name_input, section, section_title, instagram_dialog)
 from api_models import PersonCreate
 
@@ -42,7 +42,7 @@ async def signup_page(token):
                         value=token_info.get('email', '')).props(add='readonly')
                     insta_input = instagram_input()
 
-                btn = accented_button('Submit')
+                btn = primary_button('Submit')
 
                 async def submit():
                     if not all([

@@ -1,13 +1,11 @@
-from uuid import UUID
 from nicegui import ui
 from helpers import parse_inputs
-from consts import default_date_format, APP_BASE_URL
-from api_models import PersonUpdate, EventTicketResponse, PersonCreate, EventTicketCreate, PersonResponse
-from components import (primary_button, destructive_button, accented_button,
+from api_models import PersonUpdate, PersonCreate, PersonResponse
+from components import (primary_button, destructive_button, positive_button,
                         status_icon, page_header, section_title,
                         generate_form_from_model, ticket_indicator,
-                        person_card, secondary_button, section,
-                        accented_button)
+                        person_card, section,
+                        positive_button, outline_button)
 from enums import PersonStatus
 from services.person import create_person, update_person, delete_person
 from services.event_ticket import create_event_ticket, delete_event_ticket, get_tickets_by_person_id, add_ticket_to_db
@@ -37,8 +35,8 @@ async def persons_panel():
                     except Exception as e:
                         ui.notify(f"Unable to create person: {str(e)}", type='negative')
 
-                accented_button('Save').on_click(submit)
-                primary_button('Cancel').on_click(dialog.close)
+                positive_button('Save').on_click(submit)
+                outline_button('Cancel').on_click(dialog.close)
 
     page_header('People')
 
@@ -94,7 +92,9 @@ async def persons_panel():
                     with ui.row(wrap=False):
                         with ui.row(wrap=False).classes('justify-start', remove='w-full'):
                             if p.avatar_url:
-                                ui.image(p.avatar_url).classes('size-8 rounded-full')
+                                ui.image(p.avatar_url).classes('w-[32px] rounded-full')
+                            else:
+                                ui.icon('account_circle', size='32px', color="gray")
                             ui.label(f"{p.first_name} {p.last_name}").classes('w-48 text-left')
 
     render_section('In Review', pending_persons)
@@ -134,8 +134,8 @@ async def person_details_panel(person_id):
                     except Exception as e:
                         ui.notify(f"Unable to update person: {str(e)}", type='negative')
 
-                accented_button('Save').on_click(submit)
-                primary_button('Cancel').on_click(dialog.close)
+                positive_button('Save').on_click(submit)
+                outline_button('Cancel').on_click(dialog.close)
 
     async def create_ticket_dialog():
         events = await get_all_events()
@@ -174,8 +174,8 @@ async def person_details_panel(person_id):
                     except Exception as e:
                         ui.notify(f"Unable to create ticket: {str(e)}", type='negative')
 
-                accented_button('Create').on_click(submit)
-                primary_button('Cancel').on_click(dialog.close)
+                positive_button('Create').on_click(submit)
+                outline_button('Cancel').on_click(dialog.close)
 
     async def delete():
         if await ui.run_javascript('confirm("Are you sure you want to delete this person?")', timeout=10):
@@ -211,9 +211,11 @@ async def person_details_panel(person_id):
 
         with section():
             with ui.row(wrap=False):
-                primary_button('Edit person').on_click(create_dialog)
+                outline_button('Edit person').on_click(create_dialog)
                 destructive_button('Delete person').on_click(delete)
-            accented_button('Login as person', target=f"/login-as?person_id={person.id}")
+
+        with section():
+            outline_button('Login as person', target=f"/login-as?person_id={person.id}")
 
     if person.status not in (PersonStatus.pending, PersonStatus.rejected):
         tickets = await get_tickets_by_person_id(person.id)

@@ -2,7 +2,7 @@ import logging
 from nicegui import ui, app
 from nicegui.events import UploadEventArguments
 from consts import APP_BASE_URL, name_validation, email_validation, insta_validation
-from components import (primary_button, secondary_button, status_icon,
+from components import (primary_button, outline_button, status_icon,
                         page_header, section, toast, instagram_dialog,
                         destructive_button, positive_button, binding_card)
 from services.person import update_person, get_person_by_email
@@ -75,8 +75,19 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
             dl.delete()
 
         async def modify_email(new_email):
-            async def send_otp(new_email):
-                send_btn.props(add='loading disable')
+            if not new_email.validate():
+                return
+
+            if new_email.value == person.email:
+                return
+
+            existing_user = await get_person_by_email(new_email.value)
+            if existing_user:
+                toast("This email is already used.", type='warning')
+                return
+
+            async def send_otp(new_email, btn):
+                btn.props(add='loading disable')
                 otp = random.randint(100000, 999999)
                 app.storage.user['otp'] = str(otp)
                 context = {"name": person.first_name, "otp": otp}
@@ -87,16 +98,18 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                     body=template
                 )
                 await send_email(outgoing_email)
-                send_btn.props(remove='loading disable')
-                send_btn.set_text("Send again")
-                save_btn.set_visibility(True)
-                otp_input.set_visibility(True)
+                toast(f"Sent OTP to {new_email}")
+                c.clear()
+                with c:
+                    with section("Enter the code"):
+                        otp_input = ui.input("One-time code")
+                        save_btn = primary_button("Verify").on_click(
+                            lambda: verify_otp(otp_input.value, save_btn))
+                        btn = outline_button("Send again").on_click(
+                            lambda: send_otp(new_email, btn))
 
-            if not new_email.validate():
-                return
-
-            async def verify_otp(otp):
-                save_btn.props(add='loading disable')
+            async def verify_otp(otp, btn: ui.button):
+                btn.props(add='loading disable')
                 result = otp == app.storage.user['otp']
                 if result:
                     try:
@@ -105,34 +118,19 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                         toast(f"Unable to save email: {str(e)}")
                     else:
                         toast(f"Updated email to {email.value}.")
-                        dl.delete()
                     finally:
+                        dl.delete()
                         app.storage.user.clear()
-
                 else:
                     toast(f"Incorrect OTP")
-
-                save_btn.props(remove='loading disable')
-
-            existing_user = await get_person_by_email(new_email.value)
-            if existing_user:
-                toast("This email is already used.", type='warning')
-                return
+                    btn.props(remove='loading disable')
 
             with ui.dialog(value=True) as dl:
-                with ui.card().classes('w-full'):
+                with ui.card() as c:
                     with section("Verify email", subtitle="Send a one-time code to your new email to verify."):
                         ui.label(new_email.value)
-
-                        otp_input = ui.input("OTP")
-                        otp_input.set_visibility(False)
-
-                        save_btn = secondary_button("Verify").on_click(
-                            lambda: verify_otp(otp_input.value))
-                        save_btn.set_visibility(False)
-
                         send_btn = primary_button("Send OTP").on_click(
-                            lambda: send_otp(new_email.value))
+                            lambda: send_otp(new_email.value, send_btn))
 
         async def handle_upload(e: UploadEventArguments):
             file_bytes = e.file._data

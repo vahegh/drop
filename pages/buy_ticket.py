@@ -8,7 +8,7 @@ from api_models import PersonResponseFull
 from helpers import get_user_agent, gtag
 from components import (rounded_email_input, primary_button, toast,
                         event_datetime_col, page_header, section,
-                        binding_card, accented_button, payment_choice, section_title)
+                        binding_card, outline_button, payment_choice, section_title)
 from storage_cache import get_cache
 from uuid import UUID
 from services.event_ticket import get_tickets_by_person_id
@@ -388,7 +388,7 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                 with ui.card():
                     with section(text, subtitle="It's on your homepage."):
                         primary_button('Buy another ticket').on_click(dl.submit)
-                        accented_button('Go to homepage', target='/')
+                        outline_button('Go to homepage', target='/')
 
             result = await dl
             if result:

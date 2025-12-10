@@ -2,7 +2,7 @@ from nicegui import ui
 from fastapi import HTTPException, Request
 from typing import Literal, Optional
 from frame import frame
-from components import section_title, secondary_button, section
+from components import section_title, outline_button, section
 from enums import PaymentProvider, PaymentStatus
 from api_models import PaymentConfirmRequest, VerifyPersonRequest, PersonResponseFull, CardBindingCreate
 from uuid import UUID
@@ -49,7 +49,7 @@ async def callback_page(confirm_request):
                 status_label.text = "Unable to process payment."
                 desc_label.text = "Please check your email. If you haven't received a ticket from us, contact us via Instagram or email."
 
-            secondary_button("Go Home", target='/')
+            outline_button("Go Home", target='/')
             return main_col
 
         sp.set_visibility(False)
@@ -58,7 +58,7 @@ async def callback_page(confirm_request):
         if confirm_response.status == PaymentStatus.CONFIRMED:
             status_label.text = "Payment succesful!"
             desc_label.text = "Each person will receive their ticket via email."
-            secondary_button("Event Information", target=f"/event/{confirm_response.event_id}")
+            outline_button("Event Information", target=f"/event/{confirm_response.event_id}")
 
         else:
             status_icon.set_name('close')
