@@ -5,12 +5,12 @@ from frame import frame
 from consts import album_urls
 from helpers import get_album_urls
 from components import (event_datetime_card, event_card, image_carousel, primary_button,
-                        ticket_card, section, location_card)
+                        ticket_card, section, location_card, page_header)
 from services.event import get_event_info
-from services.venue import get_venue_info
 from dependencies import Depends, logged_in
 from api_models import PersonResponseFull
 from enums import PersonStatus
+import asyncio
 
 PHOTO_STORAGE_DIR = "photos"
 

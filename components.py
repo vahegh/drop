@@ -2,6 +2,7 @@ import os
 import json
 import secrets
 import urllib.parse
+from datetime import datetime, timezone
 from uuid import UUID
 from datetime import datetime
 from typing import Type, Union
@@ -157,15 +158,42 @@ def event_card(event: EventResponse, share=False):
 
 
 def event_datetime_card(event: EventResponse):
+    def countdown_to_date(target_datetime: datetime):
+        now = datetime.now(timezone.utc)
+        delta = target_datetime - now
+
+        days = delta.days
+        hours, remainder = divmod(delta.seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+
+        if delta.total_seconds() < 0:
+            timer.deactivate()
+            countdown_label.delete()
+
+        else:
+            countdown_label.set_text(f"{days}d {hours}h {minutes}m {seconds}s")
+
     with ui.card().classes('p-2').props('flat') as card:
-        start_time_local = event.starts_at.astimezone()
-        end_time_local = event.ends_at.astimezone()
-        with section(start_time_local.strftime("%A, %d %B")):
-            with ui.row().classes('flex px-8'):
-                ui.label(start_time_local.strftime("%I %p").lstrip('0')
+        event_duration = (event.ends_at - event.starts_at).total_seconds()
+        elapsed = (datetime.now(timezone.utc) - event.starts_at).total_seconds()
+        # elapsed = 14000
+        progress_value = 0
+        if elapsed > 0:
+            progress_value = elapsed / event_duration
+
+        with section():
+            page_subheader(event.starts_at.astimezone().strftime("%A, %d %B"))
+            countdown_label = section_title('').classes('text-gray-500')
+            timer = ui.timer(1.0, lambda: countdown_to_date(event.starts_at))
+            # timer = ui.timer(1.0, lambda: countdown_to_date(
+            #     datetime(2025, 12, 11, 12, 10, tzinfo=timezone.utc)))
+
+            with ui.row(wrap=False).classes('px-4 gap-2'):
+                ui.label(event.starts_at.astimezone().strftime("%I %p").lstrip('0')
                          )
-                ui.separator().props('color=secondary').classes('flex-1')
-                ui.label(end_time_local.strftime("%I %p").lstrip('0')
+                ui.linear_progress(value=progress_value, show_value=False, size='2px',
+                                   color='positive').classes('flex-1')
+                ui.label(event.ends_at.astimezone().strftime("%I %p").lstrip('0')
                          )
 
             start_dt_google = event.starts_at.strftime("%Y%m%dT%H%M%SZ")
@@ -206,7 +234,11 @@ def ticket_card(type, price):
 
 
 def page_header(text=''):
-    return ui.label(text).classes('text-3xl font-semibold')
+    return ui.label(text).classes('text-3xl font-semibold text-center')
+
+
+def page_subheader(text=''):
+    return ui.label(text).classes('text-2xl font-semibold text-center')
 
 
 def section_title(text=''):
