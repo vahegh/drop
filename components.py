@@ -135,6 +135,27 @@ def toast(text, timeout=1.5, **kwargs):
     ui.notification(text, timeout=timeout, **kwargs)
 
 
+def event_card(event: EventResponse, share=False):
+    def share_event():
+        gtag("share_event")
+        ui.run_javascript(f'''
+            navigator.share({{
+                title: {json.dumps(f'{event.name} | Drop Dead Disco')},
+                url: {json.dumps(f'{APP_BASE_URL}/event/{event.id}')},
+                text: {json.dumps(event.description)}
+            }});
+        ''')
+
+    with ui.image(event.image_url).classes('aspect-4/5 rounded-3xl w-full max-w-96') as c:
+        with ui.column().classes(add='bg-transparent h-full justify-between p-6 w-full items-center'):
+            page_header(event.name)
+            with ui.row():
+                ui.label(event.starts_at.astimezone().strftime('%d %B')).classes('text-lg')
+                if share:
+                    ui.button(icon='share').props('round color=dark').on('click', share_event)
+    return c
+
+
 def event_datetime_card(event: EventResponse):
     with ui.card().classes('p-2').props('flat') as card:
         start_time_local = event.starts_at.astimezone()
@@ -168,27 +189,6 @@ def location_card():
             ''').classes('rounded-3xl w-full aspect-square h-auto invert-90 hue-rotate-180')
 
     return card
-
-
-def event_card(event: EventResponse, share=False):
-    def share_event():
-        gtag("share_event")
-        ui.run_javascript(f'''
-            navigator.share({{
-                title: {json.dumps(f'{event.name} | Drop Dead Disco')},
-                url: {json.dumps(f'{APP_BASE_URL}/event/{event.id}')},
-                text: {json.dumps(event.description)}
-            }});
-        ''')
-
-    with ui.image(event.image_url).classes('aspect-4/5 rounded-3xl w-full max-w-96') as c:
-        with ui.column().classes(add='bg-transparent h-full justify-between p-6 w-full items-center'):
-            page_header(event.name)
-            with ui.row():
-                ui.label(event.starts_at.astimezone().strftime('%d %B')).classes('text-lg')
-                if share:
-                    ui.button(icon='share').props('round color=dark').on('click', share_event)
-    return c
 
 
 def ticket_card(type, price):
@@ -236,13 +236,11 @@ def status_icon(status: PersonStatus):
 
 def add_to_wallet(user_agent, google_url, apple_url) -> None:
     if user_agent == 'android':
-        ui.image(google_wallet_img_url) \
-            .classes('w-48') \
-            .on('click', lambda: ui.navigate.to(google_url))
+        outline_button("Add to Wallet", target=google_url,
+                       icon="img:/static/images/google_wallet.svg")
     elif user_agent == 'ios':
-        ui.image(apple_wallet_img_url) \
-            .classes('w-36') \
-            .on('click', lambda: ui.navigate.to(apple_url))
+        outline_button("Add to Wallet", target=apple_url,
+                       icon="img:/static/images/apple_wallet.svg")
 
 
 def member_card(member_pass: MemberCardResponse, attendance: int, user_agent):
@@ -262,7 +260,8 @@ def member_card(member_pass: MemberCardResponse, attendance: int, user_agent):
             ui.label(f"Member since {member_pass.created_at.strftime("%B %Y")}".upper()).classes(
                 f'text-[{color}] font-semibold')
 
-        add_to_wallet(user_agent, member_pass.google_pass_url, member_pass.apple_pass_url)
+            with section():
+                add_to_wallet(user_agent, member_pass.google_pass_url, member_pass.apple_pass_url)
 
 
 def event_ticket(ticket: EventTicketResponse, event: EventResponse, user_agent):
@@ -282,8 +281,8 @@ def event_ticket(ticket: EventTicketResponse, event: EventResponse, user_agent):
                     ui.label("Start time")
                     ui.label(event.starts_at.astimezone().strftime("%H:%M")
                              ).classes('text-right font-bold text-lg')
-
-        add_to_wallet(user_agent, ticket.google_pass_url, ticket.apple_pass_url)
+        with section():
+            add_to_wallet(user_agent, ticket.google_pass_url, ticket.apple_pass_url)
 
 
 def image_carousel(urls):
