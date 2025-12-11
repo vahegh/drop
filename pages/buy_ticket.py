@@ -145,7 +145,6 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                         total_price += quantity * drink.price
 
             cart_summary.refresh()
-            pay_button.refresh()
             return total_price
 
         async def validate_and_add_attendee(email_input: ui.input):
@@ -369,17 +368,14 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
             radio.update()
 
         cart_summary()
+        update_totals()
 
-        @ui.refreshable
-        def pay_button():
+        with section():
             ui.space().classes('h-[40px]')
             with section() as s:
                 s.classes('fixed bottom-6 z-50')
                 btn_text = f"Pay {total_price} AMD" if total_price > 0 else "Pay now"
-                primary_button(btn_text).on_click(lambda: handle_payment())
-
-        pay_button()
-        update_totals()
+                pay_btn = primary_button(btn_text).on_click(lambda: handle_payment())
 
     async with frame():
         await ui.context.client.connected()
