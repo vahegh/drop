@@ -94,15 +94,18 @@ async def vpos_callback(request: Request, orderID: int, resposneCode: str, payme
         person: PersonResponseFull = request.state.person
         card_binding_vpos = await get_card_binding_vpos(opaque)
 
-        await create_card_binding(
-            CardBindingCreate(
-                id=opaque,
-                person_id=person.id,
-                masked_card_number=card_binding_vpos.CardPan,
-                card_expiry_date=card_binding_vpos.ExpDate,
-                is_active=card_binding_vpos.IsAvtive
+        try:
+            await create_card_binding(
+                CardBindingCreate(
+                    id=opaque,
+                    person_id=person.id,
+                    masked_card_number=card_binding_vpos.CardPan,
+                    card_expiry_date=card_binding_vpos.ExpDate,
+                    is_active=card_binding_vpos.IsAvtive
+                )
             )
-        )
+        except Exception as e:
+            logger.error(f"Unable to add card binding: {str(e)}")
 
     confirm_request = PaymentConfirmRequest(
         order_id=int(orderID),

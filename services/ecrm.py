@@ -20,6 +20,9 @@ async def ecrm_request(body, path):
 
         async with httpx.AsyncClient(cert=(cert_file.name, key_file.name)) as client:
             resp = await client.post(f"{ecrm_base_url}/{path}", json=body, headers={"language": "en"})
+            if not resp.is_success:
+                logger.error(f"Unable to print ECRM receipt: {resp.json()}")
+                return
             parsed_resp = ECRMResponse(**resp.json())
             if parsed_resp.code != 0:
                 logger.error(f"Unable to make ECRM request: {parsed_resp.__dict__}")
