@@ -31,6 +31,13 @@ head_html = '''
 
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet">
+<script src="https://www.googletagmanager.com/gtag/js?id=G-152G4X4VLJ"></script>
+
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+</script>
 
 <style>
 
@@ -81,37 +88,12 @@ head_html = '''
 </style>
 '''
 
-if not is_cloud_run():
-    gtag_html = '''
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-152G4X4VLJ"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-152G4X4VLJ', { 'debug_mode':true });
-</script>
-'''
-else:
-    gtag_html = '''
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-152G4X4VLJ"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-152G4X4VLJ');
-</script>
-'''
-
 
 def main():
     from nicegui import ui, app
 
     ui.add_head_html(head_html, shared=True)
-    ui.add_head_html(gtag_html, shared=True)
+    # ui.add_head_html(gtag_html, shared=True)
 
     import components
     from pages import (

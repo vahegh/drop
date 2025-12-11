@@ -5,7 +5,7 @@ from fastapi import Request
 from frame import frame
 from enums import PaymentProvider, PersonStatus
 from api_models import PersonResponseFull
-from helpers import get_user_agent, gtag
+from helpers import get_user_agent, gtag_event
 from components import (rounded_email_input, primary_button, toast,
                         event_datetime_card, page_header, section,
                         binding_card, outline_button, payment_choice, section_title)
@@ -179,7 +179,7 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                         transactional=False
                     )
                     await send_email(email_req)
-                    gtag("invite_friend", {"person_id": str(person.id)})
+                    gtag_event("invite_friend", {"person_id": str(person.id)})
 
                     invite_dl.clear()
                     with invite_dl:

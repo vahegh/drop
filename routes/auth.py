@@ -4,11 +4,11 @@ from sqlalchemy import select
 from google.oauth2 import id_token
 from google.auth.transport import requests
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import APIRouter, HTTPException, Response, Request
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from decorators import with_db
-from consts import APP_BASE_URL, APPLICATION_SUBMITTED_SUBJECT, APPLICATION_SUBMITTED_TEMPLATE, google_client_id
-from api_models import VerifyPersonRequest, ValidateTokenRequest, ValidateTokenResponse, PersonCreate, PersonUpdate
+from consts import APPLICATION_SUBMITTED_SUBJECT, APPLICATION_SUBMITTED_TEMPLATE
+from api_models import PersonCreate, PersonUpdate
 from services.person import update_person
 from services.auth import create_jwt, create_token
 from services.telegram import notify_application
@@ -17,10 +17,7 @@ from services.mailing import EmailRequest, send_email
 from enums import PersonStatus
 from db_models import Person, RefreshToken
 import logging
-import httpx
-from nicegui import app
-import urllib.parse
-
+from helpers import gtag_config, is_cloud_run
 
 logger = logging.getLogger(__name__)
 
@@ -160,5 +157,11 @@ async def logout(db: AsyncSession, token: str = None, redirect_url='/'):
 
     await db.delete(stored)
     await db.commit()
+
+    gtag_params = {"user_id": None}
+    if is_cloud_run():
+        gtag_params['debug_mode'] = True
+
+    gtag_config(gtag_params)
 
     return response

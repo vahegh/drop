@@ -9,7 +9,7 @@ from components import (event_card, page_header, section_title,
                         image_carousel, google_button, primary_button,
                         section, past_tickets_col, outline_button,
                         status_colors)
-from helpers import get_user_agent, get_album_urls, gtag
+from helpers import get_user_agent, get_album_urls, gtag_event
 from enums import PersonStatus
 from services.person import get_all_person_stats
 from dependencies import Depends, logged_in

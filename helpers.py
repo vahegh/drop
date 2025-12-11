@@ -1,5 +1,6 @@
 import os
 import re
+import json
 import base64
 import qrcode
 from uuid import UUID
@@ -15,9 +16,12 @@ from qrcode.image.styles.moduledrawers.pil import RoundedModuleDrawer
 from nicegui import ui
 
 
-def gtag(event_name, params: dict = {}):
-    ui.run_javascript(f"""gtag('event', '{event_name}', {params});
-""")
+def gtag_event(event_name, params: dict = {}):
+    ui.run_javascript(f"gtag('event', '{event_name}', {json.dumps(params)});")
+
+
+def gtag_config(params: dict = {}):
+    ui.run_javascript(f"gtag('config', 'G-152G4X4VLJ', {json.dumps(params)});")
 
 
 def is_cloud_run():

@@ -16,7 +16,7 @@ from consts import (email_validation, insta_validation, name_validation,
                     email_non_required, email_placeholder, calendar_base_url,
                     google_calendar_img_url, instagram_placeholder, google_wallet_img_url,
                     apple_wallet_img_url, google_client_id, APP_BASE_URL)
-from helpers import get_card_type, gtag
+from helpers import get_card_type, gtag_event
 from markdown2 import markdown
 
 maps_api_key = os.getenv('maps_api_key')
@@ -138,7 +138,7 @@ def toast(text, timeout=1.5, **kwargs):
 
 def event_card(event: EventResponse, share=False):
     def share_event():
-        gtag("share_event")
+        gtag_event("share_event")
         ui.run_javascript(f'''
             navigator.share({{
                 title: {json.dumps(f'{event.name} | Drop Dead Disco')},
@@ -203,7 +203,7 @@ def event_datetime_card(event: EventResponse):
                 "Add to Calendar",
                 icon=f'img:{google_calendar_img_url}',
                 target=f"{calendar_base_url}&dates={start_dt_google}/{end_dt_google}&details={urllib.parse.quote_plus(event.description)}&location=Yerevan&text={urllib.parse.quote_plus(event.name)}"
-            ).on_click(lambda: gtag("add_to_calendar"))
+            ).on_click(lambda: gtag_event("add_to_calendar"))
 
     return card
 
