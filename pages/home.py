@@ -134,7 +134,8 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
 We host our events in unexpected locations - whatever has the most sparkle.  
 We don't tell you the location beforehand, and every guest has to pass **verification** before they're able to buy tickets and attend.
 ''').classes('text-center px-4 max-w-[800px]')
-        outline_button("Read more", target='/about')
+        with section():
+            outline_button("Read more", target='/about')
 
         with ui.grid().classes('flex w-full justify-center p-2 gap-4'):
             with section("Stats", subtitle="Our community numbers as of right now.") as s:
