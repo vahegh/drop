@@ -13,7 +13,7 @@ async def create_drink_payment_intent(db: AsyncSession, drink_payment_intent: Dr
 
 
 @with_db
-async def get_drink_payments_intents(db: AsyncSession, order_id: int):
+async def get_drink_payment_intents(db: AsyncSession, order_id: int):
     drink_payment_intents = await db.scalars(select(DrinkPaymentIntent).where(DrinkPaymentIntent.order_id == order_id))
     return drink_payment_intents.all()
 

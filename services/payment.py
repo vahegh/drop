@@ -14,7 +14,7 @@ from db_models import Payment, Person, EventTicket, PaymentIntent, Event, Member
 from services.event_ticket import add_ticket_to_db, create_event_ticket, send_event_ticket
 from services.myameria_payment import create_payment_myameria, get_payment_details_myameria
 from services.vpos_payment import init_payment_vpos, get_payment_details_vpos, VPOS_BASE_URL
-from services.drink_payment_intent import get_drink_payments_intents, delete_drink_payment_intents
+from services.drink_payment_intent import get_drink_payment_intents, delete_drink_payment_intents
 from services.drink_voucher import create_drink_voucher
 from services.payment_intent import delete_payment_intents
 from api_models import PaymentConfirmRequest, PaymentConfirmResponse, ECRMPrintRequest, ECRMItem
@@ -203,7 +203,7 @@ async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest, 
                     await send_event_ticket(event_ticket)
             await delete_payment_intents(payment.order_id)
 
-        drinks = await get_drink_payments_intents(payment.order_id)
+        drinks = await get_drink_payment_intents(payment.order_id)
         if drinks:
             for d in drinks:
                 await create_drink_voucher(

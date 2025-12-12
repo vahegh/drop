@@ -191,8 +191,8 @@ async def person_details_panel(person_id):
         if await ui.run_javascript('confirm("Are you sure you want to delete this ticket?")', timeout=10):
             try:
                 await delete_event_ticket(id)
-                ui.navigate.reload()
                 ui.notify('Ticket deleted successfully.')
+                ui.navigate.reload()
             except Exception as e:
                 ui.notify(f'Error deleting ticket: {str(e)}')
 
@@ -230,6 +230,6 @@ async def person_details_panel(person_id):
                         with ui.row(wrap=False):
                             ticket_indicator(ticket, bool(ticket.attended_at))
                             section_title(event.name)
-                            ui.icon('delete').on('click', lambda: delete_ticket(ticket.id))
+                            ui.icon('delete').on('click', lambda t=ticket: delete_ticket(t.id))
 
             primary_button('Create Ticket').on_click(lambda: create_ticket_dialog())

@@ -45,9 +45,51 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
     user_agent = await get_user_agent(request)
 
     cart = {
-        'tickets': [person],
+        'tickets': [],
         'drinks': defaultdict(int)
     }
+
+    def add_to_cart(person):
+        cart['tickets'].append(person)
+        if person.status == PersonStatus.member:
+            id = "ticket_member"
+            price = event.member_ticket_price
+
+        elif person.status == PersonStatus.verified:
+            if datetime.now(timezone.utc) > event.early_bird_date:
+                id = "ticket_standard"
+                price = event.general_admission_price
+
+            else:
+                id = "ticket_early_bird"
+                price = event.early_bird_price
+
+        gtag_event("add_to_cart", {"items": [{
+            "item_id": id,
+            "price": price
+        }]})
+        print(f"added {person.first_name} to cart")
+
+    def remove_from_cart(person):
+        cart['tickets'].remove(person)
+        if person.status == PersonStatus.member:
+            id = "ticket_member"
+            price = event.member_ticket_price
+
+        elif person.status == PersonStatus.verified:
+            if datetime.now(timezone.utc) > event.early_bird_date:
+                id = "ticket_standard"
+                price = event.general_admission_price
+
+            else:
+                id = "ticket_early_bird"
+                price = event.early_bird_price
+
+        gtag_event("remove_from_cart", {"items": [{
+            "item_id": id,
+            "price": price
+        }]})
+        print(f"removed {person.first_name} from cart")
 
     async def main_page():
         nonlocal cart
@@ -80,6 +122,7 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                 )
             )
 
+            items = []
             if cart['tickets']:
                 for attendee in cart['tickets']:
                     await create_payment_intent(
@@ -87,6 +130,25 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                             order_id=new_payment.order_id,
                             recipient_id=attendee.id
                         )
+                    )
+                    if attendee.status == PersonStatus.member:
+                        id = "ticket_member"
+                        price = event.member_ticket_price
+
+                    elif attendee.status == PersonStatus.verified:
+                        if datetime.now(timezone.utc) > event.early_bird_date:
+                            id = "ticket_standard"
+                            price = event.general_admission_price
+
+                        else:
+                            id = "ticket_early_bird"
+                            price = event.early_bird_price
+
+                    items.append(
+                        {
+                            "item_id": id,
+                            "price": price
+                        }
                     )
 
             if cart['drinks']:
@@ -98,6 +160,9 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                                 drink_id=drink_id
                             )
                         )
+
+            gtag_event("begin_checkout", {"currency": "AMD",
+                                          "value": new_payment.amount, "items": items})
 
             if payment_provider == PaymentProvider.BINDING:
                 card_id = method['data']
@@ -202,7 +267,7 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                     ui.notify(f"This person already has a ticket for {event.name}.")
                     return
                 else:
-                    cart['tickets'].append(new_attendee)
+                    add_to_cart(new_attendee)
                     attendee_list.refresh()
                     update_totals()
 
@@ -251,6 +316,11 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
         def attendee_list():
             with section("Attendees",
                          subtitle="You can only add people who are verified. They'll see their ticket on their profile."):
+                def remove_attendee(attendee):
+                    remove_from_cart(attendee)
+                    attendee_list.refresh()
+                    update_totals()
+
                 for attendee in cart['tickets']:
                     with ui.card().classes('w-full items-center justify-center rounded-full').props(
                             'flat'):
@@ -262,12 +332,7 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                             else:
                                 with email_row:
                                     ui.icon('close').classes('cursor-pointer ml-auto').on('click',
-                                                                                          lambda a=attendee: (
-                                                                                              cart[
-                                                                                                  'tickets'].remove(
-                                                                                                  a),
-                                                                                              attendee_list.refresh(),
-                                                                                              update_totals()))
+                                                                                          lambda a=attendee: remove_attendee(a))
 
                 add_attendee_input = rounded_email_input()
                 with add_attendee_input.add_slot('append'):
@@ -378,7 +443,6 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                 pay_btn = primary_button(btn_text).on_click(lambda: handle_payment())
 
     async with frame():
-        await ui.context.client.connected()
         if await get_tickets_by_person_id(person.id, event_id):
             with ui.dialog().props('persistent') as dl:
                 if person.status == PersonStatus.verified:
@@ -395,4 +459,5 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                 cart['tickets'] = []
                 await main_page()
         else:
+            add_to_cart(person)
             await main_page()

@@ -3,14 +3,13 @@ from nicegui import ui
 from fastapi import HTTPException
 from frame import frame
 from consts import album_urls
-from helpers import get_album_urls
+from helpers import get_album_urls, gtag_event
 from components import (event_datetime_card, event_card, image_carousel, primary_button,
                         ticket_card, section, location_card, page_header)
 from services.event import get_event_info
 from dependencies import Depends, logged_in
 from api_models import PersonResponseFull
 from enums import PersonStatus
-import asyncio
 
 PHOTO_STORAGE_DIR = "photos"
 
@@ -66,6 +65,22 @@ async def event_page(event_id, logged_in=Depends(logged_in)):
                                 early_bird.classes('border-2 border-blue-500')
                             else:
                                 standard.classes('border-2 border-blue-500')
+                    gtag_event("view_item_list", {
+                        "items": [
+                            {
+                                "item_id": "ticket_member",
+                                "price": event.member_ticket_price,
+                            },
+                            {
+                                "item_id": "ticket_early_bird",
+                                "price": event.early_bird_price,
+                            },
+                            {
+                                "item_id": "ticket_standard",
+                                "price": event.general_admission_price,
+                            },
+                        ]
+                    })
 
             else:
                 if album_url:

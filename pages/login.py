@@ -137,7 +137,7 @@ async def login_page(token: str = None, redirect_url='/', logged_in=Depends(logg
                 outline_button("Log in with email link").on_click(dl.open)
 
 
-@ui.page('/login-as')
+@ui.page('/login-as', response_timeout=10)
 async def login_as(person_id: UUID):
     try:
         await verify_admin_token(ui.context.client.request)

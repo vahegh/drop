@@ -10,8 +10,13 @@ import logging
 from services.payment import confirm_payment
 from services.vpos_payment import get_payment_details_vpos, get_card_binding_vpos
 from services.card_binding import create_card_binding
+from services.payment_intent import get_payment_intents
+from services.event import get_event_info
+from services.person import get_person
 from dependencies import Depends, logged_in
-
+from helpers import gtag_event
+from enums import PersonStatus
+from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
 
@@ -59,6 +64,41 @@ async def callback_page(confirm_request):
             status_label.text = "Payment succesful!"
             desc_label.text = "Each person will receive their ticket via email."
             outline_button("Event Information", target=f"/event/{confirm_response.event_id}")
+
+            intents = await get_payment_intents(confirm_response.order_id)
+            items = []
+            event = await get_event_info(confirm_response.event_id)
+            for i in intents:
+                person = await get_person(i.recipient_id)
+                if person.status == PersonStatus.member:
+                    id = "ticket_member"
+                    price = event.member_ticket_price
+
+                elif person.status == PersonStatus.verified:
+                    if datetime.now(timezone.utc) > event.early_bird_date:
+                        id = "ticket_standard"
+                        price = event.general_admission_price
+
+                    else:
+                        id = "ticket_early_bird"
+                        price = event.early_bird_price
+
+                items.append(
+                    {
+                        "item_id": id,
+                        "price": price
+                    }
+                )
+
+            gtag_event(
+                "purchase",
+                {
+                    "currency": "AMD",
+                    "value": confirm_response.amount,
+                    "transaction_id": str(confirm_response.order_id),
+                    "items": items
+                }
+            )
 
         else:
             status_icon.set_name('close')
