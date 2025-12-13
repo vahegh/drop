@@ -40,6 +40,8 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
         ui.navigate.to("/")
         return
 
+    await ui.context.client.connected()
+
     cache = get_cache()
     event = await cache.fetch_event(event_id)
     user_agent = await get_user_agent(request)
