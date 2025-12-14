@@ -13,6 +13,7 @@ async def frame(show_footer=False):
               accent="#8e51ff", positive="#50bf5a", warning="#ff8904", negative="#fb2c36")
 
     request = ui.context.client.request
+    await ui.context.client.connected()
 
     person: PersonResponseFull = request.state.person
     logged_in = request.state.logged_in
@@ -27,7 +28,6 @@ async def frame(show_footer=False):
 
     show_signin = request.url.path not in ['/signup', '/login']
     login_redirect_url = request.url.path if show_signin else '/'
-    # await ui.context.client.connected()
     menu = ui.right_drawer(value=False).props(':press-delay="0"').classes('items-center')
 
     with ui.context.client.content.classes('gap-4 px-0 py-18 pb-4 w-full items-center justify-center') as content:

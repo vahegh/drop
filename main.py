@@ -29,9 +29,9 @@ storage_secret = os.getenv('storage_secret')
 head_html = '''
 <meta name="description" content="Drop Dead Disco - it's like a cult, but you can keep your job.">
 
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet">
-<script src="https://www.googletagmanager.com/gtag/js?id=G-152G4X4VLJ"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" async defer>
+<link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet" async defer>
+<script src="https://www.googletagmanager.com/gtag/js?id=G-152G4X4VLJ" async defer></script>
 
 <script>
   window.dataLayer = window.dataLayer || [];
