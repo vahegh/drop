@@ -22,6 +22,7 @@ async def drop_5():
 
 @ui.page('/event/{event_id}', response_timeout=10)
 async def event_page(event_id, logged_in=Depends(logged_in)):
+    await ui.context.client.connected()
     event = await get_event_info(event_id)
     if not event:
         raise HTTPException(404)
