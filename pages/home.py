@@ -46,7 +46,7 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                 with ui.row(wrap=False).classes('flex max-w-96 px-4'):
                     with ui.column().classes('gap-0 items-start'):
                         status_icon(person.status)
-                        page_header(person.full_name)
+                        page_header(person.full_name).classes(remove='text-center')
 
                     if person.avatar_url:
                         ui.image(person.avatar_url).classes(

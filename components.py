@@ -234,7 +234,7 @@ def ticket_card(type, price):
 
 
 def page_header(text=''):
-    return ui.label(text).classes('text-3xl font-semibold text-center px-2')
+    return ui.label(text).classes('text-3xl font-semibold text-center')
 
 
 def page_subheader(text=''):
