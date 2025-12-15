@@ -26,6 +26,7 @@ myameria_payment_status = Literal['success', 'failure']
 async def callback_page(confirm_request):
     async with frame() as main_col:
         main_col.classes('h-[100svh] px-4')
+        await ui.context.client.connected()
         with section():
             status_label = section_title("Confirming your payment")
             desc_label = ui.label('Please wait...')
