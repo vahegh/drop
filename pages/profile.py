@@ -3,7 +3,7 @@ from nicegui import ui, app
 from nicegui.events import UploadEventArguments
 from consts import APP_BASE_URL, name_validation, email_validation, insta_validation
 from components import (primary_button, outline_button, status_icon,
-                        page_header, section, toast, instagram_dialog,
+                        page_header, section, instagram_dialog,
                         destructive_button, positive_button, binding_card)
 from services.person import update_person, get_person_by_email
 from services.cloud_storage import upload_avatar
@@ -44,9 +44,9 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
             try:
                 await update_person(person.id, PersonUpdate(first_name=first_name.value))
             except Exception as e:
-                toast(f"Unable to save first name: {str(e)}")
+                ui.notify(f"Unable to save first name: {str(e)}", type='warning')
             else:
-                toast(f"Updated first name to {first_name.value}.")
+                ui.notify(f"Updated first name to {first_name.value}.")
 
         async def modify_ln(last_name):
             if not last_name.validate():
@@ -54,9 +54,9 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
             try:
                 await update_person(person.id, PersonUpdate(last_name=last_name.value))
             except Exception as e:
-                toast(f"Unable to save last name: {str(e)}")
+                ui.notify(f"Unable to save last name: {str(e)}", type='warning')
             else:
-                toast(f"Updated last name to {last_name.value}.")
+                ui.notify(f"Updated last name to {last_name.value}.")
 
         async def modify_instagram(username):
             if not username.validate():
@@ -69,9 +69,9 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                 try:
                     await update_person(person.id, PersonUpdate(instagram_handle=instagram.value))
                 except Exception as e:
-                    toast(f"Unable to save Instagram username: {str(e)}")
+                    ui.notify(f"Unable to save Instagram username: {str(e)}", type='warning')
                 else:
-                    toast(f"Updated Instagram username to {instagram.value}.")
+                    ui.notify(f"Updated Instagram username to {instagram.value}.")
             dl.delete()
 
         async def modify_email(new_email):
@@ -83,7 +83,7 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
 
             existing_user = await get_person_by_email(new_email.value)
             if existing_user:
-                toast("This email is already used.", type='warning')
+                ui.notify("This email is already used.", type='warning')
                 return
 
             async def send_otp(new_email, btn):
@@ -98,7 +98,7 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                     body=template
                 )
                 await send_email(outgoing_email)
-                toast(f"Sent OTP to {new_email}")
+                ui.notify(f"Sent OTP to {new_email}")
                 c.clear()
                 with c:
                     with section("Enter the code"):
@@ -115,14 +115,14 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                     try:
                         await update_person(person.id, PersonUpdate(email=email.value))
                     except Exception as e:
-                        toast(f"Unable to save email: {str(e)}")
+                        ui.notify(f"Unable to save email: {str(e)}", type='warning')
                     else:
-                        toast(f"Updated email to {email.value}.")
+                        ui.notify(f"Updated email to {email.value}.")
                     finally:
                         dl.delete()
                         app.storage.user.clear()
                 else:
-                    toast(f"Incorrect OTP")
+                    ui.notify(f"Incorrect OTP", type='warning')
                     btn.props(remove='loading disable')
 
             with ui.dialog(value=True) as dl:
@@ -186,7 +186,7 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                     ui.notify('Avatar deleted successfully.')
                     ui.navigate.to('/profile')
                 except Exception as e:
-                    ui.notify(f'Error deleting avatar: {str(e)}')
+                    ui.notify(f'Error deleting avatar: {str(e)}', type='warning')
 
         with section():
             with ui.element('div').classes('relative inline-block'):
@@ -200,8 +200,8 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                     max_file_size=1000000,
                     auto_upload=True,
                     on_upload=lambda e: handle_upload(e),
-                    on_rejected=lambda: toast(
-                        "Please select a different picture. JPEG and PNG files under 1MB are supported.", timeout=3, type='warning')
+                    on_rejected=lambda: ui.notify(
+                        "Please select a different picture. JPEG and PNG files under 1MB are supported.", type='warning')
                 ).props('flat accept="image/jpeg, image/png" no-thumbnails').classes('hidden')
 
                 avatar_edit_btn = ui.button(color=None).props('unelevated round size="8px"').classes(

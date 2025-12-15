@@ -20,7 +20,7 @@ async def venues_panel():
                         ui.notify("Venue created")
 
                     except Exception as e:
-                        ui.notify(f"Unable to create venue: {str(e)}", type='negative')
+                        ui.notify(f"Unable to create venue: {str(e)}", type='warning')
                 positive_button('Save').on_click(submit)
                 outline_button('Cancel').on_click(dialog.close)
 
@@ -63,7 +63,7 @@ async def venue_details_panel(venue_id):
                         await update_venue(venue.id, VenueUpdate(**data))
                         ui.navigate.reload()
                     except Exception as e:
-                        ui.notify(f"Unable to update venue: {str(e)}", type='negative')
+                        ui.notify(f"Unable to update venue: {str(e)}", type='warning')
                 positive_button('Save').on_click(submit)
                 outline_button('Cancel').on_click(dialog.close)
 

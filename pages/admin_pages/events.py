@@ -35,7 +35,7 @@ async def events_panel():
                         ui.navigate.reload()
 
                     except Exception as e:
-                        ui.notify(f"Unable to create event: {str(e)}", type='negative')
+                        ui.notify(f"Unable to create event: {str(e)}", type='warning')
 
                 positive_button('Save').on_click(submit)
                 outline_button('Cancel').on_click(dialog.close)
@@ -183,7 +183,7 @@ async def event_details_panel(event_id):
                         ui.navigate.reload()
 
                     except Exception as e:
-                        ui.notify(f"Unable to update event: {str(e)}", type='negative')
+                        ui.notify(f"Unable to update event: {str(e)}", type='warning')
 
                 positive_button('Save').on_click(submit)
                 outline_button('Cancel').on_click(dialog.close)
@@ -195,7 +195,7 @@ async def event_details_panel(event_id):
                 ui.notify('Event deleted successfully.')
                 ui.navigate.to('/gagodzya/events')
             except Exception as e:
-                ui.notify(f'Error deleting event: {str(e)}')
+                ui.notify(f'Error deleting event: {str(e)}', type='warning')
 
     start_datetime = event.starts_at.astimezone()
     end_datetime = event.ends_at.astimezone()

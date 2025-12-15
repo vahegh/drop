@@ -132,10 +132,6 @@ def login_button(target):
     return btn
 
 
-def toast(text, timeout=1.5, **kwargs):
-    ui.notification(text, timeout=timeout, **kwargs)
-
-
 def event_card(event: EventResponse, share=False):
     def share_event():
         gtag_event("share_event")

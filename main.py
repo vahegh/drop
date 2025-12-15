@@ -114,7 +114,6 @@ def main():
     from nicegui import ui, app
 
     ui.add_head_html(head_html, shared=True)
-    # ui.add_head_html(gtag_html, shared=True)
 
     import components
     from pages import (

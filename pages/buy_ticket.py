@@ -6,7 +6,7 @@ from frame import frame
 from enums import PaymentProvider, PersonStatus
 from api_models import PersonResponseFull
 from helpers import get_user_agent, gtag_event
-from components import (rounded_email_input, primary_button, toast,
+from components import (rounded_email_input, primary_button,
                         event_datetime_card, page_header, section,
                         binding_card, outline_button, payment_choice, section_title)
 from storage_cache import get_cache
@@ -92,7 +92,6 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
         print(f"removed {person.first_name} from cart")
 
     async def main_page():
-        nonlocal cart
         pay_btn = None
         total_price = 0
 
@@ -102,9 +101,8 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                 ui.notify('Please select a payment method', type='warning')
                 return
 
-            amount = update_totals()
-            if amount == 0:
-                toast('0 AMD?')
+            if total_price == 0:
+                ui.notify('0 AMD?', type='warning')
                 return
 
             if pay_btn:
@@ -117,7 +115,7 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                 Payment(
                     person_id=person.id,
                     event_id=event.id,
-                    amount=amount,
+                    amount=total_price,
                     provider=payment_provider
                 )
             )
@@ -182,7 +180,7 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                 try:
                     url = await init_payment(new_payment, save_card=save_tick.value)
                 except Exception as e:
-                    toast(f"Unable to start payment: {str(e)}")
+                    ui.notify(f"Unable to start payment: {str(e)}", type='warning')
                 else:
                     ui.navigate.to(url)
 
@@ -210,6 +208,9 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                         total_price += quantity * drink.price
 
             cart_summary.refresh()
+            btn_text = f"Pay {total_price} AMD" if total_price > 0 else "Pay now"
+            pay_btn.set_text(btn_text)
+
             return total_price
 
         async def validate_and_add_attendee(email_input: ui.input):
@@ -261,7 +262,7 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                                 "Send invite").on_click(lambda: invite(email))
 
             elif new_attendee.status not in (PersonStatus.verified, PersonStatus.member):
-                toast('Can\'t buy a ticket for this person', type='warning')
+                ui.notify('Can\'t buy a ticket for this person', type='warning')
             else:
                 if await get_tickets_by_person_id(new_attendee.id, event.id):
                     ui.notify(f"This person already has a ticket for {event.name}.")
@@ -278,7 +279,6 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
 
         @ui.refreshable
         def cart_summary():
-            nonlocal pay_btn
             with section("Checkout"):
                 with ui.card().classes(
                         'w-full items-center border-1', remove='rounded-3xl').props('flat'):
@@ -433,14 +433,14 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
             radio.update()
 
         cart_summary()
-        update_totals()
 
         with section():
             ui.space().classes('h-[40px]')
             with section() as s:
                 s.classes('fixed bottom-6 z-50')
-                btn_text = f"Pay {total_price} AMD" if total_price > 0 else "Pay now"
-                pay_btn = primary_button(btn_text).on_click(lambda: handle_payment())
+                pay_btn = primary_button().on_click(lambda: handle_payment())
+
+        update_totals()
 
     async with frame():
         if await get_tickets_by_person_id(person.id, event_id):

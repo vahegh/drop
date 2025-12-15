@@ -33,7 +33,7 @@ async def persons_panel():
                         ui.navigate.reload()
 
                     except Exception as e:
-                        ui.notify(f"Unable to create person: {str(e)}", type='negative')
+                        ui.notify(f"Unable to create person: {str(e)}", type='warning')
 
                 positive_button('Save').on_click(submit)
                 outline_button('Cancel').on_click(dialog.close)
@@ -132,7 +132,7 @@ async def person_details_panel(person_id):
                         ui.navigate.reload()
 
                     except Exception as e:
-                        ui.notify(f"Unable to update person: {str(e)}", type='negative')
+                        ui.notify(f"Unable to update person: {str(e)}", type='warning')
 
                 positive_button('Save').on_click(submit)
                 outline_button('Cancel').on_click(dialog.close)
@@ -172,7 +172,7 @@ async def person_details_panel(person_id):
                         ui.navigate.reload()
 
                     except Exception as e:
-                        ui.notify(f"Unable to create ticket: {str(e)}", type='negative')
+                        ui.notify(f"Unable to create ticket: {str(e)}", type='warning')
 
                 positive_button('Create').on_click(submit)
                 outline_button('Cancel').on_click(dialog.close)
@@ -185,7 +185,7 @@ async def person_details_panel(person_id):
                 await get_all_persons()
                 ui.navigate.to('/gagodzya/people')
             except Exception as e:
-                ui.notify(f'Error deleting person: {str(e)}')
+                ui.notify(f'Error deleting person: {str(e)}', type='warning')
 
     async def delete_ticket(id):
         if await ui.run_javascript('confirm("Are you sure you want to delete this ticket?")', timeout=10):
@@ -194,7 +194,7 @@ async def person_details_panel(person_id):
                 ui.notify('Ticket deleted successfully.')
                 ui.navigate.reload()
             except Exception as e:
-                ui.notify(f'Error deleting ticket: {str(e)}')
+                ui.notify(f'Error deleting ticket: {str(e)}', type='warning')
 
     with section():
         with section():
