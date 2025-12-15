@@ -40,7 +40,6 @@ def create_email_message(email_request: EmailRequest) -> EmailMessage:
 
 async def send_email(email_request: EmailRequest):
     msg = create_email_message(email_request)
-    await asyncio.sleep(1)
 
     for attempt in range(MAX_RETRIES):
         smtp_client = SMTP(
