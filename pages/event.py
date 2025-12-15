@@ -99,11 +99,7 @@ async def event_page(event_id: UUID, logged_in=Depends(logged_in)):
             if event_passed:
                 primary_button('This event has ended').props('disabled')
             else:
-                if logged_in:
-                    if person.status in (PersonStatus.member, PersonStatus.verified):
-                        primary_button('Get your ticket', target=f'/buy-ticket?event_id={event.id}')
-                    else:
-                        primary_button('You can buy a ticket after verification')
-                else:
-                    primary_button('Sign up to get your ticket',
-                                   target=f'/buy-ticket?event_id={event.id}')
+                btn = primary_button(
+                    'Get your ticket', target=f'/buy-ticket?event_id={event.id}')
+                if logged_in and person.status not in (PersonStatus.member, PersonStatus.verified):
+                    btn.props(add='disable')
