@@ -15,6 +15,7 @@ async def create_payment_intent(db: AsyncSession, payment_intent: PaymentIntent)
 @with_db
 async def delete_payment_intents(db: AsyncSession, order_id: int):
     await db.execute(delete(PaymentIntent).where(PaymentIntent.order_id == order_id))
+    await db.commit()
 
 
 @with_db

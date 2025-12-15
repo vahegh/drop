@@ -21,3 +21,4 @@ async def get_drink_payment_intents(db: AsyncSession, order_id: int):
 @with_db
 async def delete_drink_payment_intents(db: AsyncSession, order_id: int):
     await db.execute(delete(DrinkPaymentIntent).where(DrinkPaymentIntent.order_id == order_id))
+    await db.commit()
