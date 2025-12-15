@@ -4,7 +4,6 @@ import logging
 from db_models import Person, Payment
 from api_models import TelegramMessage
 
-
 logger = logging.getLogger(__name__)
 
 telegram_chat_id_payments = "-4934132606"
@@ -30,30 +29,6 @@ async def notify_application(person: Person):
         chat_id=telegram_chat_id,
         text=text,
         reply_markup=reply_markup)
-    await send_tg_message(tg_message)
-
-
-async def notify_payment_page_view(person: Person):
-    text = f"""<b>New payment page view!</b>
-    <b>Name:</b> {person.first_name} {person.last_name}
-    <b>Instagram:</b> <a href='https://www.instagram.com/{person.instagram_handle}'>@{person.instagram_handle}</a>"""
-    tg_message = TelegramMessage(
-        chat_id=telegram_chat_id_payments,
-        text=text)
-    await send_tg_message(tg_message)
-
-
-async def notify_payment_init(person: Person, payment: Payment, recipients: list[str]):
-    text = f"""<b>Payment initialized!</b>
-    <b>Name:</b> {person.first_name} {person.last_name}
-    <b>Instagram:</b> <a href='https://www.instagram.com/{person.instagram_handle}'>@{person.instagram_handle}</a>
-    <b>Amount: {int(payment.amount)} AMD</b>
-    <b>Provider:</b> {payment.provider.value}
-    <b>Recipients:</b> {','.join(recipients)}"""
-
-    tg_message = TelegramMessage(
-        chat_id=telegram_chat_id_payments,
-        text=text)
     await send_tg_message(tg_message)
 
 
