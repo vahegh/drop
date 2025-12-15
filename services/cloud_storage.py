@@ -1,5 +1,6 @@
 from google.cloud import storage
 from services.google_auth import get_google_credentials
+import base64
 
 GCS_BUCKET_NAME = "dropdeadisco"
 APPLE_PASSES_GCS_DIR = "apple_passes"
@@ -37,4 +38,15 @@ async def get_pass_file(serial_number: str):
     blob = bucket.blob(f"{APPLE_PASSES_GCS_DIR}/{serial_number}.pkpass")
     if blob.exists():
         return blob.download_as_bytes()
+    return None
+
+
+async def get_event_img(filename):
+    storage_client = storage.Client(credentials=await get_google_credentials())
+    bucket = storage_client.bucket(GCS_BUCKET_NAME)
+    blob = bucket.blob(f"event-images/{filename}")
+    blob.cache_control = "max-age=0"
+    if blob.exists():
+        file_bytes = blob.download_as_bytes()
+        return base64.b64encode(file_bytes).decode('utf-8')
     return None

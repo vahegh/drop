@@ -1,6 +1,7 @@
 from datetime import timezone, datetime
 from nicegui import ui
 from fastapi import HTTPException
+from uuid import UUID
 from frame import frame
 from consts import album_urls
 from helpers import get_album_urls, gtag_event
@@ -21,8 +22,7 @@ async def drop_5():
 
 
 @ui.page('/event/{event_id}', response_timeout=10)
-async def event_page(event_id, logged_in=Depends(logged_in)):
-    await ui.context.client.connected()
+async def event_page(event_id: UUID, logged_in=Depends(logged_in)):
     event = await get_event_info(event_id)
     if not event:
         raise HTTPException(404)

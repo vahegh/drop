@@ -13,7 +13,7 @@ async def frame(show_footer=False):
               accent="#8e51ff", positive="#50bf5a", warning="#ff8904", negative="#fb2c36")
 
     request = ui.context.client.request
-    await ui.context.client.connected()
+    # await ui.context.client.connected()
 
     person: PersonResponseFull = request.state.person
     logged_in = request.state.logged_in

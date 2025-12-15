@@ -28,7 +28,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-@ui.page('/buy-ticket', title='Buy Your Ticket | Drop Dead Disco')
+@ui.page('/buy-ticket', title='Buy Your Ticket | Drop Dead Disco', response_timeout=10)
 async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(logged_in)):
     if not logged_in:
         ui.navigate.to(f'/login?redirect_url=/buy-ticket?event_id={event_id}')
@@ -39,8 +39,6 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
     if person.status not in (PersonStatus.member, PersonStatus.verified):
         ui.navigate.to("/")
         return
-
-    await ui.context.client.connected()
 
     cache = get_cache()
     event = await cache.fetch_event(event_id)
@@ -446,20 +444,17 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
 
     async with frame():
         if await get_tickets_by_person_id(person.id, event_id):
-            with ui.dialog().props('persistent') as dl:
+            with ui.dialog(value=True) as dl:
                 if person.status == PersonStatus.verified:
                     text = f"You already have a ticket for {event.name}"
                 elif person.status == PersonStatus.member:
                     text = f"You can use your Membership pass to access {event.name}"
                 with ui.card():
                     with section(text, subtitle="It's on your homepage."):
-                        primary_button('Buy another ticket').on_click(dl.submit)
+                        primary_button('Buy another ticket').on_click(dl.close)
                         outline_button('Go to homepage', target='/')
+            await main_page()
 
-            result = await dl
-            if result:
-                cart['tickets'] = []
-                await main_page()
         else:
             add_to_cart(person)
             await main_page()

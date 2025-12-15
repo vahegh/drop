@@ -31,10 +31,7 @@ async def get_next_event(db: AsyncSession):
 
 @with_db
 async def get_event_info(db: AsyncSession, id: UUID):
-    event = await db.get(Event, id)
-    if not event:
-        raise HTTPException(404, "Event not found")
-    return event
+    return await db.get(Event, id)
 
 
 @with_db

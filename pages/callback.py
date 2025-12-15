@@ -111,7 +111,6 @@ async def callback_page(confirm_request):
 
 @ui.page('/ameriatransactionstate', title='Payment Confirmation | Drop Dead Disco')
 async def myameria_callback(transactionId: int, paymentId: UUID, status=myameria_payment_status, errorMessage: Optional[str] = None):
-    await ui.context.client.connected()
     if not transactionId or not paymentId or not status:
         raise HTTPException(404)
 
@@ -126,7 +125,6 @@ async def myameria_callback(transactionId: int, paymentId: UUID, status=myameria
 
 @ui.page('/vpostransactionstate', title='Payment Confirmation | Drop Dead Disco')
 async def vpos_callback(request: Request, orderID: int, resposneCode: str, paymentID: UUID, opaque: Optional[str] = None, description: Optional[str] = None):
-    await ui.context.client.connected()
     if not orderID or not resposneCode or not paymentID:
         raise HTTPException(404)
 
@@ -158,7 +156,6 @@ async def vpos_callback(request: Request, orderID: int, resposneCode: str, payme
 
 @ui.page('/cardbinding', title='Add Payment Method | Drop Dead Disco')
 async def card_binding_callback(request: Request, orderID: int, resposneCode: str, paymentID: UUID, opaque: Optional[str] = None, description: Optional[str] = None, logged_in=Depends(logged_in)):
-    await ui.context.client.connected()
     if not orderID or not resposneCode or not paymentID:
         raise HTTPException(404)
 
