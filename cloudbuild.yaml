@@ -102,10 +102,10 @@ steps:
         
         curl -X POST "https://api.telegram.org/bot$${TELEGRAM_BOT_TOKEN}/sendMessage" \
           -H "Content-Type: application/json" \
-          -d "{\"chat_id\": \"$${TELEGRAM_CHAT_ID}\", \"text\": \"$${MESSAGE}\", \"parse_mode\": \"HTML\"}"
+          -d "{\"chat_id\": \"-4997958781\", \"text\": \"$${MESSAGE}\", \"parse_mode\": \"HTML\"}"
     id: 'notify-telegram'
     waitFor: ['deploy']
-    secretEnv: ['TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID']
+    secretEnv: ['TELEGRAM_BOT_TOKEN']
 
 options:
   logging: CLOUD_LOGGING_ONLY
@@ -114,5 +114,3 @@ availableSecrets:
   secretManager:
     - versionName: projects/$PROJECT_ID/secrets/telegram_bot_token/versions/latest
       env: 'TELEGRAM_BOT_TOKEN'
-    - versionName: projects/$PROJECT_ID/secrets/telegram_chat_id/versions/latest
-      env: 'TELEGRAM_CHAT_ID'
