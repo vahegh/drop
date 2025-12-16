@@ -1,8 +1,6 @@
 import logging
 from uuid import UUID
 from sqlalchemy import select
-from datetime import datetime, timezone
-from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from decorators import with_db
 from db_models import Drink
