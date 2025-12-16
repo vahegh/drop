@@ -6,9 +6,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
 from enums import PersonStatus
 from services.templating import generate_template
+from services.venue import get_venue_info
 from db_models import Event, Venue, Person, EventTicket
 from api_models import EventCreate, EventUpdate
-from consts import GOOGLE_MEMBER_CLASS_ID, APP_BASE_URL, TIMEZONE
+from consts import APP_BASE_URL
 from services.google_pass import create_ticket_class, update_member_class
 from services.mailing import EmailRequest, send_email
 from decorators import with_db
@@ -36,16 +37,15 @@ async def get_event_info(db: AsyncSession, id: UUID):
 
 @with_db
 async def create_event(db: AsyncSession, event: EventCreate):
-    db_event = Event(**event.model_dump())
-    db.add(db_event)
+    venue = await get_venue_info(event.venue_id)
+    event = Event(**event.model_dump())
+
+    db.add(event)
     await db.commit()
-    await db.refresh(db_event)
-    venue = await db.get(Venue, event.venue_id)
-    starts_at = event.starts_at.astimezone(TIMEZONE)
-    ends_at = event.ends_at.astimezone(TIMEZONE)
-    event_url = f"{APP_BASE_URL}/event/{db_event.id}"
-    await create_ticket_class(db_event.id, event.name, event_url, venue.name, venue.address, starts_at, ends_at)
-    return db_event
+    await db.refresh(event)
+
+    await create_ticket_class(event=event, venue=venue)
+    return event
 
 
 @with_db
@@ -55,35 +55,11 @@ async def update_event(db: AsyncSession, id: UUID, request: EventUpdate):
         raise HTTPException(404, "Event not found")
 
     venue = await db.get(Venue, event.venue_id)
-    event_start_local = event.starts_at.astimezone(TIMEZONE)
-    event_end_local = event.ends_at.astimezone(TIMEZONE)
-    event_url = f"{APP_BASE_URL}/event/{event.id}"
-
     for field, value in request.model_dump(exclude_unset=True).items():
         setattr(event, field, value)
 
-    await update_member_class(
-        class_id=GOOGLE_MEMBER_CLASS_ID,
-        event_name=event.name,
-        event_date=event_start_local.strftime("%B %d, %Y"),
-        starts_at=event_start_local.strftime('%H:%M'),
-        ends_at=event_end_local.strftime('%H:%M'),
-        event_url=event_url,
-        venue_name=venue.name,
-        google_maps_url=venue.google_maps_link,
-        yandex_maps_url=venue.yandex_maps_link,
-    )
-
-    await create_ticket_class(
-        class_id=event.id,
-        event_name=event.name,
-        starts_at=event_start_local,
-        ends_at=event_end_local,
-        event_url=event_url,
-        venue_name=venue.name,
-        venue_address=venue.address,
-        yandex_maps_url=venue.yandex_maps_link,
-    )
+    await update_member_class(event=event, venue=venue)
+    await create_ticket_class(event=event, venue=venue)
 
     await db.commit()
     await db.refresh(event)
@@ -92,10 +68,10 @@ async def update_event(db: AsyncSession, id: UUID, request: EventUpdate):
 
 @with_db
 async def delete_event(db: AsyncSession, id: UUID):
-    db_event = await db.get(Event, id)
-    if not db_event:
+    event = await db.get(Event, id)
+    if not event:
         raise HTTPException(404, "Event not found")
-    await db.delete(db_event)
+    await db.delete(event)
     await db.commit()
     return
 
@@ -125,8 +101,6 @@ async def early_bird_end(db: AsyncSession, event_id: UUID):
                                 .outerjoin(EventTicket, (EventTicket.person_id == Person.id) & (EventTicket.event_id == event_id))
                                 .where(Person.status == PersonStatus.verified)
                                 .where(EventTicket.id.is_(None)))).all()
-
-    persons = [await db.scalar(select(Person).where(Person.email == 'vahe.55101@gmail.com'))]
 
     for p in persons:
         context['name'] = p.first_name

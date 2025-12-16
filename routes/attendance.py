@@ -25,7 +25,6 @@ async def add_attendance(db: AsyncSession, pass_id: UUID):
     person = await db.get(Person, db_pass.person_id)
 
     event = await db.scalar(select(Event).where((Event.starts_at < datetime.now()) & (Event.ends_at > datetime.now())))
-    # event = await db.get(Event, UUID("21324509-cb82-4a6a-bab1-751d67dad583"))  # TODO remove
     if not event:
         raise HTTPException(404, "Event not found")
 
@@ -57,7 +56,11 @@ async def add_attendance(db: AsyncSession, pass_id: UUID):
             }
         }
         await patch_member_object(pass_id, attendance_body)
-        await create_apple_member(str(pass_id), f"{person.first_name, person.last_name}", db_pass.serial_number, attendance)
+        await create_apple_member(
+            member_pass=db_pass,
+            name=f"{person.first_name} {person.last_name}",
+            attendance=attendance
+        )
 
     return person
 

@@ -1,4 +1,5 @@
 from uuid import UUID
+import logging
 from sqlalchemy import select
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,14 +12,17 @@ from routes.attendance import get_attendance
 from services.apple_pass import create_apple_member
 from services.google_pass import create_google_member_pass
 from services.apple_push_notifications import apple_notify_pass_devices
-from consts import GOOGLE_MEMBER_CLASS_ID, TIMEZONE, APP_BASE_URL, MEMBER_PASS_SUBJECT, MEMBER_PASS_TEMPLATE
+from consts import APP_BASE_URL, MEMBER_PASS_SUBJECT, MEMBER_PASS_TEMPLATE
 from services.templating import generate_template
 from services.mailing import EmailRequest, send_email
 from services.event import get_all_events
 
 
+logger = logging.getLogger(__name__)
+
+
 @with_db
-async def get_next_serial_number(db: AsyncSession) -> int:
+async def get_next_serial_number(db: AsyncSession):
     existing_serials = (await db.scalars(
         select(MemberPass.serial_number).order_by(MemberPass.serial_number)
     )).all()
@@ -40,54 +44,44 @@ async def create_member_pass(db: AsyncSession, member_pass: MemberPass):
     if existing:
         member_pass = existing
     else:
-        member_pass.serial_number = await get_next_serial_number()
+        if not member_pass.serial_number:
+            member_pass.serial_number = await get_next_serial_number()
         db.add(member_pass)
         await db.commit()
         await db.refresh(member_pass)
 
     pass_id = str(member_pass.id)
-    member_id = str(member_pass.serial_number).zfill(3)
     attendance = str(await get_attendance(member_pass.person_id))
 
     next_event = await get_next_event()
     person = await db.get(Person, member_pass.person_id)
 
+    full_name = f"{person.first_name} {person.last_name}"
+
     google_url = await create_google_member_pass(
-        pass_id=pass_id,
-        class_id=GOOGLE_MEMBER_CLASS_ID,
-        member_id=member_id,
-        name=f"{person.first_name} {person.last_name}",
-        attendance=attendance
+        name=full_name,
+        attendance=attendance,
+        member_pass=member_pass
     )
 
     if next_event:
         venue = await db.get(Venue, next_event.venue_id)
         if not venue:
             raise HTTPException(404, "Venue not found")
-        starts_at = next_event.starts_at.astimezone(TIMEZONE).isoformat()
-        ends_at = next_event.ends_at.astimezone(TIMEZONE).isoformat()
-        event_url = f"{APP_BASE_URL}/event/{next_event.id}"
 
         apple_url = await create_apple_member(
-            pass_id=pass_id,
-            name=f"{person.first_name} {person.last_name}",
-            member_id=member_id,
+            member_pass=member_pass,
+            name=full_name,
             attendance=attendance,
-            event_name=next_event.name,
-            event_url=event_url,
-            venue_name=venue.name,
-            lat=venue.latitude,
-            long=venue.longitude,
-            starts_at=starts_at,
-            ends_at=ends_at
+            event=next_event,
+            venue=venue,
         )
 
     else:
         apple_url = await create_apple_member(
-            pass_id=pass_id,
-            name=f"{person.first_name} {person.last_name}",
-            member_id=member_id,
-            attendance=attendance
+            member_pass=member_pass,
+            name=full_name,
+            attendance=attendance,
         )
 
     await apple_notify_pass_devices(pass_id)
@@ -95,10 +89,11 @@ async def create_member_pass(db: AsyncSession, member_pass: MemberPass):
     member_pass.google_pass_url = google_url
     member_pass.apple_pass_url = apple_url
 
-    db.add(person)
     db.add(member_pass)
     await db.commit()
     await db.refresh(member_pass)
+
+    logger.info(f"Created member pass for {full_name}")
 
     return member_pass
 
@@ -166,11 +161,9 @@ async def send_member_pass(db: AsyncSession, member_pass: MemberPass, purchase=F
         "homepage_url": APP_BASE_URL,
         "serial_no": str(member_pass.serial_number).zfill(3),
         "events_attended": str(await get_attendance(person.id)),
-        "total_events": str(len(await get_all_events()))
+        "total_events": str(len(await get_all_events())),
+        "purchase": purchase
     }
-
-    if purchase:
-        context["purchase"] = True
 
     email_template = await generate_template(MEMBER_PASS_TEMPLATE, context=context)
 

@@ -9,7 +9,6 @@ APP_BASE_URL = os.environ['app_base_url']
 APP_BASE_URL_NO_PROTO = os.environ['app_base_url_no_proto']
 admins = os.environ['admins'].split()
 
-GOOGLE_MEMBER_CLASS_ID = "drop_member_pass"
 
 ORG_NAME = "Drop Dead Disco"
 MEMBER_PASS_TITLE = "Membership Pass"

@@ -115,11 +115,6 @@ async def update_person(db: AsyncSession, id: UUID, updated_person: PersonUpdate
                 body=template
             )
 
-        case PersonStatus.member:
-            member_pass = MemberPass(person_id=person.id)
-            member_pass = await create_member_pass(member_pass)
-            await send_member_pass(member_pass)
-
     if email_request:
         await send_email(email_request)
 

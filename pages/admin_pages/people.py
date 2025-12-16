@@ -10,9 +10,9 @@ from enums import PersonStatus
 from services.person import create_person, update_person, delete_person
 from services.event_ticket import create_event_ticket, delete_event_ticket, get_tickets_by_person_id, add_ticket_to_db
 from services.event import get_all_events
-from services.member_pass import get_all_member_passes
+from services.member_pass import get_all_member_passes, send_member_pass, create_member_pass
 from services.person import get_all_persons, get_person
-from db_models import EventTicket
+from db_models import EventTicket, MemberPass
 from services.event_ticket import send_event_ticket
 
 
@@ -177,6 +177,21 @@ async def person_details_panel(person_id):
                 positive_button('Create').on_click(submit)
                 outline_button('Cancel').on_click(dialog.close)
 
+    async def create_member_pass_dialog():
+        async def create_pass(serial_no):
+            member_pass = MemberPass(person_id=person.id)
+            if serial_no:
+                member_pass.serial_number = int(serial_no)
+            ui.notify(serial_no)
+            member_pass = await create_member_pass(member_pass)
+            await send_member_pass(member_pass)
+
+        with ui.dialog(value=True):
+            with ui.card().classes('w-full gap-4 p-4'):
+                with section('Create Member Pass'):
+                    no = ui.number("Serial no.")
+                    primary_button("Create Member Pass").on_click(lambda: create_pass(no.value))
+
     async def delete():
         if await ui.run_javascript('confirm("Are you sure you want to delete this person?")', timeout=10):
             try:
@@ -233,3 +248,4 @@ async def person_details_panel(person_id):
                             ui.icon('delete').on('click', lambda t=ticket: delete_ticket(t.id))
 
             primary_button('Create Ticket').on_click(lambda: create_ticket_dialog())
+            outline_button("Create Member Pass").on_click(lambda: create_member_pass_dialog())

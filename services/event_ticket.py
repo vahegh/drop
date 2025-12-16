@@ -24,10 +24,10 @@ async def add_ticket_to_db(db: AsyncSession, ticket: EventTicket):
                                .where((EventTicket.person_id == ticket.person_id) & (EventTicket.event_id == ticket.event_id)))
     if existing:
         return existing
-    else:
-        db.add(ticket)
-        await db.commit()
-        await db.refresh(ticket)
+
+    db.add(ticket)
+    await db.commit()
+    await db.refresh(ticket)
 
     return ticket
 
@@ -40,21 +40,17 @@ async def create_event_ticket(db: AsyncSession, ticket: EventTicket):
     event = await db.get(Event, ticket.event_id)
     venue = await db.get(Venue, event.venue_id)
 
+    full_name = f"{person.first_name} {person.last_name}"
     pass_id = str(ticket.id)
-    starts_at = event.starts_at.astimezone(TIMEZONE).isoformat()
-    ends_at = event.ends_at.astimezone(TIMEZONE).isoformat()
-    event_url = f"{APP_BASE_URL}/event/{event.id}"
 
-    google_url = await create_google_ticket(pass_id, event.id, f"{person.first_name} {person.last_name}")
-    apple_url = await create_apple_ticket(pass_id,
-                                          f"{person.first_name} {person.last_name}",
-                                          event.name,
-                                          event_url,
-                                          venue.name,
-                                          venue.latitude,
-                                          venue.longitude,
-                                          starts_at,
-                                          ends_at)
+    google_url = await create_google_ticket(pass_id, event.id, full_name)
+    apple_url = await create_apple_ticket(
+        name=full_name,
+        event_ticket=ticket,
+        event=event,
+        venue=venue
+    )
+
     ticket.google_pass_url = google_url
     ticket.apple_pass_url = apple_url
     await apple_notify_pass_devices(pass_id)
@@ -62,6 +58,8 @@ async def create_event_ticket(db: AsyncSession, ticket: EventTicket):
     db.add(ticket)
     await db.commit()
     await db.refresh(ticket)
+
+    logger.info(f"Created ticket for {full_name}")
 
     return ticket
 
@@ -123,7 +121,7 @@ async def create_ticket(db: AsyncSession, request: EventTicketCreate):
 async def delete_event_ticket(db: AsyncSession, id: UUID):
     db_ticket = await db.get(EventTicket, id)
     if not db_ticket:
-        raise HTTPException(404, "Event not found")
+        raise HTTPException(404, "Event ticket not found")
     await db.delete(db_ticket)
     await db.commit()
     return
@@ -131,14 +129,14 @@ async def delete_event_ticket(db: AsyncSession, id: UUID):
 
 @with_db
 async def update_apple_ticket_info(db: AsyncSession, event_id: UUID):
-    tickets = await db.scalars(select(EventTicket).where(EventTicket.event_id == event_id))
-    for t in tickets.all():
-        person = await db.get(Person, t.person_id)
-        if person.status == PersonStatus.member:
-            print("member, continuing")
-            continue
-        await create_event_ticket(t)
-        print(f"ticket updated for {f"{person.first_name} {person.last_name}"}")
+    tickets = await db.scalars(
+        select(EventTicket)
+        .join(Person, EventTicket.person_id == Person.id)
+        .where(EventTicket.event_id == event_id)
+        .where(Person.status != PersonStatus.member)
+    )
+    for ticket in tickets.all():
+        await create_event_ticket(ticket)
 
 
 @with_db

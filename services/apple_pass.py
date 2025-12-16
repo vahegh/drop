@@ -8,16 +8,18 @@ import tempfile
 import subprocess
 from services.cloud_storage import upload_apple_pass
 from consts import (ORG_NAME, MEMBER_PASS_TITLE, DROP_INSTA_URL,
-                    DROP_INSTA_TEXT, APP_BASE_URL_NO_PROTO)
+                    DROP_INSTA_TEXT, APP_BASE_URL_NO_PROTO,
+                    APP_BASE_URL)
+from db_models import Event, Venue, MemberPass, EventTicket
 
-pass_images_base_dir = "apple-pass-images"
 logger = logging.getLogger(__name__)
 
+APPLE_PASS_IMAGES_DIR = "apple-pass-images"
 APPLE_AUTH_TOKEN = os.environ["apple_auth_token"]
 APPLE_TEAM_ID = os.environ["apple_team_id"]
 APPLE_APNS_KEY = os.environ["apple_apns_key"]
 APPLE_APNS_KEY_ID = os.environ["apple_apns_key_id"]
-APPLE_UPDATE_URL = "https://dropdeadisco.com/api/passupdates/"
+APPLE_UPDATE_URL = f"{APP_BASE_URL}/api/passupdates/"
 APPLE_PASS_TYPE_ID = "pass.com.vahe.drop1"
 
 CERT_DATA = os.getenv("apple_pass_cert")
@@ -51,16 +53,16 @@ async def create_and_sign_pkpass(pass_json_data: dict):
         with open(pass_json_path, 'w') as f:
             f.write(json.dumps(pass_json_data, indent=4))
 
-        shutil.copy2(f"{pass_images_base_dir}/icon.png", icon_path)
-        shutil.copy2(f"{pass_images_base_dir}/icon_3x.png", icon_3x_path)
-        shutil.copy2(f"{pass_images_base_dir}/strip.png", strip_path)
+        shutil.copy2(f"{APPLE_PASS_IMAGES_DIR}/icon.png", icon_path)
+        shutil.copy2(f"{APPLE_PASS_IMAGES_DIR}/icon_3x.png", icon_3x_path)
+        shutil.copy2(f"{APPLE_PASS_IMAGES_DIR}/strip.png", strip_path)
 
         if pass_json_data.get('storeCard'):
-            shutil.copy2(f"{pass_images_base_dir}/member_pass_logo.png", logo_path)
-            shutil.copy2(f"{pass_images_base_dir}/member_pass_logo_3x.png", logo_3x_path)
+            shutil.copy2(f"{APPLE_PASS_IMAGES_DIR}/member_pass_logo.png", logo_path)
+            shutil.copy2(f"{APPLE_PASS_IMAGES_DIR}/member_pass_logo_3x.png", logo_3x_path)
         else:
-            shutil.copy2(f"{pass_images_base_dir}/ticket_logo.png", logo_path)
-            shutil.copy2(f"{pass_images_base_dir}/ticket_logo_3x.png", logo_3x_path)
+            shutil.copy2(f"{APPLE_PASS_IMAGES_DIR}/ticket_logo.png", logo_path)
+            shutil.copy2(f"{APPLE_PASS_IMAGES_DIR}/ticket_logo_3x.png", logo_3x_path)
 
         file_paths = [icon_path, icon_3x_path, logo_path, logo_3x_path, strip_path, pass_json_path]
 
@@ -126,7 +128,12 @@ def create_pkpass(files, output_pass):
     return output_pass
 
 
-async def create_apple_member(pass_id, name, member_id, attendance, event_name=None, event_url=None, venue_name=None, lat=None, long=None, starts_at=None, ends_at=None):
+async def create_apple_member(member_pass: MemberPass, name, attendance, event: Event = None, venue: Venue = None):
+    starts_at = event.starts_at.astimezone().isoformat()
+    ends_at = event.ends_at.astimezone().isoformat()
+    pass_id = str(member_pass.id)
+    serial_no = str(member_pass.serial_number).zfill(3)
+
     apple_member_json = {
         "formatVersion": 1,
         "webServiceURL": APPLE_UPDATE_URL,
@@ -155,7 +162,7 @@ async def create_apple_member(pass_id, name, member_id, attendance, event_name=N
                 {
                     "key": "member_id",
                     "label": "Member ID",
-                    "value": member_id,
+                    "value": serial_no,
                     "textAlignment": "PKTextAlignmentLeft"
 
                 },
@@ -182,15 +189,15 @@ async def create_apple_member(pass_id, name, member_id, attendance, event_name=N
         {
             "label": "Member ID",
             "key": "member_id_back",
-            "value": member_id
+            "value": serial_no
         }
     ]
-    if event_name:
+    if event and venue:
         back_fields.extend(
             [
                 {
                     "label": "Next Event",
-                    "value": event_name,
+                    "value": event.name,
                     "key": "event_name_back",
                     "changeMessage": f"%@ is now live. Details inside the pass."
                 },
@@ -214,13 +221,13 @@ async def create_apple_member(pass_id, name, member_id, attendance, event_name=N
                 },
                 {
                     "label": "Venue",
-                    "value": venue_name,
+                    "value": venue.name,
                     "key": "venue_back",
                     "changeMessage": f"Location: %@"
                 },
                 {
                     "label": "Tickets",
-                    "attributedValue": f'<a href={event_url}>{APP_BASE_URL_NO_PROTO}</a>',
+                    "attributedValue": f'<a href={APP_BASE_URL}/event/{event.id}>{APP_BASE_URL_NO_PROTO}</a>',
                     "key": "event_url_back",
                 },
                 {
@@ -231,10 +238,9 @@ async def create_apple_member(pass_id, name, member_id, attendance, event_name=N
             ]
         )
 
-        # apple_member_json['relevantDates'] = [{'date': starts_at}]
-
-    if lat and long:
-        apple_member_json['locations'] = [{"latitude": lat, "longitude": long}]
+        if venue.latitude and venue.longitude:
+            apple_member_json['locations'] = [
+                {"latitude": venue.latitude, "longitude": venue.longitude}]
 
     apple_member_json['storeCard']['backFields'] = back_fields
 
@@ -245,7 +251,11 @@ async def create_apple_member(pass_id, name, member_id, attendance, event_name=N
     return pass_url
 
 
-async def create_apple_ticket(pass_id, name, event_name, event_url, venue_name, lat, long, starts_at, ends_at):
+async def create_apple_ticket(name, event_ticket: EventTicket, event: Event, venue: Venue):
+    starts_at = event.starts_at.astimezone().isoformat()
+    ends_at = event.ends_at.astimezone().isoformat()
+    pass_id = str(event_ticket.id)
+
     apple_ticket_json = {
         "formatVersion": 1,
         "webServiceURL": APPLE_UPDATE_URL,
@@ -254,9 +264,9 @@ async def create_apple_ticket(pass_id, name, event_name, event_url, venue_name, 
         "teamIdentifier": APPLE_TEAM_ID,
         "serialNumber": pass_id,
         "organizationName": ORG_NAME,
-        "description": f"One-time ticket for {event_name}",
+        "description": f"One-time ticket for {event.name}",
         "relevantDates": [{'date': starts_at}],
-        "locations": [{"latitude": lat, "longitude": long}],
+        "locations": [{"latitude": venue.latitude, "longitude": venue.longitude}],
         "barcodes": [
             {
                 "message": pass_id,
@@ -276,7 +286,7 @@ async def create_apple_ticket(pass_id, name, event_name, event_url, venue_name, 
                 {
                     "key": "event_name",
                     "label": "Event",
-                    "value": event_name,
+                    "value": event.name,
                     "textAlignment": "PKTextAlignmentLeft"
                 },
                 {
@@ -311,12 +321,12 @@ async def create_apple_ticket(pass_id, name, event_name, event_url, venue_name, 
                 {
                     "key": "event_name_back",
                     "label": "Event",
-                    "value": event_name
+                    "value": event.name
                 },
                 {
                     "key": "event_url_back",
                     "label": "Event Info",
-                    "attributedValue": f'<a href={event_url}>{APP_BASE_URL_NO_PROTO}</a>'
+                    "attributedValue": f'<a href={APP_BASE_URL}/event/{event.id}>{APP_BASE_URL_NO_PROTO}</a>'
                 },
                 {
                     "key": "event_date",
@@ -339,7 +349,7 @@ async def create_apple_ticket(pass_id, name, event_name, event_url, venue_name, 
                 {
                     "key": "venue_back",
                     "label": "Venue",
-                    "value": venue_name,
+                    "value": venue.name,
                     "changeMessage": f"Location: %@"
                 }
             ]

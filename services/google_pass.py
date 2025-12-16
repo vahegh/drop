@@ -1,12 +1,21 @@
 import time
 import httpx
-from uuid import UUID
-from datetime import datetime
+import logging
 from google.auth import jwt
 from google.auth.credentials import TokenState
 from services.google_auth import get_google_credentials
 from consts import ORG_NAME, MEMBER_PASS_TITLE, DROP_INSTA_URL, DROP_INSTA_TEXT, APP_BASE_URL
 from google.auth.transport.requests import Request
+from db_models import Venue, Event, MemberPass
+
+logger = logging.getLogger(__name__)
+
+GOOGLE_MEMBER_CLASS_ID = "drop_member_pass"
+DROP_LOGO_URL = "https://storage.googleapis.com/dropdeadisco/images/ticket_logo.png"
+DROP_MEMBER_PASS_BG_COLOR = "#000000"
+DROP_EVENT_TICKET_BG_COLOR = "#FFFFFF"
+GOOGLE_PASS_BASE_URL = "https://walletobjects.googleapis.com/walletobjects/v1"
+GOOGLE_ISSUER_ID = "3388000000022892625"
 
 
 async def get_token():
@@ -16,14 +25,7 @@ async def get_token():
     return credentials.token
 
 
-DROP_LOGO_URL = "https://storage.googleapis.com/dropdeadisco/images/ticket_logo.png"
-DROP_MEMBER_PASS_BG_COLOR = "#000000"
-DROP_EVENT_TICKET_BG_COLOR = "#FFFFFF"
-GOOGLE_PASS_BASE_URL = "https://walletobjects.googleapis.com/walletobjects/v1"
-GOOGLE_ISSUER_ID = "3388000000022892625"
-
-
-async def create_jwt(object_id):
+async def create_signed_pass_url(object_id):
     credentials = await get_google_credentials(['https://www.googleapis.com/auth/wallet_object.issuer'])
     jwt_payload = {
         "iss": credentials.service_account_email,
@@ -44,24 +46,16 @@ async def create_jwt(object_id):
         credentials.signer,
         jwt_payload,
     )
-    return encoded_jwt.decode('utf-8')
+    return f"https://pay.google.com/gp/v/save/{encoded_jwt.decode('utf-8')}"
 
 
-async def create_ticket_class(
-        class_id: UUID,
-        event_name: str,
-        starts_at: datetime,
-        ends_at: datetime,
-        event_url: str,
-        venue_name: str,
-        venue_address: str,
-        yandex_maps_url: str,
-):
+async def create_ticket_class(event: Event, venue: Venue):
+    class_id = f"{GOOGLE_ISSUER_ID}.{event.id}"
 
     body = {
-        "id": f"{GOOGLE_ISSUER_ID}.{class_id}",
+        "id": class_id,
         "issuerName": ORG_NAME,
-        'reviewStatus': 'UNDER_REVIEW',
+        "reviewStatus": "UNDER_REVIEW",
         "hexBackgroundColor": DROP_EVENT_TICKET_BG_COLOR,
         "logo": {
             "sourceUri": {
@@ -71,26 +65,26 @@ async def create_ticket_class(
         'eventName': {
             'defaultValue': {
                 'language': 'en',
-                'value': event_name
+                'value': event.name
             }
         },
         "venue": {
             "name": {
                 "defaultValue": {
                     "language": "en",
-                    "value": venue_name
+                    "value": venue.name
                 }
             },
             "address": {
                 "defaultValue": {
                     "language": "en",
-                    "value": venue_address
+                    "value": venue.address
                 }
             }
         },
         "dateTime": {
-            "start": starts_at.isoformat(),
-            "end": ends_at.isoformat()
+            "start": event.starts_at.astimezone().isoformat(),
+            "end": event.ends_at.astimezone().isoformat()
         },
         "securityAnimation": {
             "animationType": "FOIL_SHIMMER"
@@ -99,15 +93,19 @@ async def create_ticket_class(
             "uris": [
                 {
                     "description": "Event Info",
-                    "uri": event_url
+                    "uri": f"{APP_BASE_URL}/event/{event.id}",
+                },
+                {
+                    "description": "Google Maps",
+                    "uri": venue.google_maps_link,
                 },
                 {
                     "description": "Yandex Maps",
-                    "uri": yandex_maps_url,
+                    "uri": venue.yandex_maps_link,
                 }
 
             ]
-        },
+        }
     }
 
     try:
@@ -116,31 +114,22 @@ async def create_ticket_class(
                                      headers={"Authorization": f"Bearer {await get_token()}"},
                                      json=body)
             if resp.status_code == 409:
-                resp = await client.patch(f"{GOOGLE_PASS_BASE_URL}/eventTicketClass/{body['id']}",
+                resp = await client.patch(f"{GOOGLE_PASS_BASE_URL}/eventTicketClass/{class_id}",
                                           headers={"Authorization": f"Bearer {await get_token()}"},
                                           json=body)
         resp.raise_for_status()
     except httpx.HTTPStatusError as e:
-        print(e.response.content)
+        logger.error(f"Unable to create ticket class: {e.response.content}")
         raise
     else:
         return resp.json()
 
 
-async def update_member_class(
-        class_id,
-        event_name=None,
-        event_date=None,
-        starts_at=None,
-        ends_at=None,
-        event_url=None,
-        venue_name=None,
-        google_maps_url=None,
-        yandex_maps_url=None
-):
-    google_member_pass_id = f"{GOOGLE_ISSUER_ID}.{class_id}"
+async def update_member_class(event: Event = None, venue: Venue = None):
+    class_id = f"{GOOGLE_ISSUER_ID}.{GOOGLE_MEMBER_CLASS_ID}"
+
     body = {
-        "id": google_member_pass_id,
+        "id": class_id,
         "issuerName": ORG_NAME,
         'reviewStatus': 'UNDER_REVIEW',
         "hexBackgroundColor": DROP_MEMBER_PASS_BG_COLOR,
@@ -164,26 +153,26 @@ async def update_member_class(
         ]
     }
 
-    if event_name:
+    if event:
         body['textModulesData'] = [
             {
                 "header": "Next Event",
-                "body": event_name,
+                "body": event.name,
                 "id": "next_event_name"
             },
             {
                 "header": "Date",
-                "body": event_date,
+                "body": event.starts_at.astimezone().strftime("%B %d, %Y"),
                 "id": "next_event_date"
             },
             {
                 "header": "Start Time",
-                "body": starts_at,
+                "body": event.starts_at.astimezone().strftime('%H:%M'),
                 "id": "next_event_start_time"
             },
             {
                 "header": "End Time",
-                "body": ends_at,
+                "body": event.ends_at.astimezone().strftime('%H:%M'),
                 "id": "next_event_end_time"
             },
         ]
@@ -192,30 +181,30 @@ async def update_member_class(
             0,
             {
                 "description": "Tickets and Information",
-                "uri": event_url,
+                "uri": f"{APP_BASE_URL}/event/{event.id}",
                 "id": "event_url_back"
             }
         )
 
-    if venue_name:
+    if venue:
         body['textModulesData'].append(
             {
                 "header": "Venue",
-                "body": venue_name,
+                "body": venue.name,
                 "id": "next_event_venue"
             }
         )
         links_data["uris"].append(
             {
                 "description": "Google Maps",
-                "uri": google_maps_url,
+                "uri": venue.google_maps_link,
                 "id": "google_maps_url_back"
             }
         )
         links_data["uris"].append(
             {
                 "description": "Yandex Maps",
-                "uri": yandex_maps_url,
+                "uri": venue.yandex_maps_link,
                 "id": "yandex_maps_url_back"
             }
         )
@@ -223,7 +212,7 @@ async def update_member_class(
     body['linksModuleData'] = links_data
 
     async with httpx.AsyncClient() as client:
-        update_resp = await client.patch(f"{GOOGLE_PASS_BASE_URL}/loyaltyClass/{google_member_pass_id}",
+        update_resp = await client.patch(f"{GOOGLE_PASS_BASE_URL}/loyaltyClass/{class_id}",
                                          headers={"Authorization": f"Bearer {await get_token()}"},
                                          json=body)
         update_resp.raise_for_status()
@@ -231,9 +220,10 @@ async def update_member_class(
 
 
 async def create_google_ticket(ticket_id, class_id, name):
-    google_ticket_id = f"{GOOGLE_ISSUER_ID}.{ticket_id}"
+    id = f"{GOOGLE_ISSUER_ID}.{ticket_id}"
+
     body = {
-        'id': google_ticket_id,
+        'id': id,
         'classId': f"{GOOGLE_ISSUER_ID}.{class_id}",
         'state': 'ACTIVE',
         'ticketHolderName': name,
@@ -249,32 +239,33 @@ async def create_google_ticket(ticket_id, class_id, name):
                                  headers={"Authorization": f"Bearer {await get_token()}"},
                                  json=body)
         if resp.status_code == 409:
-            resp = await client.put(f"{GOOGLE_PASS_BASE_URL}/eventTicketObject/{google_ticket_id}",
+            resp = await client.put(f"{GOOGLE_PASS_BASE_URL}/eventTicketObject/{id}",
                                     headers={"Authorization": f"Bearer {await get_token()}"},
                                     json=body)
         resp.raise_for_status()
 
-    token = await create_jwt(google_ticket_id)
-    return f'https://pay.google.com/gp/v/save/{token}'
+    return await create_signed_pass_url(id)
 
 
-async def create_google_member_pass(pass_id, class_id, member_id, name, attendance):
-    google_member_pass_id = f"{GOOGLE_ISSUER_ID}.{pass_id}"
+async def create_google_member_pass(name, attendance, member_pass: MemberPass):
+    id = f"{GOOGLE_ISSUER_ID}.{member_pass.id}"
+    serial_no = str(member_pass.serial_number).zfill(3)
+
     body = {
-        "id": google_member_pass_id,
-        "classId": f"{GOOGLE_ISSUER_ID}.{class_id}",
+        "id": id,
+        "classId": f"{GOOGLE_ISSUER_ID}.{GOOGLE_MEMBER_CLASS_ID}",
         "state": "ACTIVE",
         "barcode": {
             "type": "QR_CODE",
-            "value": pass_id,
+            "value": str(member_pass.id),
             "alternateText": name
         },
         "accountName": name,
-        "accountId": member_id,
+        "accountId": serial_no,
         "loyaltyPoints": {
             "label": "Member ID",
             "balance": {
-                "string": member_id,
+                "string": serial_no,
             },
         },
         "secondaryLoyaltyPoints": {
@@ -290,13 +281,12 @@ async def create_google_member_pass(pass_id, class_id, member_id, name, attendan
                                  headers={"Authorization": f"Bearer {await get_token()}"},
                                  json=body)
         if resp.status_code == 409:
-            resp = await client.put(f"{GOOGLE_PASS_BASE_URL}/loyaltyObject/{google_member_pass_id}",
+            resp = await client.put(f"{GOOGLE_PASS_BASE_URL}/loyaltyObject/{id}",
                                     headers={"Authorization": f"Bearer {await get_token()}"},
                                     json=body)
         resp.raise_for_status()
 
-    token = await create_jwt(google_member_pass_id)
-    return f'https://pay.google.com/gp/v/save/{token}'
+    return await create_signed_pass_url(id)
 
 
 async def patch_member_object(pass_id, body):
@@ -308,12 +298,12 @@ async def patch_member_object(pass_id, body):
     return patch_resp.json()
 
 
-async def add_class_message(class_id, header, body, messageType="TEXT_AND_NOTIFY"):
+async def add_class_message(class_id, header, body, message_type="TEXT_AND_NOTIFY"):
     message = {
         "message": {
             "header": header,
             "body": body,
-            "messageType": messageType
+            "messageType": message_type
         }
     }
     async with httpx.AsyncClient() as client:
@@ -323,6 +313,6 @@ async def add_class_message(class_id, header, body, messageType="TEXT_AND_NOTIFY
                                     json=message)
             msg.raise_for_status()
         except httpx.HTTPStatusError as e:
-            print(e.response.content)
+            logger.error(f"Unable to add class message: {e.response.content}")
         else:
             return msg
