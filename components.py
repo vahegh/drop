@@ -132,7 +132,7 @@ def login_button(target):
     return btn
 
 
-def event_card(event: EventResponse, share=False):
+def event_card(event: EventResponse, share=False, buy_btn=False):
     def share_event():
         gtag_event("share_event")
         ui.run_javascript(f'''
@@ -144,12 +144,23 @@ def event_card(event: EventResponse, share=False):
         ''')
 
     with ui.image(event.image_url).classes('aspect-4/5 rounded-3xl w-full max-w-96') as c:
-        with ui.column().classes(add='bg-transparent h-full justify-between p-6 w-full items-center'):
-            page_header(event.name)
-            with ui.row():
-                ui.label(event.starts_at.astimezone().strftime('%d %B')).classes('text-lg')
+        with ui.column().classes(add='bg-transparent h-full justify-between p-4 w-full items-center'):
+            with ui.column().classes('w-full items-center gap-1'):
+                ui.label(event.starts_at.astimezone().strftime('%d %B'))
+                page_header(event.name)
+            with ui.column().classes('w-full'):
                 if share:
                     ui.button(icon='share').props('round color=dark').on('click', share_event)
+                if buy_btn:
+                    if event.ends_at > datetime.now(timezone.utc):
+                        btn_text = "🎟️ Buy your ticket"
+                        target = f"/buy-ticket?event_id={event.id}"
+                    else:
+                        btn_text = "View event"
+                        target = f"/event/{event.id}"
+                    primary_button(btn_text, target=target).on_click(
+                        lambda b: b.sender.props(add='loading disable')).on_click(lambda b: b.sender.run_method("stopPropagation"))
+
     return c
 
 

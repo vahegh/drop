@@ -102,7 +102,7 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                         with section("You at Drop"):
                             ui.markdown(
                                 "As a Member, you get access to **all photos of you** captured during Drop events, in full quality.").classes('text-center')
-                            primary_button(
+                            outline_button(
                                 "Open in Google Photos", icon=f"img:/static/images/google_photos.svg", target=f"{person.drive_folder_url}?authuser={person.email}")
                             ui.markdown(
                                 "*note: this album is only visible to you*").classes('text-center')
@@ -126,11 +126,9 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
             for e in upcoming_events:
                 with section():
                     with ui.link(target=f"/event/{e.id}").classes('w-full max-w-96 justify-center items-center'):
-                        event_card(e)
-                    if logged_in:
-                        if person.status in (PersonStatus.verified, PersonStatus.member):
-                            outline_button(
-                                "🎟️ Buy a ticket", target=f"/buy-ticket?event_id={e.id}")
+                        can_buy_ticket = (logged_in and person.status in (
+                            PersonStatus.verified, PersonStatus.member)) or not logged_in
+                        event_card(e, buy_btn=can_buy_ticket)
 
         page_header("The Community")
         ui.markdown('''
@@ -163,7 +161,7 @@ We don't tell you the location beforehand, and every guest has to pass **verific
         with ui.grid().classes('flex w-full justify-center p-2 gap-4'):
             for e in past_events:
                 with ui.link(target=f"/event/{e.id}").classes('w-full max-w-96 justify-center items-center'):
-                    event_card(e)
+                    event_card(e, buy_btn=True)
 
         section_title("Find us on Spotify")
         ui.element('iframe').props('''
