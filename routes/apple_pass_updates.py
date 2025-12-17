@@ -9,6 +9,9 @@ from services.cloud_storage import get_pass_file
 from services.apple_pass import APPLE_PASS_TYPE_ID, APPLE_AUTH_TOKEN
 from api_models import RegistrationRequest, UpdatedPassesResponse, LogRequest
 from db_models import AppleDevices, AppleDeviceRegistrations, EventTicket, MemberPass
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=['Apple Pass Updates'], prefix="/api/passupdates/v1")
 
@@ -161,5 +164,5 @@ async def get_updated_pass(
 
 @router.post("/log")
 async def log(body: LogRequest):
-    print(body.logs)
+    logger.info(body.logs)
     return {"status": "success"}
