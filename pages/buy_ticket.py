@@ -9,7 +9,6 @@ from helpers import get_user_agent, gtag_event
 from components import (rounded_email_input, primary_button,
                         event_datetime_card, page_header, section,
                         binding_card, outline_button, payment_choice, section_title)
-from storage_cache import get_cache
 from uuid import UUID
 from services.event_ticket import get_tickets_by_person_id
 from services.payment import init_payment, create_payment
@@ -18,6 +17,7 @@ from services.mailing import EmailRequest, send_email
 from services.templating import generate_template
 from services.drink import get_all_drinks
 from services.vpos_payment import make_binding_payment_vpos
+from services.event import get_event_info
 from dependencies import Depends, logged_in
 from db_models import PaymentIntent, Payment, DrinkPaymentIntent
 from services.payment_intent import create_payment_intent
@@ -40,8 +40,7 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
         ui.navigate.to("/")
         return
 
-    cache = get_cache()
-    event = await cache.fetch_event(event_id)
+    event = await get_event_info(event_id)
     user_agent = await get_user_agent(request)
 
     cart = {
