@@ -3,6 +3,7 @@ import httpx
 import logging
 from db_models import Person, Payment
 from api_models import TelegramMessage
+from enums import PersonStatus
 
 logger = logging.getLogger(__name__)
 
@@ -18,13 +19,15 @@ async def notify_application(person: Person):
     <b>Last name:</b> {person.last_name}
     <b>Email:</b> {person.email}
     <b>Instagram:</b> <a href='https://www.instagram.com/{person.instagram_handle}'>@{person.instagram_handle}</a>"""
-    reply_markup = {
-        'inline_keyboard': [[
-            {'text': 'Approve', 'callback_data': f'verified_{person.id}'},
-            {'text': 'Reject', 'callback_data': f'rejected_{person.id}'},
-            {'text': 'Member', 'callback_data': f'member_{person.id}'},
-        ]]
-    }
+    reply_markup = None
+    if not person.status == PersonStatus.verified:
+        reply_markup = {
+            'inline_keyboard': [[
+                {'text': 'Approve', 'callback_data': f'verified_{person.id}'},
+                {'text': 'Reject', 'callback_data': f'rejected_{person.id}'},
+                {'text': 'Member', 'callback_data': f'member_{person.id}'},
+            ]]
+        }
     tg_message = TelegramMessage(
         chat_id=telegram_chat_id,
         text=text,

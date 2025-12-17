@@ -312,7 +312,7 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                     submit_btn.on_click(lambda: submit())
 
                 person_attendance = await get_attendance(person.id)
-                if person_attendance < 1:
+                if person_attendance < 2:
                     await invite(email)
                 else:
                     await refer_person(email)
@@ -371,7 +371,7 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
 
         with ui.dialog() as add_attendee_dl:
             with ui.card():
-                with section("Add a friend", subtitle="If you have attended one or more Drop events, you can refer a friend to join us. They will be auto-approved on your behalf."):
+                with section("Add a friend", subtitle="If you have attended two or more Drop events, you can refer a friend to join us. They will be auto-approved on your behalf."):
                     add_attendee_input = rectangular_email_input()
                     save_btn = primary_button("Add").on_click(
                         lambda: validate_and_add_attendee(add_attendee_input))
