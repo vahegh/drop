@@ -4,11 +4,12 @@ from collections import defaultdict
 from fastapi import Request
 from frame import frame
 from enums import PaymentProvider, PersonStatus
-from api_models import PersonResponseFull
+from api_models import PersonResponseFull, PersonCreate
 from helpers import get_user_agent, gtag_event
-from components import (rounded_email_input, primary_button,
+from components import (rectangular_email_input, primary_button,
                         event_datetime_card, page_header, section,
-                        binding_card, outline_button, payment_choice, section_title)
+                        binding_card, outline_button, payment_choice, section_title,
+                        name_input, instagram_input)
 from uuid import UUID
 from services.event_ticket import get_tickets_by_person_id
 from services.payment import init_payment, create_payment
@@ -18,6 +19,8 @@ from services.templating import generate_template
 from services.drink import get_all_drinks
 from services.vpos_payment import make_binding_payment_vpos
 from services.event import get_event_info
+from routes.attendance import get_attendance
+from routes.auth import register
 from dependencies import Depends, logged_in
 from db_models import PaymentIntent, Payment, DrinkPaymentIntent
 from services.payment_intent import create_payment_intent
@@ -223,12 +226,12 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                     ui.notify('Person already added')
                     return
 
+            save_btn.props(add='loading disable')
+
             new_attendee = await get_person_by_email(email)
 
             if not new_attendee:
                 async def invite(email):
-
-                    invite_btn.props(add='loading')
                     context = {
                         "inviter_name": person.full_name,
                         "inviter_first_name": person.first_name,
@@ -246,30 +249,85 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                     await send_email(email_req)
                     gtag_event("invite_friend", {"person_id": str(person.id)})
 
-                    invite_dl.clear()
-                    with invite_dl:
+                    add_attendee_dl.clear()
+                    with add_attendee_dl:
                         with ui.card():
                             with section("Invitation sent!"):
                                 ui.markdown(
                                     f"You have invited **{email}** to join Drop Dead Disco. You can buy a ticket for them after they are approved.").classes(
                                     'text-center')
 
-                with ui.dialog(value=True) as invite_dl:
-                    with ui.card():
-                        with section("This person is not registered", subtitle="Send them an invite link"):
-                            invite_btn = primary_button(
-                                "Send invite").on_click(lambda: invite(email))
+                async def refer_person(email):
+                    add_attendee_dl.clear()
+                    with add_attendee_dl:
+                        with ui.card():
+                            with section("Refer a friend", subtitle="They will be auto-approved on your behalf."):
+                                with ui.column().classes('w-full gap-0'):
+                                    email_inp = rectangular_email_input(value=email)
+                                    with ui.row(wrap=False):
+                                        fn_inp = name_input("First name", "John")
+                                        ln_inp = name_input("Last name", "Doe")
+                                    insta_inp = instagram_input()
+                                    submit_btn = primary_button('Submit')
+
+                    async def submit():
+                        if not all([
+                            fn_inp.validate(),
+                            ln_inp.validate(),
+                            email_inp.validate(),
+                            insta_inp.validate()
+                        ]):
+                            return
+
+                        submit_btn.props(add='loading disable')
+
+                        first_name = fn_inp.value.strip()
+                        last_name = ln_inp.value.strip()
+                        email = email_inp.value.strip()
+                        insta = insta_inp.value.strip().lstrip('@')
+
+                        payload = PersonCreate(
+                            first_name=first_name,
+                            last_name=last_name,
+                            email=email,
+                            instagram_handle=insta,
+                            referer_id=person.id
+                        )
+
+                        new_person = await register(payload)
+
+                        if new_person:
+                            add_to_cart(new_person)
+                            gtag_event("refer_friend", {"person_id": str(person.id)})
+                            attendee_list.refresh()
+                            update_totals()
+                            add_attendee_dl.close()
+
+                        else:
+                            add_attendee_dl.clear()
+                            with add_attendee_dl:
+                                with section("Unknown error occured.", subtitle="Please try again a little later."):
+                                    primary_button("Back").on_click(add_attendee_dl.close)
+
+                    submit_btn.on_click(lambda: submit())
+
+                person_attendance = await get_attendance(person.id)
+                if person_attendance < 1:
+                    await invite(email)
+                else:
+                    await refer_person(email)
 
             elif new_attendee.status not in (PersonStatus.verified, PersonStatus.member):
                 ui.notify('Can\'t buy a ticket for this person', type='warning')
             else:
                 if await get_tickets_by_person_id(new_attendee.id, event.id):
                     ui.notify(f"This person already has a ticket for {event.name}.")
-                    return
                 else:
                     add_to_cart(new_attendee)
                     attendee_list.refresh()
                     update_totals()
+            save_btn.props(remove='loading disable')
+            return
 
         page_header(event.name)
 
@@ -311,10 +369,19 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                         section_title('Total:')
                         section_title(f"{total_price:,d} AMD")
 
+        with ui.dialog() as add_attendee_dl:
+            with ui.card():
+                with section("Add a friend", subtitle="If you have attended one or more Drop events, you can refer a friend to join us. They will be auto-approved on your behalf."):
+                    add_attendee_input = rectangular_email_input()
+                    save_btn = primary_button("Add").on_click(
+                        lambda: validate_and_add_attendee(add_attendee_input))
+                    add_attendee_input.on(
+                        'keydown.enter', lambda: save_btn.run_method('click'))
+
         @ui.refreshable
         def attendee_list():
             with section("Attendees",
-                         subtitle="You can only add people who are verified. They'll see their ticket on their profile."):
+                         subtitle="Enter a friend's email to buy them a ticket. They'll see it on their homepage."):
                 def remove_attendee(attendee):
                     remove_from_cart(attendee)
                     attendee_list.refresh()
@@ -333,13 +400,8 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                                     ui.icon('close').classes('cursor-pointer ml-auto').on('click',
                                                                                           lambda a=attendee: remove_attendee(a))
 
-                add_attendee_input = rounded_email_input()
-                with add_attendee_input.add_slot('append'):
-                    save_btn = ui.button(icon="save").props(
-                        'round dense flat text-color="black"').on_click(
-                        lambda: validate_and_add_attendee(add_attendee_input))
-                add_attendee_input.on(
-                    'keydown.enter', lambda: save_btn.run_method('click'))
+                outline_button("Add a friend", icon='cruelty_free').on_click(
+                    add_attendee_dl.open)
 
         attendee_list()
 

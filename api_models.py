@@ -46,6 +46,7 @@ class PersonCreate(BaseModel):
     instagram_handle: str
     telegram_handle: Optional[str] = None
     avatar_url: Optional[str] = None
+    referer_id: Optional[UUID] = None
 
 
 class PersonUpdate(BaseModel):
@@ -57,6 +58,7 @@ class PersonUpdate(BaseModel):
     status: Optional[PersonStatus] = None
     avatar_url: Optional[str] = None
     drive_folder_url: Optional[str] = None
+    referer_id: Optional[UUID] = None
 
 
 class PersonResponse(BaseModel):
@@ -69,6 +71,7 @@ class PersonResponse(BaseModel):
     status: PersonStatus
     avatar_url: Optional[str]
     drive_folder_url: Optional[str]
+    referer_id: Optional[UUID]
 
     class Config:
         from_attributes = True

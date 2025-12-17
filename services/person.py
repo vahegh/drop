@@ -60,15 +60,20 @@ async def create_person(db: AsyncSession, person: PersonCreate):
     await notify_application(new_person)
 
     context = {"name": person.first_name}
-    template = await generate_template(APPLICATION_SUBMITTED_TEMPLATE, context)
 
-    email_request = EmailRequest(
-        recipient_email=new_person.email,
-        subject=APPLICATION_SUBMITTED_SUBJECT,
-        body=template
-    )
+    if not person.referer_id:
+        template = await generate_template(APPLICATION_SUBMITTED_TEMPLATE, context)
 
-    await send_email(email_request)
+        email_request = EmailRequest(
+            recipient_email=new_person.email,
+            subject=APPLICATION_SUBMITTED_SUBJECT,
+            body=template
+        )
+
+        await send_email(email_request)
+    else:
+        new_person = await update_person(new_person.id, PersonUpdate(status=PersonStatus.verified))
+
     return new_person
 
 

@@ -127,6 +127,10 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                 with section():
                     with ui.link(target=f"/event/{e.id}").classes('w-full max-w-96 justify-center items-center'):
                         event_card(e)
+                    if logged_in:
+                        if person.status in (PersonStatus.verified, PersonStatus.member):
+                            outline_button(
+                                "🎟️ Buy a ticket", target=f"/buy-ticket?event_id={e.id}")
 
         page_header("The Community")
         ui.markdown('''

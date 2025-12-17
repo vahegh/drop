@@ -35,6 +35,8 @@ class Person(Base):
         Enum(PersonStatus), default=PersonStatus.pending)
     avatar_url: Mapped[str] = mapped_column(String, nullable=True)
     drive_folder_url: Mapped[str] = mapped_column(String, nullable=True)
+    referer_id: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey('person.id'), nullable=True)
 
 
 class Event(Base):

@@ -9,7 +9,7 @@ from fastapi.responses import RedirectResponse
 from decorators import with_db
 from consts import APPLICATION_SUBMITTED_SUBJECT, APPLICATION_SUBMITTED_TEMPLATE
 from api_models import PersonCreate, PersonUpdate
-from services.person import update_person
+from services.person import update_person, create_person
 from services.auth import create_jwt, create_token
 from services.telegram import notify_application
 from services.templating import generate_template
@@ -54,28 +54,8 @@ async def generate_and_set_tokens(db: AsyncSession, person_id: str, refresh_expi
     return response
 
 
-@with_db
-async def register(db: AsyncSession, person: PersonCreate):
-    existing_email = await db.scalar(select(Person).where(Person.email == person.email))
-    if existing_email:
-        raise HTTPException(409, "Email already exists")
-
-    new_person = Person(**person.model_dump())
-    db.add(new_person)
-    await db.commit()
-    await notify_application(new_person)
-
-    context = {"name": person.first_name}
-    template = await generate_template(APPLICATION_SUBMITTED_TEMPLATE, context)
-
-    email_request = EmailRequest(
-        recipient_email=new_person.email,
-        subject=APPLICATION_SUBMITTED_SUBJECT,
-        body=template
-    )
-
-    await send_email(email_request)
-    return person
+async def register(person: PersonCreate):
+    return await create_person(person)
 
 
 @router.get("/login-user")

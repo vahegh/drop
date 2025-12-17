@@ -76,8 +76,6 @@ async def signup_page(token):
                             avatar_url=token_info['picture']
                         )
 
-                        print(payload.model_dump())
-
                         person = await register(payload)
 
                         if person:
