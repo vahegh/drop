@@ -20,6 +20,13 @@ def gtag_event(event_name, params: dict = {}):
     ui.run_javascript(f"gtag('event', '{event_name}', {json.dumps(params)});")
 
 
+def fbq_event(event_name, params: dict = None):
+    if params:
+        ui.run_javascript(f"fbq('track', '{event_name}', {json.dumps(params)});")
+    else:
+        ui.run_javascript(f"fbq('track', '{event_name}');")
+
+
 def gtag_config(params: dict = {}):
     ui.run_javascript(f"gtag('config', 'G-152G4X4VLJ', {json.dumps(params)});")
 

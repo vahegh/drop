@@ -14,7 +14,7 @@ from services.payment_intent import get_payment_intents
 from services.event import get_event_info
 from services.person import get_person
 from dependencies import Depends, logged_in
-from helpers import gtag_event
+from helpers import gtag_event, fbq_event
 from enums import PersonStatus
 from datetime import datetime, timezone
 
@@ -100,6 +100,8 @@ async def callback_page(confirm_request):
                     "items": items
                 }
             )
+            fbq_event("Purchase", params={"value": float(
+                confirm_response.amount), "currency": "AMD"})
 
         else:
             status_icon.set_name('close')
@@ -143,6 +145,7 @@ async def vpos_callback(request: Request, orderID: int, resposneCode: str, payme
                     is_active=card_binding_vpos.IsAvtive
                 )
             )
+            fbq_event("AddPaymentInfo")
         except Exception as e:
             logger.error(f"Unable to add card binding: {str(e)}")
 
@@ -183,7 +186,7 @@ async def card_binding_callback(request: Request, orderID: int, resposneCode: st
                     is_active=card_binding_vpos.IsAvtive
                 )
             )
-
+            fbq_event("AddPaymentInfo")
             ui.navigate.to("/profile")
         except Exception as e:
             logger.warning(f"Unable to create card binding: {str(e)}")

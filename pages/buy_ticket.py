@@ -5,7 +5,7 @@ from fastapi import Request
 from frame import frame
 from enums import PaymentProvider, PersonStatus
 from api_models import PersonResponseFull, PersonCreate
-from helpers import get_user_agent, gtag_event
+from helpers import get_user_agent, gtag_event, fbq_event
 from components import (rectangular_email_input, primary_button,
                         event_datetime_card, page_header, section,
                         binding_card, outline_button, payment_choice, section_title,
@@ -70,6 +70,7 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
             "item_id": id,
             "price": price
         }]})
+        fbq_event("AddToCart")
         print(f"added {person.first_name} to cart")
 
     def remove_from_cart(person):
@@ -163,6 +164,7 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
 
             gtag_event("begin_checkout", {"currency": "AMD",
                                           "value": new_payment.amount, "items": items})
+            fbq_event("InitiateCheckout")
 
             if payment_provider == PaymentProvider.BINDING:
                 card_id = method['data']

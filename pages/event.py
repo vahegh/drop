@@ -4,7 +4,7 @@ from fastapi import HTTPException
 from uuid import UUID
 from frame import frame
 from consts import album_urls
-from helpers import get_album_urls, gtag_event
+from helpers import get_album_urls, gtag_event, fbq_event
 from components import (event_datetime_card, event_card, image_carousel, primary_button,
                         ticket_card, section, location_card, page_header)
 from services.event import get_event_info
@@ -82,6 +82,7 @@ async def event_page(event_id: UUID, logged_in=Depends(logged_in)):
                             },
                         ]
                     })
+                    fbq_event("ViewContent")
 
             else:
                 if album_url:
