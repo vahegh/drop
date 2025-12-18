@@ -89,7 +89,9 @@ head_html = '''
     }
         
 </style>
+'''
 
+pixel_code = '''
 <!-- Meta Pixel Code -->
 <script>
 !function(f,b,e,v,n,t,s)
@@ -114,6 +116,8 @@ def main():
     from nicegui import ui, app
 
     ui.add_head_html(head_html, shared=True)
+    if env != "local":
+        ui.add_head_html(pixel_code, shared=True)
 
     import components
     from pages import (

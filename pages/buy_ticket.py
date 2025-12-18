@@ -328,6 +328,7 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                     add_to_cart(new_attendee)
                     attendee_list.refresh()
                     update_totals()
+                    add_attendee_dl.close()
             save_btn.props(remove='loading disable')
             return
 
