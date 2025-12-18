@@ -1,7 +1,7 @@
 import logging
 from uuid import UUID
 from datetime import timedelta, datetime, timezone
-from sqlalchemy import select
+from sqlalchemy import select, func
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from consts import TIMEZONE, APP_BASE_URL, EVENT_TICKET_SUBJECT, EVENT_TICKET_TEMPLATE
@@ -71,6 +71,26 @@ async def get_all_tickets(db: AsyncSession, event_id: str = None):
     else:
         tickets = await db.scalars(select(EventTicket))
     return tickets.all()
+
+
+@with_db
+async def get_tickets_by_day(db: AsyncSession, event_id: str, days: int = 30):
+    start_date = datetime.utcnow() - timedelta(days=days)
+
+    query = (
+        select(
+            func.date(EventTicket.created_at).label('date'),
+            func.count(EventTicket.id).label('ticket_count')
+        )
+        .where(EventTicket.created_at >= start_date)
+        .where(EventTicket.event_id == event_id)
+        .group_by(func.date(EventTicket.created_at))
+        .order_by(func.date(EventTicket.created_at))
+    )
+
+    result = await db.execute(query)
+
+    return [(row.date, row.ticket_count) for row in result.all()]
 
 
 @with_db

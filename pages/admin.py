@@ -7,8 +7,8 @@ from pages.admin_pages.events import events_panel, event_details_panel
 from pages.admin_pages.people import persons_panel, person_details_panel
 
 
-@ui.page('/gagodzya', response_timeout=10)
-@ui.page('/gagodzya/{_:path}', response_timeout=10)
+@ui.page('/gagodzya', title="Admin | Drop Dead Disco", response_timeout=10)
+@ui.page('/gagodzya/{_:path}', title="Admin | Drop Dead Disco", response_timeout=10)
 async def admin_page():
     try:
         await verify_admin_token(ui.context.client.request)
