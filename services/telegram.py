@@ -31,7 +31,8 @@ async def notify_application(person: Person):
     tg_message = TelegramMessage(
         chat_id=telegram_chat_id,
         text=text,
-        reply_markup=reply_markup)
+        reply_markup=reply_markup
+    )
     await send_tg_message(tg_message)
 
 

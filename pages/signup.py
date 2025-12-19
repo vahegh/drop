@@ -9,7 +9,6 @@ from fastapi import HTTPException
 from routes.auth import register
 from services.instagram_check import instagram_check
 from consts import logo_gray_path
-from helpers import fbq_event
 
 
 @ui.page('/signup', title="Sign Up | Drop Dead Disco")
@@ -80,7 +79,6 @@ async def signup_page(token):
                         person = await register(payload)
 
                         if person:
-                            fbq_event("CompleteRegistration")
                             ui.navigate.to(f'/api/auth/login-user?token={token}')
 
                         else:

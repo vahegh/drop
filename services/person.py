@@ -3,18 +3,17 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, Response
 from decorators import with_db
-from db_models import Person, MemberPass, RefreshToken
+from db_models import Person, RefreshToken
 from enums import PersonStatus
 from services.event import get_next_event
-from services.auth import create_jwt
 from services.telegram import notify_application
 from services.templating import generate_template
-from services.member_pass import create_member_pass, send_member_pass
 from services.mailing import EmailRequest, send_email
 from api_models import PersonCreate, PersonUpdate
 from consts import (APP_BASE_URL, APPLICATION_SUBMITTED_TEMPLATE, APPROVED_TEMPLATE,
                     REJECTED_TEMPLATE, APPLICATION_SUBMITTED_SUBJECT,
                     STATUS_CHANGE_SUBJECT)
+from helpers import fbq_event
 
 
 @with_db
@@ -73,7 +72,9 @@ async def create_person(db: AsyncSession, person: PersonCreate):
     else:
         new_person = await update_person(new_person.id, PersonUpdate(status=PersonStatus.verified))
 
+    fbq_event("CompleteRegistration")
     await notify_application(new_person)
+
     return new_person
 
 
