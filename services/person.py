@@ -57,7 +57,6 @@ async def create_person(db: AsyncSession, person: PersonCreate):
     new_person = Person(**person.model_dump())
     db.add(new_person)
     await db.commit()
-    await notify_application(new_person)
 
     context = {"name": person.first_name}
 
@@ -74,6 +73,7 @@ async def create_person(db: AsyncSession, person: PersonCreate):
     else:
         new_person = await update_person(new_person.id, PersonUpdate(status=PersonStatus.verified))
 
+    await notify_application(new_person)
     return new_person
 
 
