@@ -73,7 +73,7 @@ async def signup_page(token):
                             last_name=last_name,
                             email=email,
                             instagram_handle=insta,
-                            avatar_url=token_info['picture']
+                            avatar_url=token_info.get('picture')
                         )
 
                         person = await register(payload)
