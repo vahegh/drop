@@ -39,8 +39,7 @@ async def event_page(event_id: UUID, logged_in=Depends(logged_in)):
         with section():
             event_card(event, share=True)
 
-        with section():
-            ui.markdown(event.description).classes('text-center')
+        ui.markdown(event.description).classes('text-center')
 
         with ui.grid().classes('flex w-full justify-center p-2 gap-4'):
             if not event_passed:

@@ -9,6 +9,8 @@ from services.event import get_next_event
 from services.telegram import notify_application
 from services.templating import generate_template
 from services.mailing import EmailRequest, send_email
+from services.payment import get_ticket_payment
+from services.event_ticket import EventTicket, create_event_ticket, send_event_ticket
 from api_models import PersonCreate, PersonUpdate
 from consts import (APP_BASE_URL, APPLICATION_SUBMITTED_TEMPLATE, APPROVED_TEMPLATE,
                     REJECTED_TEMPLATE, APPLICATION_SUBMITTED_SUBJECT,
@@ -110,16 +112,32 @@ async def update_person(db: AsyncSession, id: UUID, updated_person: PersonUpdate
             next_event = await get_next_event()
 
             if next_event:
-                context["event_name"] = next_event.name
-                context["event_url"] = f"{APP_BASE_URL}/buy-ticket?event_id={next_event.id}"
+                existing_payment = await get_ticket_payment(person_id=person.id, event_id=next_event.id)
+                if existing_payment:
+                    event_ticket = EventTicket(
+                        person_id=person.id, event_id=existing_payment.event_id, payment_order_id=existing_payment.order_id)
+                    await create_event_ticket(event_ticket)
+                    await send_event_ticket(event_ticket)
 
-            template = await generate_template(APPROVED_TEMPLATE, context)
+                else:
+                    context["event_name"] = next_event.name
+                    context["event_url"] = f"{APP_BASE_URL}/buy-ticket?event_id={next_event.id}"
 
-            email_request = EmailRequest(
-                recipient_email=person.email,
-                subject=STATUS_CHANGE_SUBJECT,
-                body=template
-            )
+                    template = await generate_template(APPROVED_TEMPLATE, context)
+
+                    email_request = EmailRequest(
+                        recipient_email=person.email,
+                        subject=STATUS_CHANGE_SUBJECT,
+                        body=template
+                    )
+            else:
+                template = await generate_template(APPROVED_TEMPLATE, context)
+
+                email_request = EmailRequest(
+                    recipient_email=person.email,
+                    subject=STATUS_CHANGE_SUBJECT,
+                    body=template
+                )
 
     if email_request:
         await send_email(email_request)

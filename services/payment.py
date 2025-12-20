@@ -1,4 +1,5 @@
 import os
+from uuid import UUID
 from datetime import datetime, timezone
 from sqlalchemy import select
 from fastapi import HTTPException
@@ -26,6 +27,12 @@ ecrm_crn = os.environ['ecrm_crn']
 async def get_all_payments(db: AsyncSession):
     payments = await db.scalars(select(Payment))
     return payments.all()
+
+
+@with_db
+async def get_ticket_payment(db: AsyncSession, person_id: UUID, event_id: UUID):
+    payment = await db.scalar(select(Payment).where(Payment.person_id == person_id).where(Payment.event_id == event_id))
+    return payment
 
 
 @with_db
@@ -187,8 +194,11 @@ async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest, 
                 recipient_names.append(f"{h.first_name} {h.last_name}")
                 if h.status == PersonStatus.member:
                     member_qty += 1
-                else:
+                elif h.status == PersonStatus.verified:
                     non_member_qty += 1
+                elif h.status == PersonStatus.pending:
+                    non_member_qty += 1
+                    continue
 
                 event_ticket = EventTicket(
                     person_id=h.id, event_id=payment.event_id, payment_order_id=payment.order_id)
@@ -201,7 +211,9 @@ async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest, 
                 else:
                     await create_event_ticket(event_ticket)
                     await send_event_ticket(event_ticket)
-            await delete_payment_intents(payment.order_id)
+
+            if recipient_names:
+                await delete_payment_intents(payment.order_id)
 
         drinks = await get_drink_payment_intents(payment.order_id)
         if drinks:

@@ -13,7 +13,27 @@ from pydantic import BaseModel
 from qrcode.image.styledpil import StyledPilImage
 from qrcode.image.styles.colormasks import SolidFillColorMask
 from qrcode.image.styles.moduledrawers.pil import RoundedModuleDrawer
-from nicegui import ui
+from nicegui import ui, app
+import secrets
+from consts import google_client_id, APP_BASE_URL
+import urllib.parse
+
+
+async def get_google_auth_url(url='/', login_hint=None):
+    csrf_token = secrets.token_urlsafe(32)
+    app.storage.user['csrf_token'] = csrf_token
+
+    params = {
+        "client_id": google_client_id,
+        "redirect_uri": f"{APP_BASE_URL}/google-login",
+        "response_type": "code",
+        "scope": "openid email profile",
+        "hl": "en",
+        "state": f"csrf_token={csrf_token}&url={url}",
+        "login_hint": login_hint
+    }
+
+    return f"https://accounts.google.com/o/oauth2/v2/auth?{urllib.parse.urlencode(params)}"
 
 
 def gtag_event(event_name, params: dict = {}):

@@ -47,15 +47,15 @@ async def callback_page(confirm_request):
                 status_icon.set_name('credit_score')
                 status_icon.classes(replace='')
                 status_label.text = "This payment is already processed."
-                desc_label.text = "You should have already received your ticket via email. If not, please contact us via Instagram or email."
+                desc_label.text = "Your ticket should be visible on your homepage. If it isn't, please contact us via Instagram or email."
             else:
                 logger.error(str(e))
                 status_icon.set_name('close')
                 status_icon.classes(replace='text-red-500')
                 status_label.text = "Unable to process payment."
-                desc_label.text = "Please check your email. If you haven't received a ticket from us, contact us via Instagram or email."
+                desc_label.text = "Please check your homepage for your ticket. If it's not there, please contact us via Instagram or email."
 
-            outline_button("Go Home", target='/')
+            outline_button("Home", target='/')
             return main_col
 
         sp.set_visibility(False)
@@ -63,7 +63,7 @@ async def callback_page(confirm_request):
 
         if confirm_response.status == PaymentStatus.CONFIRMED:
             status_label.text = "Payment succesful!"
-            desc_label.text = "Each person will receive their ticket via email."
+            desc_label.text = "Each recipient can see their ticket on their profile. If you are waiting to be verified, you'll get your ticket immediately after verification. If your application isn't accepted, you'll receive a refund."
             outline_button("Event Information", target=f"/event/{confirm_response.event_id}")
 
             intents = await get_payment_intents(confirm_response.order_id)

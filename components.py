@@ -1,6 +1,5 @@
 import os
 import json
-import secrets
 import urllib.parse
 from datetime import datetime, timezone
 from uuid import UUID
@@ -11,11 +10,10 @@ from nicegui import ui, app
 from pydantic import BaseModel, EmailStr
 from api_models import EventResponse, MemberCardResponse, EventTicketResponse, EventResponse, VenueResponse, PersonResponse, CardBindingResponse
 from enums import PersonStatus
-from helpers import generate_qr
+from helpers import generate_qr, get_google_auth_url
 from consts import (email_validation, insta_validation, name_validation,
                     email_non_required, email_placeholder, calendar_base_url,
-                    google_calendar_img_url, instagram_placeholder, google_wallet_img_url,
-                    apple_wallet_img_url, google_client_id, APP_BASE_URL)
+                    google_calendar_img_url, instagram_placeholder, APP_BASE_URL)
 from helpers import get_card_type, gtag_event
 from markdown2 import markdown
 
@@ -433,21 +431,9 @@ def instagram_dialog(instagram_info):
     return dl
 
 
-def google_button(text, url='/'):
+def google_button(text, url='/', login_hint=None):
     async def redirect_to_auth():
-        csrf_token = secrets.token_urlsafe(32)
-        app.storage.user['csrf_token'] = csrf_token
-
-        params = {
-            "client_id": google_client_id,
-            "redirect_uri": f"{APP_BASE_URL}/google-login",
-            "response_type": "code",
-            "scope": "openid email profile",
-            "hl": "en",
-            "state": f"csrf_token={csrf_token}&url={url}"
-        }
-
-        auth_uri = f"https://accounts.google.com/o/oauth2/v2/auth?{urllib.parse.urlencode(params)}"
+        auth_uri = await get_google_auth_url(url=url, login_hint=login_hint)
         ui.navigate.to(auth_uri)
 
     with primary_button(text, icon="img:/static/images/google.svg") as btn:
@@ -456,21 +442,9 @@ def google_button(text, url='/'):
     return btn
 
 
-def outline_google_button(text, url='/'):
+def outline_google_button(text, url='/', login_hint=None):
     async def redirect_to_auth():
-        csrf_token = secrets.token_urlsafe(32)
-        app.storage.user['csrf_token'] = csrf_token
-
-        params = {
-            "client_id": google_client_id,
-            "redirect_uri": f"{APP_BASE_URL}/google-login",
-            "response_type": "code",
-            "scope": "openid email profile",
-            "hl": "en",
-            "state": f"csrf_token={csrf_token}&url={url}"
-        }
-
-        auth_uri = f"https://accounts.google.com/o/oauth2/v2/auth?{urllib.parse.urlencode(params)}"
+        auth_uri = await get_google_auth_url(url=url, login_hint=login_hint)
         ui.navigate.to(auth_uri)
 
     with outline_button(text, icon="img:/static/images/google.svg") as btn:
