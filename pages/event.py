@@ -1,9 +1,8 @@
 from datetime import timezone, datetime
 from nicegui import ui
-from fastapi import HTTPException
+from fastapi import HTTPException, Request
 from uuid import UUID
 from frame import frame
-from consts import album_urls
 from helpers import get_album_urls, gtag_event, fbq_event, share_event
 from components import (event_datetime_card, event_card, image_carousel, primary_button,
                         ticket_card, section, location_card, outline_button)
@@ -22,7 +21,7 @@ async def drop_5():
 
 
 @ui.page('/event/{event_id}', response_timeout=10)
-async def event_page(event_id: UUID, logged_in=Depends(logged_in)):
+async def event_page(event_id: UUID, request: Request, logged_in=Depends(logged_in)):
     event = await get_event_info(event_id)
     if not event:
         raise HTTPException(404)
@@ -34,17 +33,34 @@ async def event_page(event_id: UUID, logged_in=Depends(logged_in)):
 
     async with frame():
         event_passed = event.ends_at < datetime.now(timezone.utc)
-        album_url = album_urls.get(event_id)
 
-        with ui.grid().classes('flex w-full justify-center p-2 gap-2'):
+        with ui.grid().classes('flex w-full justify-center p-0 gap-2'):
             with section():
                 event_card(event)
-                outline_button("Share with a friend").props(
-                    'icon-right="send"').on_click(lambda: share_event(event))
+                # outline_button("Share with a friend").props(
+                #     'icon-right="send"').on_click(lambda: share_event(event, request.headers.get('user-agent', '').lower()))
+                ui.markdown(f"""
+## {event.name}  
+**Kentron, Yerevan**  
+{event.starts_at.astimezone().strftime("%d %B | %H:%M")} - {event.ends_at.astimezone().strftime("%H:%M")}  
 
+---""")
             if event.description:
-                with section("About this event"):
-                    ui.markdown(event.description)
+                with section():
+                    ui.markdown(f"""
+##### **About this event**  
+{event.description}
+
+---
+""")
+            if event.album_url:
+                with section():
+                    image_carousel(await get_album_urls(event.album_url))
+
+            if event.video_url:
+                with section():
+                    ui.element('iframe').props(
+                        f'src="{event.video_url}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen').classes('w-full h-auto aspect-16/9')
 
             if not event_passed:
                 with section():
@@ -81,21 +97,8 @@ async def event_page(event_id: UUID, logged_in=Depends(logged_in)):
                     })
                     fbq_event("ViewContent")
 
-                if album_url:
-                    with section():
-                        image_carousel(await get_album_urls(album_url))
                 with section():
                     location_card()
-
-            else:
-                if album_url:
-                    with section():
-                        image_carousel(await get_album_urls(album_url))
-
-                if event.video_url:
-                    with section("Drop on Youtube"):
-                        ui.element('iframe').props(
-                            f'src="{event.video_url}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen').classes('w-full h-auto aspect-16/9')
 
         ui.space().classes('h-[50px]')
         with section() as s:

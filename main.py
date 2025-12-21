@@ -5,7 +5,6 @@ if os.path.exists('.env'):
     load_dotenv()
 
 
-from helpers import is_cloud_run
 from routes.auth import router as auth_router
 from routes.telegram_webhook import router as tg_webhook_router
 from routes.attendance import router as attendance_router
@@ -27,7 +26,7 @@ env = os.getenv('env')
 storage_secret = os.getenv('storage_secret')
 
 head_html = '''
-<meta name="description" content="Drop Dead Disco - it's like a cult, but you can keep your job.">
+<meta name="description" content="Drop Dead Disco - ask around.">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -144,6 +143,12 @@ def main():
     app.add_middleware(AuthMiddleware)
     app.add_static_files(url_path='/static',
                          local_directory=os.path.join(os.path.dirname(__file__), 'static'))
+
+    # if env == 'local':
+    #     on_air = "XfXU7DUEZblpvy6J"
+    # else:
+    #     on_air = None
+
     ui.run(
         favicon="static/images/favicon.png",
         title="Drop Dead Disco",
@@ -152,7 +157,8 @@ def main():
         storage_secret=storage_secret,
         reload=False,
         show=False,
-        fastapi_docs=True
+        fastapi_docs=True,
+        # on_air=on_air
     )
 
 

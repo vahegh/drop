@@ -19,13 +19,27 @@ from consts import google_client_id, APP_BASE_URL
 import urllib.parse
 
 
-def share_event(event) -> None:
-    ui.run_javascript(f'''
-        navigator.share({{
-            title: {json.dumps(f'{event.name} | Drop Dead Disco')},
-            url: {json.dumps(f'{APP_BASE_URL}/event/{event.id}')}
-        }});
-    ''')
+async def can_share(user_agent) -> bool:
+    if 'firefox' in user_agent or 'fxios' in user_agent:
+        return False
+    if 'android' in user_agent:
+        if 'wv' in user_agent or ('version/' in user_agent and 'chrome/' in user_agent):
+            return False
+    return True
+
+
+async def share_event(event, user_agent) -> None:
+    if await can_share(user_agent):
+        ui.run_javascript(f'''
+            navigator.share({{
+                title: {json.dumps(f'{event.name} | Drop Dead Disco')},
+                url: {json.dumps(f'{APP_BASE_URL}/event/{event.id}')},
+                text: {json.dumps(f'{event.description} Tickets: {APP_BASE_URL}/buy-ticket?event_id={event.id}')}
+            }});
+        ''')
+    else:
+        ui.run_javascript(f"await navigator.clipboard.writeText('{APP_BASE_URL}/event/{event.id}')")
+
     gtag_event("share_event")
 
 

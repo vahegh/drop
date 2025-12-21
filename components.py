@@ -15,7 +15,6 @@ from consts import (email_validation, insta_validation, name_validation,
                     email_non_required, email_placeholder, calendar_base_url,
                     google_calendar_img_url, instagram_placeholder, APP_BASE_URL)
 from helpers import get_card_type, gtag_event
-from markdown2 import markdown
 
 maps_api_key = os.getenv('maps_api_key')
 
@@ -26,7 +25,7 @@ status_colors = {
     PersonStatus.pending: "#ff6900"
 }
 
-ui.button.default_props(':ripple="{ center: true, early: true }" :press-delay="0"')
+ui.button.default_props(':ripple="false" :press-delay="0"')
 ui.input.default_classes('w-full max-w-96 items-center justify-center')
 ui.input.default_props('color=accent no-error-icon outlined clearable clear-icon="clear"')
 ui.card.default_classes('rounded-3xl items-center w-full')
@@ -189,10 +188,13 @@ def event_datetime_card(event: EventResponse):
             start_dt_google = event.starts_at.strftime("%Y%m%dT%H%M%SZ")
             end_dt_google = event.ends_at.strftime("%Y%m%dT%H%M%SZ")
 
+            desc = f"""{event.description}
+            Tickets: {APP_BASE_URL}/buy-ticket?event_id={event.id}"""
+
             outline_button(
                 "Add to Calendar",
                 icon=f'img:{google_calendar_img_url}',
-                target=f"{calendar_base_url}&dates={start_dt_google}/{end_dt_google}&details={urllib.parse.quote_plus(event.description)}&location=Yerevan&text={urllib.parse.quote_plus(event.name)}"
+                target=f"{calendar_base_url}&dates={start_dt_google}/{end_dt_google}&details={urllib.parse.quote_plus(desc)}&location=Yerevan&text={urllib.parse.quote_plus(event.name)}"
             ).on_click(lambda: gtag_event("add_to_calendar"))
 
     return card
