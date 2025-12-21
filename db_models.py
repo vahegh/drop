@@ -51,6 +51,7 @@ class Event(Base):
     image_url: Mapped[str] = mapped_column(String)
     video_url: Mapped[str] = mapped_column(String, nullable=True)
     album_url: Mapped[str] = mapped_column(String, nullable=True)
+    track_url: Mapped[str] = mapped_column(String, nullable=True)
     description: Mapped[str] = mapped_column(String(2000))
     early_bird_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     early_bird_price: Mapped[int] = mapped_column(Integer, nullable=True)

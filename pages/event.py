@@ -37,6 +37,11 @@ async def event_page(event_id: UUID, logged_in=Depends(logged_in)):
         with ui.grid().classes('flex w-full justify-center p-0 gap-2'):
             with section():
                 event_card(event, share=True)
+            ui.element('iframe').props(f'''
+                                src="{event.track_url}"
+                                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                                loading="lazy"''').classes('rounded-xl w-full max-w-96 px-2 h-20')
+            with section():
                 ui.markdown(f"""
 ## {event.name}  
 **Kentron, Yerevan**  
