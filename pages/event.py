@@ -54,6 +54,7 @@ async def event_page(event_id: UUID, logged_in=Depends(logged_in)):
                         image_carousel(await get_album_urls(album_url))
 
                 with section("Tickets"):
+                    early_bird_passed = event.early_bird_date > datetime.now(timezone.utc)
                     members = ticket_card("Members", event.member_ticket_price)
                     early_bird = ticket_card("Early Bird", event.early_bird_price)
                     standard = ticket_card("Standard", event.general_admission_price)
@@ -61,10 +62,16 @@ async def event_page(event_id: UUID, logged_in=Depends(logged_in)):
                         if person.status == PersonStatus.member:
                             members.classes('border-2 border-blue-500')
                         elif person.status == PersonStatus.verified:
-                            if event.early_bird_date > datetime.now(timezone.utc):
+                            if early_bird_passed:
                                 early_bird.classes('border-2 border-blue-500')
                             else:
                                 standard.classes('border-2 border-blue-500')
+                    else:
+                        if early_bird_passed:
+                            early_bird.classes('border-2 border-blue-500')
+                        else:
+                            standard.classes('border-2 border-blue-500')
+
                     gtag_event("view_item_list", {
                         "items": [
                             {
