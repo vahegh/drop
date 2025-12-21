@@ -37,6 +37,18 @@ async def frame(show_footer=False):
                     'w-14 h-8')
             ui.space()
 
+            dark_mode = app.storage.user['dark_mode'] if "dark_mode" in app.storage.user else True
+
+            options = {
+                None: "Auto",
+                True: "Dark",
+                False: "Light"
+            }
+
+            def set_dark_mode(value):
+                app.storage.user['dark_mode'] = value
+            dark = ui.dark_mode(dark_mode)
+
             if logged_in:
                 with ui.button().props('round flat').classes('p-0') as btn:
                     if person.avatar_url:
@@ -61,19 +73,8 @@ async def frame(show_footer=False):
 
                         primary_button('Your profile', target='/profile')
 
-                        dark_mode = app.storage.user['dark_mode'] if "dark_mode" in app.storage.user else True
-
-                        options = {
-                            None: "Auto",
-                            True: "Dark",
-                            False: "Light"
-                        }
-
-                        def set_dark_mode(value):
-                            app.storage.user['dark_mode'] = value
-
                         ui.toggle(options, on_change=lambda e: set_dark_mode(
-                            e.value)).bind_value(ui.dark_mode(dark_mode))
+                            e.value)).bind_value(dark)
 
                         ui.link('Log out', '/logout')
 
