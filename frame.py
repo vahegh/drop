@@ -74,7 +74,7 @@ async def frame(show_footer=False):
                         primary_button('Your profile', target='/profile')
 
                         ui.toggle(options, on_change=lambda e: set_dark_mode(
-                            e.value)).bind_value(dark)
+                            e.value)).props('toggle-color="black"').bind_value(dark)
 
                         ui.link('Log out', '/logout')
 
