@@ -149,7 +149,6 @@ def main():
         title="Drop Dead Disco",
         viewport="width=device-width, initial-scale=1, maximum-scale=1",
         reconnect_timeout=30.0,
-        dark=None,
         storage_secret=storage_secret,
         reload=False,
         show=False,

@@ -61,13 +61,19 @@ async def frame(show_footer=False):
 
                         primary_button('Your profile', target='/profile')
 
+                        dark_mode = app.storage.user['dark_mode'] if "dark_mode" in app.storage.user else True
+
                         options = {
                             None: "Auto",
                             True: "Dark",
                             False: "Light"
                         }
-                        ui.toggle(options).props(
-                            'toggle-color=accent').bind_value(ui.dark_mode(None))
+
+                        def set_dark_mode(value):
+                            app.storage.user['dark_mode'] = value
+
+                        ui.toggle(options, on_change=lambda e: set_dark_mode(
+                            e.value)).bind_value(ui.dark_mode(dark_mode))
 
                         ui.link('Log out', '/logout')
 
