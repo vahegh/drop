@@ -130,25 +130,14 @@ def login_button(target):
     return btn
 
 
-def event_card(event: EventResponse, share=False, buy_btn=False):
-    def share_event():
-        gtag_event("share_event")
-        ui.run_javascript(f'''
-            navigator.share({{
-                title: {json.dumps(f'{event.name} | Drop Dead Disco')},
-                url: {json.dumps(f'{APP_BASE_URL}/event/{event.id}')},
-                text: {json.dumps(event.description)}
-            }});
-        ''')
-
+def event_card(event: EventResponse, buy_btn=False):
     with ui.image(event.image_url).classes('aspect-4/5 rounded-3xl w-full max-w-96') as c:
         with ui.column().classes(add='bg-transparent h-full justify-between p-4 w-full items-center'):
-            with ui.column().classes('w-full items-center gap-1'):
-                ui.label(event.starts_at.astimezone().strftime('%d %B'))
-                page_header(event.name)
+            page_header(event.name)
             with ui.column().classes('w-full'):
-                if share:
-                    ui.button(icon='share').props('round color=dark').on('click', share_event)
+                with ui.row(wrap=False):
+                    section_title(event.starts_at.astimezone().strftime('%d.%m'))
+                    section_title(event.starts_at.astimezone().strftime('%H:%M'))
                 if buy_btn:
                     if event.ends_at > datetime.now(timezone.utc):
                         btn_text = "🎟️ Buy your ticket"
@@ -178,20 +167,15 @@ def event_datetime_card(event: EventResponse):
         else:
             countdown_label.set_text(f"{days}d {hours}h {minutes}m {seconds}s")
 
-    with ui.card().classes('p-2').props('flat') as card:
+    with ui.card().classes('p-0').props('flat') as card:
         event_duration = (event.ends_at - event.starts_at).total_seconds()
         elapsed = (datetime.now(timezone.utc) - event.starts_at).total_seconds()
-        # elapsed = 14000
         progress_value = 0
         if elapsed > 0:
             progress_value = elapsed / event_duration
 
-        with section():
-            page_subheader(event.starts_at.astimezone().strftime("%A, %d %B"))
-            countdown_label = section_title('').classes('text-gray-500')
+        with section("Date and Time", subtitle=event.starts_at.astimezone().strftime("%A, %d %B")):
             timer = ui.timer(1.0, lambda: countdown_to_date(event.starts_at))
-            # timer = ui.timer(1.0, lambda: countdown_to_date(
-            #     datetime(2025, 12, 11, 12, 10, tzinfo=timezone.utc)))
 
             with ui.row(wrap=False).classes('px-4 gap-2'):
                 ui.label(event.starts_at.astimezone().strftime("%I %p").lstrip('0')
@@ -201,6 +185,7 @@ def event_datetime_card(event: EventResponse):
                 ui.label(event.ends_at.astimezone().strftime("%I %p").lstrip('0')
                          )
 
+            countdown_label = ui.label('').classes('text-gray-500')
             start_dt_google = event.starts_at.strftime("%Y%m%dT%H%M%SZ")
             end_dt_google = event.ends_at.strftime("%Y%m%dT%H%M%SZ")
 
@@ -214,17 +199,19 @@ def event_datetime_card(event: EventResponse):
 
 
 def location_card():
-    with ui.card().classes('p-2').props('flat') as card:
-        with section("Location: TBA", subtitle="Kentron, Yerevan"):
+    with ui.card().classes('p-0').props('flat') as card:
+        with section("Location", subtitle="Kentron, Yerevan"):
             ui.element('iframe').props(f'''
                 loading="lazy"
                 src="https://www.google.com/maps/embed/v1/place?q=Kentron&key={maps_api_key}"
             ''').classes('rounded-3xl w-full aspect-square h-auto invert-90 hue-rotate-180')
+            section_subtitle(
+                "Exact location will be provided 24h in advance, only to ticket holders.")
 
     return card
 
 
-def ticket_card(type, price):
+def ticket_card(type, price, sold_out=False, selected=False):
     if price == 0:
         price_label = 'Free Entry'
     else:
@@ -233,8 +220,14 @@ def ticket_card(type, price):
     with ui.card().props('flat bordered') as card:
         with ui.row(wrap=False):
             ui.label(type)
+            if sold_out:
+                card.classes(add='text-gray-500')
+                ui.separator().classes('flex-1')
+                ui.label("SOLD OUT").classes('text-xs font-bold')
             ui.separator().classes('flex-1')
             ui.label(price_label).classes('font-bold')
+    if selected:
+        card.classes(add='border-2 border-blue-500')
     return card
 
 

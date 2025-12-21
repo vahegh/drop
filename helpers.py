@@ -19,6 +19,16 @@ from consts import google_client_id, APP_BASE_URL
 import urllib.parse
 
 
+def share_event(event) -> None:
+    ui.run_javascript(f'''
+        navigator.share({{
+            title: {json.dumps(f'{event.name} | Drop Dead Disco')},
+            url: {json.dumps(f'{APP_BASE_URL}/event/{event.id}')}
+        }});
+    ''')
+    gtag_event("share_event")
+
+
 async def get_google_auth_url(url='/', login_hint=None):
     csrf_token = secrets.token_urlsafe(32)
     app.storage.user['csrf_token'] = csrf_token

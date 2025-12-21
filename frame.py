@@ -30,7 +30,7 @@ async def frame(show_footer=False):
     login_redirect_url = request.url.path if show_signin else '/'
     menu = ui.right_drawer(value=False).props(':press-delay="0"').classes('items-center')
 
-    with ui.context.client.content.classes('gap-4 px-0 py-18 pb-4 w-full items-center justify-center') as content:
+    with ui.context.client.content.classes('gap-4 px-0 py-14 pb-4 w-full items-center justify-center') as content:
         with ui.row().classes('fixed top-0 left-0 items-center bg-transparent h-14 px-4 py-2 backdrop-blur-xs flex justify-between z-10'):
             with ui.button().props('flat href="/"').classes('py-0 px-2'):
                 ui.image(logo_gray_path).classes(

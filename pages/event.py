@@ -4,9 +4,9 @@ from fastapi import HTTPException
 from uuid import UUID
 from frame import frame
 from consts import album_urls
-from helpers import get_album_urls, gtag_event, fbq_event
+from helpers import get_album_urls, gtag_event, fbq_event, share_event
 from components import (event_datetime_card, event_card, image_carousel, primary_button,
-                        ticket_card, section, location_card, page_header)
+                        ticket_card, section, location_card, outline_button)
 from services.event import get_event_info
 from dependencies import Depends, logged_in
 from api_models import PersonResponseFull
@@ -36,41 +36,32 @@ async def event_page(event_id: UUID, logged_in=Depends(logged_in)):
         event_passed = event.ends_at < datetime.now(timezone.utc)
         album_url = album_urls.get(event_id)
 
-        with section():
-            event_card(event, share=True)
+        with ui.grid().classes('flex w-full justify-center p-2 gap-2'):
+            with section():
+                event_card(event)
+                outline_button("Share with a friend").props(
+                    'icon-right="send"').on_click(lambda: share_event(event))
 
-        ui.markdown(event.description).classes('text-center')
+            if event.description:
+                with section("About this event"):
+                    ui.markdown(event.description)
 
-        with ui.grid().classes('flex w-full justify-center p-2 gap-4'):
             if not event_passed:
                 with section():
                     event_datetime_card(event)
 
-                with section():
-                    location_card()
-
-                if album_url:
-                    with section():
-                        image_carousel(await get_album_urls(album_url))
-
                 with section("Tickets"):
-                    early_bird_passed = event.early_bird_date > datetime.now(timezone.utc)
-                    members = ticket_card("Members", event.member_ticket_price)
-                    early_bird = ticket_card("Early Bird", event.early_bird_price)
-                    standard = ticket_card("Standard", event.general_admission_price)
-                    if logged_in:
-                        if person.status == PersonStatus.member:
-                            members.classes('border-2 border-blue-500')
-                        elif person.status == PersonStatus.verified:
-                            if early_bird_passed:
-                                early_bird.classes('border-2 border-blue-500')
-                            else:
-                                standard.classes('border-2 border-blue-500')
-                    else:
-                        if early_bird_passed:
-                            early_bird.classes('border-2 border-blue-500')
-                        else:
-                            standard.classes('border-2 border-blue-500')
+                    early_bird_active = event.early_bird_date > datetime.now(timezone.utc)
+                    member_selected = logged_in and person.status == PersonStatus.member
+                    early_bird_selected = early_bird_active and not member_selected
+                    standard_selected = not early_bird_active and not member_selected
+
+                    ticket_card("Members", event.member_ticket_price,
+                                selected=member_selected)
+                    ticket_card(
+                        "Early Bird", event.early_bird_price, sold_out=not early_bird_active, selected=early_bird_selected)
+                    ticket_card(
+                        "Standard", event.general_admission_price, selected=standard_selected)
 
                     gtag_event("view_item_list", {
                         "items": [
@@ -89,6 +80,12 @@ async def event_page(event_id: UUID, logged_in=Depends(logged_in)):
                         ]
                     })
                     fbq_event("ViewContent")
+
+                if album_url:
+                    with section():
+                        image_carousel(await get_album_urls(album_url))
+                with section():
+                    location_card()
 
             else:
                 if album_url:
