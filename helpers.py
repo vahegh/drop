@@ -19,7 +19,7 @@ from consts import google_client_id, APP_BASE_URL
 import urllib.parse
 
 
-async def can_share(user_agent) -> bool:
+async def can_share(user_agent):
     if 'firefox' in user_agent or 'fxios' in user_agent:
         return False
     if 'android' in user_agent:
@@ -28,7 +28,8 @@ async def can_share(user_agent) -> bool:
     return True
 
 
-async def share_event(event, user_agent) -> None:
+async def share_event(event):
+    user_agent = ui.context.client.request.headers.get("user_agent", "").lower()
     if await can_share(user_agent):
         ui.run_javascript(f'''
             navigator.share({{

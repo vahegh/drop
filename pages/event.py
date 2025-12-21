@@ -21,7 +21,7 @@ async def drop_5():
 
 
 @ui.page('/event/{event_id}', response_timeout=10)
-async def event_page(event_id: UUID, request: Request, logged_in=Depends(logged_in)):
+async def event_page(event_id: UUID, logged_in=Depends(logged_in)):
     event = await get_event_info(event_id)
     if not event:
         raise HTTPException(404)
@@ -36,9 +36,7 @@ async def event_page(event_id: UUID, request: Request, logged_in=Depends(logged_
 
         with ui.grid().classes('flex w-full justify-center p-0 gap-2'):
             with section():
-                event_card(event)
-                # outline_button("Share with a friend").props(
-                #     'icon-right="send"').on_click(lambda: share_event(event, request.headers.get('user-agent', '').lower()))
+                event_card(event, share=True)
                 ui.markdown(f"""
 ## {event.name}  
 **Kentron, Yerevan**  

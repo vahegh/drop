@@ -14,7 +14,7 @@ from helpers import generate_qr, get_google_auth_url
 from consts import (email_validation, insta_validation, name_validation,
                     email_non_required, email_placeholder, calendar_base_url,
                     google_calendar_img_url, instagram_placeholder, APP_BASE_URL)
-from helpers import get_card_type, gtag_event
+from helpers import get_card_type, gtag_event, share_event
 
 maps_api_key = os.getenv('maps_api_key')
 
@@ -129,14 +129,11 @@ def login_button(target):
     return btn
 
 
-def event_card(event: EventResponse, buy_btn=False):
+def event_card(event: EventResponse, buy_btn=False, share=False):
     with ui.image(event.image_url).classes('aspect-4/5 rounded-3xl w-full max-w-96') as c:
         with ui.column().classes(add='bg-transparent h-full justify-between p-4 w-full items-center'):
             page_header(event.name)
             with ui.column().classes('w-full'):
-                with ui.row(wrap=False):
-                    section_title(event.starts_at.astimezone().strftime('%d.%m'))
-                    section_title(event.starts_at.astimezone().strftime('%H:%M'))
                 if buy_btn:
                     if event.ends_at > datetime.now(timezone.utc):
                         btn_text = "🎟️ Buy your ticket"
@@ -146,7 +143,9 @@ def event_card(event: EventResponse, buy_btn=False):
                         target = f"/event/{event.id}"
                     primary_button(btn_text, target=target).on_click(
                         lambda b: b.sender.props(add='loading disable')).on_click(lambda b: b.sender.run_method("stopPropagation"))
-
+                elif share:
+                    outline_button("Share with a friend").props(
+                        'icon-right="send"').on_click(lambda: share_event(event))
     return c
 
 
