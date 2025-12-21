@@ -18,7 +18,7 @@ from services.vpos_payment import init_payment_vpos, get_payment_details_vpos, V
 from services.drink_payment_intent import get_drink_payment_intents, delete_drink_payment_intents
 from services.drink_voucher import create_drink_voucher
 from services.payment_intent import delete_payment_intents
-from api_models import PaymentConfirmRequest, PaymentConfirmResponse, ECRMPrintRequest, ECRMItem
+from api_models import PaymentConfirmRequest, PaymentConfirmResponse, ECRMPrintRequest, ECRMItem, PaymentUpdate
 
 ecrm_crn = os.environ['ecrm_crn']
 
@@ -30,6 +30,11 @@ async def get_all_payments(db: AsyncSession):
 
 
 @with_db
+async def get_payment(db: AsyncSession, order_id: int):
+    return await db.get(Payment, order_id)
+
+
+@with_db
 async def get_ticket_payment(db: AsyncSession, person_id: UUID, event_id: UUID):
     payment = await db.scalar(select(Payment).where(Payment.person_id == person_id).where(Payment.event_id == event_id))
     return payment
@@ -37,6 +42,21 @@ async def get_ticket_payment(db: AsyncSession, person_id: UUID, event_id: UUID):
 
 @with_db
 async def create_payment(db: AsyncSession, payment: Payment):
+    db.add(payment)
+    await db.commit()
+    await db.refresh(payment)
+    return payment
+
+
+@with_db
+async def update_payment(db: AsyncSession, order_id: int, updated_payment: PaymentUpdate):
+    payment = await get_payment(order_id)
+    if not payment:
+        raise ValueError(f"No payment with order_id {order_id}")
+
+    for field, value in updated_payment.model_dump(exclude_unset=True).items():
+        setattr(payment, field, value)
+
     db.add(payment)
     await db.commit()
     await db.refresh(payment)
@@ -90,7 +110,7 @@ async def init_payment(db: AsyncSession, request: Payment, save_card=False):
 
 @with_db
 async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest, print_receipt=True):
-    payment = await db.scalar(select(Payment).where((Payment.order_id == transaction.order_id)))
+    payment = await get_payment(transaction.order_id)
     if not payment:
         raise HTTPException(404, "Payment not found")
 

@@ -206,6 +206,15 @@ class PaymentResponse(BaseModel):
     updated_at: Optional[datetime] = None
 
 
+class PaymentUpdate(BaseModel):
+    person_id: Optional[UUID] = None
+    event_id: Optional[UUID] = None
+    amount: Optional[float] = None
+    provider: Optional[PaymentProvider] = None
+    upstream_payment_id: Optional[UUID] = None
+    status: Optional[PaymentStatus] = None
+
+
 class CardBindingCreate(BaseModel):
     id: UUID
     person_id: UUID
