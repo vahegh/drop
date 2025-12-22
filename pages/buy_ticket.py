@@ -487,10 +487,10 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                     submit_btn.on_click(lambda: submit())
 
                 person_attendance = await get_attendance(person.id)
-                if person_attendance < 2:
-                    await invite(email)
-                else:
+                if person_attendance >= 2 or person.status is PersonStatus.member:
                     await refer_person(email)
+                else:
+                    await invite(email)
 
             elif new_attendee.status not in (PersonStatus.verified, PersonStatus.member):
                 ui.notify('Can\'t buy a ticket for this person', type='warning')
