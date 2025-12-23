@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from nicegui import ui
 from collections import defaultdict
-from fastapi import Request
+from fastapi import Request, HTTPException
 from frame import frame
 from enums import PaymentProvider, PersonStatus
 from api_models import PersonResponseFull, PersonCreate
@@ -18,7 +18,7 @@ from services.mailing import EmailRequest, send_email
 from services.templating import generate_template
 from services.drink import get_all_drinks
 from services.vpos_payment import make_binding_payment_vpos
-from services.event import get_event_info
+from services.event import get_event_info, get_next_event
 from routes.attendance import get_attendance
 from dependencies import Depends, logged_in
 from db_models import PaymentIntent, Payment, DrinkPaymentIntent
@@ -31,8 +31,19 @@ logger = logging.getLogger(__name__)
 
 
 @ui.page('/buy-ticket', title='Buy Your Ticket | Drop Dead Disco', response_timeout=10)
-async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(logged_in)):
+async def buy_ticket_page(request: Request, event_id: UUID = None, logged_in=Depends(logged_in)):
+    if not event_id:
+        event = await get_next_event()
+        if event:
+            ui.navigate.to(f"/buy-ticket?event_id={event.id}")
+            return
+        ui.navigate.to("/")
+        return
+
     event = await get_event_info(event_id)
+    if not event:
+        raise HTTPException(404, "No such event")
+
     user_agent = await get_user_agent(request)
 
     person: PersonResponseFull = request.state.person if logged_in else None
