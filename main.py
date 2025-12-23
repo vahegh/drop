@@ -42,7 +42,6 @@ head_html = '''
 </script>
 
 <style>
-
     body.body--light {
         background-color: #f3f4f6;
     }
@@ -144,11 +143,6 @@ def main():
     app.add_static_files(url_path='/static',
                          local_directory=os.path.join(os.path.dirname(__file__), 'static'))
 
-    # if env == 'local':
-    #     on_air = "XfXU7DUEZblpvy6J"
-    # else:
-    #     on_air = None
-
     ui.run(
         favicon="static/images/favicon.png",
         title="Drop Dead Disco",
@@ -157,8 +151,7 @@ def main():
         storage_secret=storage_secret,
         reload=False,
         show=False,
-        fastapi_docs=True,
-        # on_air=on_air
+        fastapi_docs=True
     )
 
 
