@@ -2,7 +2,6 @@ from nicegui import ui
 from fastapi import Request, HTTPException
 from datetime import timezone, datetime
 from frame import frame
-from storage_cache import get_cache
 from api_models import EventResponse, PersonResponseFull
 from components import (event_card, page_header, section_title,
                         status_icon, member_card, event_ticket,
@@ -15,6 +14,7 @@ from services.person import get_all_person_stats, PersonCreate, create_person, g
 from dependencies import Depends, logged_in
 from services.drink_voucher import get_drink_vouchers_by_person_id
 from services.drink import get_drink
+from services.event import get_all_events, get_next_event
 from routes.attendance import get_attendance
 
 
@@ -24,11 +24,10 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
     video_h = "[20vh]" if logged_in else "[80vh]"
 
     async with frame(show_footer=True) as f:
-        cache = get_cache()
-        events = await cache.fetch_all_events()
+        events = await get_all_events()
         upcoming_events: list[EventResponse] = []
         past_events: list[EventResponse] = []
-        next_event = await cache.fetch_next_event()
+        next_event = await get_next_event()
 
         for e in events:
             if e.ends_at >= datetime.now(timezone.utc):

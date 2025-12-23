@@ -4,12 +4,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, Response
 from decorators import with_db
 from db_models import Person, RefreshToken
-from enums import PersonStatus
+from enums import PersonStatus, PaymentStatus
 from services.event import get_next_event
 from services.telegram import notify_application
 from services.templating import generate_template
 from services.mailing import EmailRequest, send_email
-from services.payment import get_ticket_payment
+from services.payment import get_ticket_payment, refund_payment
 from services.event_ticket import EventTicket, create_event_ticket, send_event_ticket
 from api_models import PersonCreate, PersonUpdate
 from consts import (APP_BASE_URL, APPLICATION_SUBMITTED_TEMPLATE, APPROVED_TEMPLATE,
@@ -101,6 +101,14 @@ async def update_person(db: AsyncSession, id: UUID, updated_person: PersonUpdate
             pass
 
         case PersonStatus.rejected:
+            next_event = await get_next_event()
+
+            if next_event:
+                existing_payment = await get_ticket_payment(person_id=person.id, event_id=next_event.id)
+                if existing_payment and existing_payment.status == PaymentStatus.CONFIRMED:
+                    await refund_payment(existing_payment)
+                    context["refunded"] = True
+
             template = await generate_template(REJECTED_TEMPLATE, context)
             email_request = EmailRequest(
                 recipient_email=person.email,
@@ -113,7 +121,7 @@ async def update_person(db: AsyncSession, id: UUID, updated_person: PersonUpdate
 
             if next_event:
                 existing_payment = await get_ticket_payment(person_id=person.id, event_id=next_event.id)
-                if existing_payment:
+                if existing_payment and existing_payment.status == PaymentStatus.CONFIRMED:
                     event_ticket = EventTicket(
                         person_id=person.id, event_id=existing_payment.event_id, payment_order_id=existing_payment.order_id)
                     await create_event_ticket(event_ticket)

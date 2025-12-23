@@ -18,7 +18,7 @@ from services.instagram_check import instagram_check
 import random
 from services.mailing import EmailRequest, send_email
 from services.templating import generate_template
-from services.vpos_payment import init_payment_vpos, VPOS_BASE_URL, deactivate_binding
+from services.vpos_payment import init_payment_vpos, VPOS_BASE_URL, deactivate_binding_vpos
 from services.card_binding import update_card_binding
 import io
 from PIL import Image
@@ -291,7 +291,7 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                     async def delete_binding():
                         try:
                             del_btn.props(add='loading')
-                            await deactivate_binding(id)
+                            await deactivate_binding_vpos(id)
                             await update_card_binding(id, CardBindingUpdate(is_active=False))
 
                         except Exception as e:

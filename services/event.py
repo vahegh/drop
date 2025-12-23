@@ -1,6 +1,6 @@
 import logging
 from uuid import UUID
-from datetime import date
+from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
@@ -26,7 +26,7 @@ async def get_all_events(db: AsyncSession):
 
 @with_db
 async def get_next_event(db: AsyncSession):
-    event = await db.scalar(select(Event).where(Event.ends_at >= date.today()).limit(1))
+    event = await db.scalar(select(Event).where(Event.ends_at >= datetime.now(timezone.utc)).limit(1))
     return event
 
 

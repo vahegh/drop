@@ -250,7 +250,7 @@ class CardBindingUpdate(BaseModel):
 
 
 # payment providers
-class VposInitPaymentRequest(BaseModel):
+class VPOSInitPaymentRequest(BaseModel):
     ClientID: str
     Username: str
     Password: str
@@ -262,7 +262,7 @@ class VposInitPaymentRequest(BaseModel):
     CardHolderID: Optional[str | UUID] = None
 
 
-class VposMakeBindingPaymentRequest(BaseModel):
+class VPOSMakeBindingPaymentRequest(BaseModel):
     ClientID: str
     Username: str
     Password: str
@@ -275,7 +275,7 @@ class VposMakeBindingPaymentRequest(BaseModel):
     PaymentType: int = 6
 
 
-class VposMakeBindingPaymentResponse(BaseModel):
+class VPOSMakeBindingPaymentResponse(BaseModel):
     PaymentID: str
     Amount: float
     ApprovedAmount: float
@@ -306,27 +306,27 @@ class VposMakeBindingPaymentResponse(BaseModel):
     ActionCode: str
 
 
-class VposBindingsRequest(BaseModel):
+class VPOSBindingsRequest(BaseModel):
     ClientID: str
     Username: str
     Password: str
     PaymentType: int = 6
 
 
-class VposCardBinding(BaseModel):
+class VPOSCardBinding(BaseModel):
     CardHolderID: str | UUID
     CardPan: str
     ExpDate: str
     IsAvtive: bool
 
 
-class VposBindingsResponse(BaseModel):
+class VPOSBindingsResponse(BaseModel):
     ResponseCode: str
     ResponseMessage: str
-    CardBindingFileds: list[VposCardBinding]
+    CardBindingFileds: list[VPOSCardBinding]
 
 
-class VposDeactivateBindingRequest(BaseModel):
+class VPOSDeactivateBindingRequest(BaseModel):
     ClientID: str
     Username: str
     Password: str
@@ -372,6 +372,19 @@ class VPOSPaymentDetailsResponse(BaseModel):
     ExchangeRate: Optional[float] = None
 
 
+class VPOSCancelPaymentRequest(BaseModel):
+    Username: str
+    Password: str
+    PaymentID: UUID
+
+
+class VPOSCancelPaymentResponse(BaseModel):
+    ResponseCode: int
+    ResponseMessage: str
+    Opaque: Optional[str]
+
+
+# myameria
 class MyAmeriaCreateRequest(BaseModel):
     transactionAmount: float
     transactionId: Optional[str] = None
@@ -380,7 +393,18 @@ class MyAmeriaCreateRequest(BaseModel):
     userId: Optional[str] = None
 
 
-class MyameriaPaymentDetailsResponse(BaseModel):
+class MyAmeriaPaymentDetailsRequest(BaseModel):
+    transactionId: str
+    paymentId: UUID
+    merchantId: str
+
+
+class MyAmeriaPaymentRefundRequest(BaseModel):
+    transactionId: str
+    amount: Optional[float] = None
+
+
+class MyAmeriaPaymentDetailsResponse(BaseModel):
     isSuccessful: bool
     amount: float
     transactionId: str
@@ -393,12 +417,6 @@ class MyameriaPaymentDetailsResponse(BaseModel):
     refundedDate: Optional[datetime] = None
     bindId: Optional[UUID] = None
     labels: Optional[dict] = None
-
-
-class MyameriaPaymentDetailsRequest(BaseModel):
-    transactionId: str
-    paymentId: UUID
-    merchantId: str
 
 
 class PaymentConfirmRequest(BaseModel):

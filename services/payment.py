@@ -13,14 +13,16 @@ from services.telegram import notify_payment_confirmed
 from services.myameria_payment import MYAMERIA_PAY_URL, myameria_merchant_id
 from db_models import Payment, Person, EventTicket, PaymentIntent, Event, MemberPass, DrinkVoucher
 from services.event_ticket import add_ticket_to_db, create_event_ticket, send_event_ticket
-from services.myameria_payment import create_payment_myameria, get_payment_details_myameria
-from services.vpos_payment import init_payment_vpos, get_payment_details_vpos, VPOS_BASE_URL
+from services.myameria_payment import create_payment_myameria, get_payment_details_myameria, refund_payment_myameria
+from services.vpos_payment import init_payment_vpos, get_payment_details_vpos, VPOS_BASE_URL, cancel_payment_vpos
 from services.drink_payment_intent import get_drink_payment_intents, delete_drink_payment_intents
 from services.drink_voucher import create_drink_voucher
 from services.payment_intent import delete_payment_intents
-from api_models import PaymentConfirmRequest, PaymentConfirmResponse, ECRMPrintRequest, ECRMItem, PaymentUpdate
+from api_models import PaymentConfirmRequest, PaymentConfirmResponse, ECRMPrintRequest, ECRMItem, PaymentUpdate, MyAmeriaPaymentRefundRequest
+import logging
 
 ecrm_crn = os.environ['ecrm_crn']
+logger = logging.getLogger(__name__)
 
 
 @with_db
@@ -63,15 +65,13 @@ async def update_payment(db: AsyncSession, order_id: int, updated_payment: Payme
     return payment
 
 
-@with_db
-async def init_payment(db: AsyncSession, request: Payment, save_card=False):
-    match request.provider:
+async def init_payment(payment: Payment, save_card=False):
+    match payment.provider:
         case PaymentProvider.VPOS:
             try:
-                payment_id = await init_payment_vpos(request.order_id, request.amount, save_card=save_card)
-                request.upstream_payment_id = payment_id
-                db.add(request)
-                await db.commit()
+                payment_id = await init_payment_vpos(payment.order_id, payment.amount, save_card=save_card)
+                payment.upstream_payment_id = payment_id
+                payment = await create_payment(payment)
 
                 url = f"{VPOS_BASE_URL}/Payments/Pay?id={payment_id}&lang=en&type=5"
                 return url
@@ -81,27 +81,26 @@ async def init_payment(db: AsyncSession, request: Payment, save_card=False):
 
         case PaymentProvider.APPLEPAY:
             try:
-                payment_id = await init_payment_vpos(request.order_id, request.amount, save_card=save_card)
-                request.upstream_payment_id = payment_id
-                db.add(request)
-                await db.commit()
+                payment_id = await init_payment_vpos(payment.order_id, payment.amount, save_card=save_card)
+                payment.upstream_payment_id = payment_id
+                payment = await create_payment(payment)
 
                 url = f"{VPOS_BASE_URL}/Payments/Pay?id={payment_id}&lang=en&type=13"
                 return url
 
             except Exception as e:
-                raise HTTPException(500, f"Unable to create vPOS payment: {str(e)}")
+                raise HTTPException(500, f"Unable to create Apple Pay payment: {str(e)}")
 
         case PaymentProvider.MYAMERIA:
             try:
-                await create_payment_myameria(request.order_id, request.amount)
-                url = f"{MYAMERIA_PAY_URL}?merchantName=Drop+Dead+Disco&transactionAmount={str(request.amount)}&transactionId={str(request.order_id)}&merchantId={myameria_merchant_id}&terminalId={myameria_merchant_id}&callbackscheme={APP_BASE_URL_NO_PROTO}"
+                await create_payment_myameria(payment.order_id, payment.amount)
+                url = f"{MYAMERIA_PAY_URL}?merchantName=Drop+Dead+Disco&transactionAmount={str(payment.amount)}&transactionId={str(payment.order_id)}&merchantId={myameria_merchant_id}&terminalId={myameria_merchant_id}&callbackscheme={APP_BASE_URL_NO_PROTO}"
                 return url
             except Exception as e:
                 raise HTTPException(500, f"Unable to create MyAmeria payment: {str(e)}")
 
         case PaymentProvider.IDRAM:
-            url = f"idramapp://payment?receiverName=Drop+Dead+Disco&receiverId={idram_merchant_id}&title={str(request.order_id)}&amount={str(request.amount)}"
+            url = f"idramapp://payment?receiverName=Drop+Dead+Disco&receiverId={idram_merchant_id}&title={str(payment.order_id)}&amount={str(payment.amount)}"
             return url
 
         case _:
@@ -293,3 +292,37 @@ async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest, 
     db.add(payment)
     await db.commit()
     return confirm_response
+
+
+async def refund_payment(payment: Payment):
+    match payment.provider:
+        case PaymentProvider.VPOS | PaymentProvider.APPLEPAY:
+            try:
+                await cancel_payment_vpos(payment.upstream_payment_id)
+            except Exception as e:
+                logger.error(f"Unable to cancel VPOS/ApplePay payment: {str(e)}")
+
+        case PaymentProvider.MYAMERIA:
+            try:
+                await refund_payment_myameria(
+                    MyAmeriaPaymentRefundRequest(
+                        transactionId=payment.order_id,
+                        amount=None
+                    )
+                )
+            except Exception as e:
+                logger.error(f"Unable to refund MyAmeria payment: {str(e)}")
+
+        case PaymentProvider.IDRAM:
+            logger.error("Idram selected for refund")
+
+        case _:
+            logger.error(f"Wrong payment provider: {payment.provider}")
+
+    payment = await update_payment(
+        payment.order_id,
+        PaymentUpdate(
+            status=PaymentStatus.CONFIRMED
+        )
+    )
+    return payment
