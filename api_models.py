@@ -379,7 +379,7 @@ class VPOSCancelPaymentRequest(BaseModel):
 
 
 class VPOSCancelPaymentResponse(BaseModel):
-    ResponseCode: int
+    ResponseCode: str
     ResponseMessage: str
     Opaque: Optional[str]
 

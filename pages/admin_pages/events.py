@@ -309,5 +309,5 @@ async def event_details_panel(event_id):
                         with ui.row(wrap=False).classes(remove='w-full'):
                             paid_ticket = t.payment_order_id is not None
                             if paid_ticket:
-                                ui.icon('attach_money', size='12px', color='green')
+                                ui.icon('paid', size='12px', color='green')
                             ticket_indicator(True, bool(t.attended_at))

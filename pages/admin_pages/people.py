@@ -12,8 +12,10 @@ from services.event_ticket import create_event_ticket, delete_event_ticket, get_
 from services.event import get_all_events
 from services.member_pass import get_all_member_passes, send_member_pass, create_member_pass
 from services.person import get_all_persons, get_person
+from services.payment import get_payment, refund_payment
 from db_models import EventTicket, MemberPass
 from services.event_ticket import send_event_ticket
+from enums import PaymentStatus
 
 
 async def persons_panel():
@@ -211,6 +213,16 @@ async def person_details_panel(person_id):
             except Exception as e:
                 ui.notify(f'Error deleting ticket: {str(e)}', type='warning')
 
+    async def refund(payment):
+        if await ui.run_javascript('confirm("Are you sure you want to refund this payment?")', timeout=10):
+            try:
+                await refund_payment(payment)
+                ui.notify('Payment refunded successfully.')
+                ui.navigate.reload()
+
+            except Exception as e:
+                ui.notify(f'Error refunding payment: {str(e)}', type='warning')
+
     with section():
         with section():
             if person.avatar_url:
@@ -239,13 +251,21 @@ async def person_details_panel(person_id):
             event_map = {e.id: e for e in events}
 
             for ticket in tickets:
+                t = ticket
                 event = event_map.get(ticket.event_id)
                 if event:
                     with ui.card():
                         with ui.row(wrap=False):
                             ticket_indicator(ticket, bool(ticket.attended_at))
                             section_title(event.name)
-                            ui.icon('delete').on('click', lambda t=ticket: delete_ticket(t.id))
+                            with ui.row(wrap=False).classes(remove='w-full'):
+                                if ticket.payment_order_id:
+                                    payment = await get_payment(ticket.payment_order_id)
+                                    color = 'green' if payment.status == PaymentStatus.CONFIRMED else 'red'
+                                    ui.icon('paid', color=color).on(
+                                        'click', lambda p=payment: refund(p))
+
+                                ui.icon('delete').on('click', lambda: delete_ticket(t.id))
 
             primary_button('Create Ticket').on_click(lambda: create_ticket_dialog())
             outline_button("Create Member Pass").on_click(lambda: create_member_pass_dialog())

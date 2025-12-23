@@ -305,10 +305,7 @@ async def refund_payment(payment: Payment):
         case PaymentProvider.MYAMERIA:
             try:
                 await refund_payment_myameria(
-                    MyAmeriaPaymentRefundRequest(
-                        transactionId=payment.order_id,
-                        amount=None
-                    )
+                    MyAmeriaPaymentRefundRequest(transactionId=str(payment.order_id))
                 )
             except Exception as e:
                 logger.error(f"Unable to refund MyAmeria payment: {str(e)}")
@@ -322,7 +319,7 @@ async def refund_payment(payment: Payment):
     payment = await update_payment(
         payment.order_id,
         PaymentUpdate(
-            status=PaymentStatus.CONFIRMED
+            status=PaymentStatus.REFUNDED
         )
     )
     return payment
