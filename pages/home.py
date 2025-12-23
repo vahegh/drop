@@ -1,5 +1,5 @@
 from nicegui import ui
-from fastapi import Request
+from fastapi import Request, HTTPException
 from datetime import timezone, datetime
 from frame import frame
 from storage_cache import get_cache
@@ -8,13 +8,14 @@ from components import (event_card, page_header, section_title,
                         status_icon, member_card, event_ticket,
                         image_carousel, google_button, primary_button,
                         section, past_tickets_col, outline_button,
-                        status_colors)
+                        status_colors, name_input, instagram_input, rectangular_email_input)
 from helpers import get_user_agent, get_album_urls, gtag_event
 from enums import PersonStatus
-from services.person import get_all_person_stats
+from services.person import get_all_person_stats, PersonCreate, create_person, get_person_by_email
 from dependencies import Depends, logged_in
 from services.drink_voucher import get_drink_vouchers_by_person_id
 from services.drink import get_drink
+from routes.attendance import get_attendance
 
 
 @ui.page('/', title='Home | Drop Dead Disco', response_timeout=50)
@@ -56,6 +57,62 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
 
                 ui.separator()
 
+            async def refer_person():
+                with ui.dialog(value=True) as dl:
+                    with ui.card():
+                        with section("Your friend's info", subtitle="They will be auto-approved on your behalf."):
+                            with ui.column().classes('w-full gap-0'):
+                                with ui.row(wrap=False):
+                                    fn_inp = name_input("First name", "John")
+                                    ln_inp = name_input("Last name", "Doe")
+                                email_inp = rectangular_email_input()
+                                insta_inp = instagram_input()
+                                submit_btn = primary_button('Submit')
+
+                async def submit():
+                    if not all([
+                        fn_inp.validate(),
+                        ln_inp.validate(),
+                        email_inp.validate(),
+                        insta_inp.validate()
+                    ]):
+                        return
+
+                    submit_btn.props(add='loading disable')
+
+                    first_name = fn_inp.value.strip()
+                    last_name = ln_inp.value.strip()
+                    email = email_inp.value.strip()
+                    insta = insta_inp.value.strip().lstrip('@')
+
+                    existing_person = await get_person_by_email(email)
+                    if existing_person:
+                        ui.notify("This email address is already registered.", type='warning')
+                        submit_btn.props(remove='loading disable')
+                        return
+
+                    payload = PersonCreate(
+                        first_name=first_name,
+                        last_name=last_name,
+                        email=email,
+                        instagram_handle=insta,
+                        referer_id=person.id
+                    )
+
+                    new_person = await create_person(payload)
+
+                    if new_person:
+                        gtag_event("refer_friend", {"person_id": str(person.id)})
+                        dl.close()
+
+                    else:
+                        dl.clear()
+                        with dl:
+                            with section("Unknown error occured.", subtitle="Please try again a little later."):
+                                primary_button("Back").on_click(dl.close)
+
+                submit_btn.on_click(lambda: submit())
+
             with ui.grid().classes('flex w-full justify-center p-2 gap-4'):
                 user_agent = await get_user_agent(request)
                 next_event = await cache.fetch_next_event()
@@ -64,6 +121,7 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                 event_map = {e.id: e for e in events}
 
                 if person.status == PersonStatus.verified:
+
                     if next_event:
                         next_event_ticket = next(
                             (t for t in event_tickets if t.event_id == next_event.id), None)
@@ -71,6 +129,12 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                         if next_event_ticket:
                             with section("Your ticket"):
                                 event_ticket(next_event_ticket, next_event, user_agent)
+
+                    person_attendance = await get_attendance(person.id)
+                    if person_attendance >= 2:
+                        with section("Bring a friend!", "Since you have attended 2 or more Drops, you can refer a friend to join us. They will be auto-approved on your behalf."):
+                            primary_button("Enter details").on_click(
+                                lambda: refer_person())
 
                     # if vouchers:
                     #     with section("Your drinks"):
@@ -87,6 +151,10 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                 elif person.status == PersonStatus.member:
                     with section("Your Membership pass"):
                         member_card(person.member_pass, person.events_attended, user_agent)
+
+                    with section("Bring a friend!", "As a Member, you can refer a friend to join us. They will be auto-approved on your behalf."):
+                        primary_button("Enter details").on_click(
+                            lambda: refer_person())
 
                     # if vouchers:
                     #     with section("Your drinks"):

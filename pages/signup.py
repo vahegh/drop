@@ -6,8 +6,8 @@ from components import (rectangular_email_input, instagram_input, primary_button
 from api_models import PersonCreate
 
 from fastapi import HTTPException
-from routes.auth import register
 from services.instagram_check import instagram_check
+from services.person import create_person
 from consts import logo_gray_path
 
 
@@ -76,7 +76,7 @@ async def signup_page(token):
                             avatar_url=token_info.get('picture')
                         )
 
-                        person = await register(payload)
+                        person = await create_person(payload)
 
                         if person:
                             ui.navigate.to(f'/api/auth/login-user?token={token}')

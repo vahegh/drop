@@ -42,7 +42,7 @@ ui.select.default_classes('w-full')
 # Inputs
 def rectangular_email_input(label="Email address", required=True, **kwargs):
     inp = ui.input(label=label, placeholder=email_placeholder, validation=email_validation, **kwargs).props(
-        'type=email').on('blur', lambda: inp.validate()).without_auto_validation()
+        'type=email').without_auto_validation()
     if not required:
         inp._validation = email_non_required
 
@@ -122,7 +122,7 @@ def outline_button(text='', target=None, **kwargs):
 
 
 def login_button(target):
-    btn = ui.button("Log in", color=None)
+    btn = ui.button("Sign Up", color=None)
     btn.props(add='''size="12px" unelevated rounded no-caps :color="Quasar.Dark.isActive ? 'light' : 'dark'"''')
     btn.props(add=''':text-color="Quasar.Dark.isActive ? 'dark' : 'light'"''')
     btn.props(add=f'href={target}')

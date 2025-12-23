@@ -54,10 +54,6 @@ async def generate_and_set_tokens(db: AsyncSession, person_id: str, refresh_expi
     return response
 
 
-async def register(person: PersonCreate):
-    return await create_person(person)
-
-
 @router.get("/login-user")
 @with_db
 async def login_user(db: AsyncSession, token, redirect_url='/'):

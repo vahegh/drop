@@ -13,14 +13,13 @@ from components import (rectangular_email_input, primary_button,
 from uuid import UUID
 from services.event_ticket import get_tickets_by_person_id
 from services.payment import init_payment, create_payment
-from services.person import get_person_by_email
+from services.person import get_person_by_email, create_person
 from services.mailing import EmailRequest, send_email
 from services.templating import generate_template
 from services.drink import get_all_drinks
 from services.vpos_payment import make_binding_payment_vpos
 from services.event import get_event_info
 from routes.attendance import get_attendance
-from routes.auth import register
 from dependencies import Depends, logged_in
 from db_models import PaymentIntent, Payment, DrinkPaymentIntent
 from services.payment_intent import create_payment_intent
@@ -223,7 +222,7 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                 instagram_handle=insta
             )
 
-            new_person = await register(payload)
+            new_person = await create_person(payload)
 
             if not new_person:
                 ui.notify('Registration failed. Please try again.', type='warning')
@@ -469,7 +468,7 @@ async def buy_ticket_page(request: Request, event_id: UUID, logged_in=Depends(lo
                             referer_id=person.id
                         )
 
-                        new_person = await register(payload)
+                        new_person = await create_person(payload)
 
                         if new_person:
                             add_to_cart(new_person)
