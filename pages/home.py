@@ -9,7 +9,7 @@ from components import (event_card, page_header, section_title,
                         image_carousel, google_button, primary_button,
                         section, past_tickets_col, outline_button,
                         status_colors, name_input, instagram_input, rectangular_email_input)
-from helpers import get_user_agent, get_album_urls, gtag_event
+from helpers import get_user_agent, get_album_urls, gtag_event, fbq_event
 from enums import PersonStatus
 from services.person import get_all_person_stats, PersonCreate, create_person, get_person_by_email
 from dependencies import Depends, logged_in
@@ -28,6 +28,7 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
         events = await cache.fetch_all_events()
         upcoming_events: list[EventResponse] = []
         past_events: list[EventResponse] = []
+        next_event = await cache.fetch_next_event()
 
         for e in events:
             if e.ends_at >= datetime.now(timezone.utc):
@@ -103,19 +104,27 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
 
                     if new_person:
                         gtag_event("refer_friend", {"person_id": str(person.id)})
-                        dl.close()
+                        fbq_event("CompleteRegistration")
+                        dl.clear()
+                        with dl:
+                            with ui.card():
+                                with section("Success!", subtitle="Your friend has been registered and approved."):
+                                    if next_event:
+                                        primary_button("🎟️ Buy them a ticket",
+                                                       target=f"/buy-ticket?event_id={next_event.id}")
+                                    outline_button("Back to homepage").on_click(dl.close)
 
                     else:
                         dl.clear()
                         with dl:
-                            with section("Unknown error occured.", subtitle="Please try again a little later."):
-                                primary_button("Back").on_click(dl.close)
+                            with ui.card():
+                                with section("Unknown error occured.", subtitle="Please try again a little later."):
+                                    primary_button("Back").on_click(dl.close)
 
                 submit_btn.on_click(lambda: submit())
 
             with ui.grid().classes('flex w-full justify-center p-2 gap-4'):
                 user_agent = await get_user_agent(request)
-                next_event = await cache.fetch_next_event()
 
                 event_tickets = person.event_tickets
                 event_map = {e.id: e for e in events}
