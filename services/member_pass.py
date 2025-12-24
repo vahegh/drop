@@ -158,7 +158,7 @@ async def send_member_pass(db: AsyncSession, member_pass: MemberPass, purchase=F
 
     context = {
         "name": person.first_name,
-        "homepage_url": APP_BASE_URL,
+        "homepage_url": f"{APP_BASE_URL}?utm_source=email&utm_medium=transactional&utm_campaign=member_pass_{member_pass.id}&utm_content=homepage_link",
         "serial_no": str(member_pass.serial_number).zfill(3),
         "events_attended": str(await get_attendance(person.id)),
         "total_events": str(len(await get_all_events())),

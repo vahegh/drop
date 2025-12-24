@@ -356,7 +356,7 @@ async def buy_ticket_page(request: Request, event_id: UUID = None, logged_in=Dep
                                 guest_ln_inp = name_input("Last name", "Doe")
                             guest_insta_inp = instagram_input()
                             verification_tick = ui.checkbox(
-                                f"You acknowledge that your ticket for {event.name} will be sent after verification. If you're not verified, your ticket will be refunded.").props('color=dark')
+                                f"You acknowledge that your ticket for {event.name} will be sent after verification. If you're not verified, your payment will be refunded.").props('color=dark')
                         guest_additional_fields.set_visibility(False)
 
                     with ui.column().classes('w-full items-center') as check_section:
@@ -421,15 +421,14 @@ async def buy_ticket_page(request: Request, event_id: UUID = None, logged_in=Dep
                         "inviter_name": person.full_name,
                         "inviter_first_name": person.first_name,
                         "event_name": event.name,
-                        "signup_url": f"{APP_BASE_URL}/login",
-                        "event_url": f"{APP_BASE_URL}/event/{event.id}"
+                        "signup_url": f"{APP_BASE_URL}/login?utm_source=email&utm_medium=invite&utm_campaign=event_invite_{event.id}&utm_content=signup_cta&ref={person.id}",
+                        "event_url": f"{APP_BASE_URL}/event/{event.id}?utm_source=email&utm_medium=invite&utm_campaign=event_invite_{event.id}&utm_content=event_link&ref={person.id}"
                     }
                     body = await generate_template("invite.html", context=context)
                     email_req = EmailRequest(
                         recipient_email=email,
                         subject="You have been invited to Drop Dead Disco",
-                        body=body,
-                        transactional=False
+                        body=body
                     )
                     await send_email(email_req)
                     gtag_event("invite_friend", {"person_id": str(person.id)})

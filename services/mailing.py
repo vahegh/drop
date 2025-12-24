@@ -26,7 +26,7 @@ class EmailRequest(BaseModel):
     transactional: bool = True
 
 
-def create_email_message(email_request: EmailRequest) -> EmailMessage:
+def create_email_message(email_request: EmailRequest):
     msg = EmailMessage()
     msg["Subject"] = email_request.subject
     msg["From"] = SENDER_FROM

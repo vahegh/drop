@@ -227,7 +227,7 @@ async def create_apple_member(member_pass: MemberPass, name, attendance, event: 
                 },
                 {
                     "label": "Tickets",
-                    "attributedValue": f'<a href={APP_BASE_URL}/event/{event.id}>{APP_BASE_URL_NO_PROTO}</a>',
+                    "attributedValue": f'<a href={APP_BASE_URL}/event/{event.id}?utm_source=apple_wallet&utm_medium=pass&utm_campaign=event_{event.id}&utm_content=ticket_link>{APP_BASE_URL_NO_PROTO}</a>',
                     "key": "event_url_back",
                 },
                 {
@@ -326,7 +326,7 @@ async def create_apple_ticket(name, event_ticket: EventTicket, event: Event, ven
                 {
                     "key": "event_url_back",
                     "label": "Event Info",
-                    "attributedValue": f'<a href={APP_BASE_URL}/event/{event.id}>{APP_BASE_URL_NO_PROTO}</a>'
+                    "attributedValue": f'<a href={APP_BASE_URL}/event/{event.id}?utm_source=apple_wallet&utm_medium=pass&utm_campaign=event_{event.id}&utm_content=ticket_link>{APP_BASE_URL_NO_PROTO}</a>',
                 },
                 {
                     "key": "event_date",

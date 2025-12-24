@@ -140,7 +140,7 @@ async def event_announcement(db: AsyncSession, event_id: UUID):
         "early_bird_price": f"{event.early_bird_price} AMD",
         "standard_price": f"{event.general_admission_price} AMD",
         "member_price": f"{event.member_ticket_price} AMD",
-        "event_url": f"{APP_BASE_URL}/event/{event.id}",
+        "event_url": f"{APP_BASE_URL}/event/{event.id}?utm_source=email&utm_medium=marketing&utm_campaign=announcement_{event.id}",
     }
 
     for p in all_verified_without_tickets:
@@ -178,7 +178,7 @@ async def event_notify(db: AsyncSession, event_id: UUID):
         "end_time": ends_at_local.strftime("%H:%M"),
         "standard_price": f"{event.general_admission_price} AMD",
         "member_price": f"{event.member_ticket_price} AMD",
-        "event_url": f"{APP_BASE_URL}/event/{event.id}"
+        "event_url": f"{APP_BASE_URL}/event/{event.id}utm_source=email&utm_medium=marketing&utm_campaign=last_chance_{event.id}"
     }
 
     for p in all_verified_without_tickets:

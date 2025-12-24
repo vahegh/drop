@@ -30,16 +30,21 @@ async def can_share(user_agent):
 
 async def share_event(event):
     user_agent = ui.context.client.request.headers.get("user_agent", "").lower()
+
+    share_url = f'{APP_BASE_URL}/event/{event.id}?utm_source=share&utm_medium=web_share&utm_campaign=event_{event.id}&utm_content=share_button'
+    buy_ticket_url = f'{APP_BASE_URL}/buy-ticket?event_id={event.id}&utm_source=share&utm_medium=web_share&utm_campaign=event_{event.id}&utm_content=buy_ticket_link'
+
     if await can_share(user_agent):
         ui.run_javascript(f'''
             navigator.share({{
                 title: {json.dumps(f'{event.name} | Drop Dead Disco')},
-                url: {json.dumps(f'{APP_BASE_URL}/event/{event.id}')},
-                text: {json.dumps(f'{event.description} Tickets: {APP_BASE_URL}/buy-ticket?event_id={event.id}')}
+                url: {json.dumps(share_url)},
+                text: {json.dumps(f'{event.description} Tickets: {buy_ticket_url}')}
             }});
         ''')
     else:
-        ui.run_javascript(f"await navigator.clipboard.writeText('{APP_BASE_URL}/event/{event.id}')")
+        copy_url = f'{APP_BASE_URL}/event/{event.id}?utm_source=share&utm_medium=copy_link&utm_campaign=event_{event.id}&utm_content=share_button'
+        ui.run_javascript(f"await navigator.clipboard.writeText('{copy_url}')")
 
     gtag_event("share_event")
 

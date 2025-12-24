@@ -93,7 +93,7 @@ async def create_ticket_class(event: Event, venue: Venue):
             "uris": [
                 {
                     "description": "Event Info",
-                    "uri": f"{APP_BASE_URL}/event/{event.id}",
+                    "uri": f"{APP_BASE_URL}/event/{event.id}?utm_source=google_wallet&utm_medium=pass&utm_campaign=event_{event.id}&utm_content=ticket_link"
                 },
                 {
                     "description": "Google Maps",
@@ -181,7 +181,7 @@ async def update_member_class(event: Event = None, venue: Venue = None):
             0,
             {
                 "description": "Tickets and Information",
-                "uri": f"{APP_BASE_URL}/event/{event.id}",
+                "uri": f"{APP_BASE_URL}/event/{event.id}?utm_source=google_wallet&utm_medium=pass&utm_campaign=event_{event.id}&utm_content=ticket_link",
                 "id": "event_url_back"
             }
         )

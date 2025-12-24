@@ -169,7 +169,7 @@ async def send_event_ticket(db: AsyncSession, event_ticket: EventTicket):
     context = {
         "name": person.first_name,
         "event_name": event.name,
-        "homepage_url": APP_BASE_URL,
+        "homepage_url": f"{APP_BASE_URL}?utm_source=email&utm_medium=transactional&utm_campaign=event_ticket_{event_ticket.id}&utm_content=homepage_link",
         "event_date": starts_at_local.strftime("%A, %d %B"),
         "start_time": starts_at_local.strftime("%H:%M"),
         "end_time": ends_at_local.strftime("%H:%M"),

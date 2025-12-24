@@ -129,7 +129,7 @@ async def update_person(db: AsyncSession, id: UUID, updated_person: PersonUpdate
 
                 else:
                     context["event_name"] = next_event.name
-                    context["event_url"] = f"{APP_BASE_URL}/buy-ticket?event_id={next_event.id}"
+                    context["event_url"] = f"{APP_BASE_URL}/buy-ticket?event_id={next_event.id}&utm_source=email&utm_medium=transactional&utm_campaign=account_approved&utm_content=buy_ticket_cta"
 
                     template = await generate_template(APPROVED_TEMPLATE, context)
 
