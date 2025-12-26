@@ -6,7 +6,7 @@ from frame import frame
 from enums import PaymentProvider, PersonStatus
 from api_models import PersonResponseFull, PersonCreate
 from helpers import get_user_agent, gtag_event, fbq_event
-from components import (rectangular_email_input, primary_button,
+from components import (rectangular_gmail_input, primary_button,
                         event_datetime_card, page_header, section,
                         binding_card, outline_button, payment_choice, section_title,
                         name_input, instagram_input, outline_google_button)
@@ -262,8 +262,6 @@ async def buy_ticket_page(request: Request, event_id: UUID = None, logged_in=Dep
             )
 
             items = []
-            ticket_price = event.general_admission_price if datetime.now(
-                timezone.utc) > event.early_bird_date else event.early_bird_price
 
             await create_payment_intent(
                 PaymentIntent(
@@ -349,7 +347,7 @@ async def buy_ticket_page(request: Request, event_id: UUID = None, logged_in=Dep
             with ui.card():
                 with section("Your details", subtitle="Enter your details to buy your ticket"):
                     with ui.column().classes('gap-0 w-full'):
-                        guest_email_inp = rectangular_email_input()
+                        guest_email_inp = rectangular_gmail_input()
                         with ui.column().classes('gap-0 w-full') as guest_additional_fields:
                             with ui.row(wrap=False):
                                 guest_fn_inp = name_input("First name", "John")
@@ -447,7 +445,7 @@ async def buy_ticket_page(request: Request, event_id: UUID = None, logged_in=Dep
                         with ui.card():
                             with section("Refer a friend", subtitle="They will be auto-approved on your behalf."):
                                 with ui.column().classes('w-full gap-0'):
-                                    email_inp = rectangular_email_input(value=email)
+                                    email_inp = rectangular_gmail_input(value=email)
                                     with ui.row(wrap=False):
                                         fn_inp = name_input("First name", "John")
                                         ln_inp = name_input("Last name", "Doe")
@@ -563,7 +561,7 @@ async def buy_ticket_page(request: Request, event_id: UUID = None, logged_in=Dep
             with ui.dialog() as add_attendee_dl:
                 with ui.card():
                     with section("Add a friend", subtitle="If you have attended two or more Drop events, you can refer a friend to join us. They will be auto-approved on your behalf."):
-                        add_attendee_input = rectangular_email_input()
+                        add_attendee_input = rectangular_gmail_input()
                         save_btn = primary_button("Add").on_click(
                             lambda: validate_and_add_attendee(add_attendee_input))
                         add_attendee_input.on(

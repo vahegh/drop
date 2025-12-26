@@ -43,6 +43,7 @@ logo_gray_path = os.path.relpath("/static/images/logo_gray.png")
 
 name_regex = r'^[a-zA-Z\s-]+$'
 email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]+$'
+gmail_regex = r'^[a-zA-Z0-9_.+-]+@gmail\.com$'
 insta_regex = r'^([A-Za-z0-9_](?:(?:[A-Za-z0-9_]|(?:\.(?!\.))){0,28}(?:[A-Za-z0-9_]))?)$'
 
 name_validation = {
@@ -55,6 +56,11 @@ email_validation = {
     'Please enter a valid email address': lambda value: re.match(email_regex, value)
 }
 
+gmail_validation = {
+    'Field is required': lambda value: value,
+    'Please enter a valid Gmail address': lambda value: re.match(gmail_regex, value)
+}
+
 insta_validation = {
     'Field is required': lambda value: value,
     'Please enter a valid Instagram username': lambda value: re.match(insta_regex, value)
@@ -64,7 +70,7 @@ email_non_required = {
     'Please enter a valid email address': lambda value: re.match(email_regex, value)
 }
 
-email_placeholder = "johndoe@example.com"
+email_placeholder = "johndoe@gmail.com"
 instagram_placeholder = "johndoe123"
 
 support_email = "dropdeadisco@gmail.com"

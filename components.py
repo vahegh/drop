@@ -13,7 +13,8 @@ from enums import PersonStatus
 from helpers import generate_qr, get_google_auth_url
 from consts import (email_validation, insta_validation, name_validation,
                     email_non_required, email_placeholder, calendar_base_url,
-                    google_calendar_img_url, instagram_placeholder, APP_BASE_URL)
+                    google_calendar_img_url, instagram_placeholder, APP_BASE_URL,
+                    gmail_validation)
 from helpers import get_card_type, gtag_event, share_event
 
 maps_api_key = os.getenv('maps_api_key')
@@ -42,6 +43,15 @@ ui.select.default_classes('w-full')
 # Inputs
 def rectangular_email_input(label="Email address", required=True, **kwargs):
     inp = ui.input(label=label, placeholder=email_placeholder, validation=email_validation, **kwargs).props(
+        'type=email').without_auto_validation()
+    if not required:
+        inp._validation = email_non_required
+
+    return inp
+
+
+def rectangular_gmail_input(label="Email address", required=True, **kwargs):
+    inp = ui.input(label=label, placeholder=email_placeholder, validation=gmail_validation, **kwargs).props(
         'type=email').without_auto_validation()
     if not required:
         inp._validation = email_non_required
@@ -336,7 +346,7 @@ def section(title: str = None, subtitle: str = None):
 
 TYPE_TO_NICEGUI = {
     str: lambda label: ui.input(label=label),
-    EmailStr: lambda label: rectangular_email_input(label).props(remove='readonly'),
+    EmailStr: lambda label: rectangular_gmail_input(label),
     int: lambda label: ui.number(label=label),
     float: lambda label: ui.number(label=label, step=0.1),
     bool: lambda label: ui.checkbox(text=label),

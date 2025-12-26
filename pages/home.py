@@ -7,7 +7,7 @@ from components import (event_card, page_header, section_title,
                         status_icon, member_card, event_ticket,
                         image_carousel, google_button, primary_button,
                         section, past_tickets_col, outline_button,
-                        status_colors, name_input, instagram_input, rectangular_email_input)
+                        status_colors, name_input, instagram_input, rectangular_gmail_input)
 from helpers import get_user_agent, get_album_urls, gtag_event, fbq_event
 from enums import PersonStatus
 from services.person import get_all_person_stats, PersonCreate, create_person, get_person_by_email
@@ -65,7 +65,7 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                                 with ui.row(wrap=False):
                                     fn_inp = name_input("First name", "John")
                                     ln_inp = name_input("Last name", "Doe")
-                                email_inp = rectangular_email_input()
+                                email_inp = rectangular_gmail_input()
                                 insta_inp = instagram_input()
                                 submit_btn = primary_button('Submit')
 
