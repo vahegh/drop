@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 logging.getLogger('socketio').setLevel(logging.ERROR)
 logging.getLogger('engineio').setLevel(logging.ERROR)
 logging.getLogger('werkzeug').setLevel(logging.ERROR)
+logging.getLogger('httpx').setLevel(logging.WARNING)
 
 
 env = os.getenv('env')

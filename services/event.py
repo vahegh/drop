@@ -149,8 +149,7 @@ async def event_announcement(db: AsyncSession, event_id: UUID):
         outgoing_email = EmailRequest(
             recipient_email=p.email,
             subject=f"🪩 {event.starts_at.astimezone().strftime("%A %d %B")} | {event.name}",
-            body=await generate_template("event_announcement.html", context),
-            transactional=False
+            body=await generate_template("event_announcement.html", context)
         )
         await send_email(outgoing_email)
 
@@ -182,7 +181,7 @@ async def event_notify(db: AsyncSession):
         outgoing_email = EmailRequest(
             recipient_email=p.email,
             subject=f"This Saturday - {event.name}",
-            body=await generate_template("purchase_reminder.html", context)
+            body=await generate_template("purchase_reminder.html", context),
         )
 
         await send_email(outgoing_email)

@@ -79,6 +79,8 @@ async def login_user(db: AsyncSession, token, redirect_url='/'):
             update_req = PersonUpdate(avatar_url=avatar_url)
             await update_person(person.id, update_req)
 
+        logger.info(f"{person.email} login successful")
+
         return await generate_and_set_tokens(person.id, redirect_url=redirect_url)
 
 

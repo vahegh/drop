@@ -66,6 +66,7 @@ async def update_payment(db: AsyncSession, order_id: int, updated_payment: Payme
 
 
 async def init_payment(payment: Payment, save_card=False):
+    logger.info(f"Initializing payment {payment.order_id}")
     match payment.provider:
         case PaymentProvider.VPOS:
             try:
@@ -118,6 +119,8 @@ async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest, 
 
     if payment.status is not PaymentStatus.CREATED:
         raise HTTPException(400, f"Invalid payment status: {payment.status.value}")
+
+    logger.info(f"Attempting to confirm payment {payment.order_id}")
 
     ticket_holders = (await db.scalars(select(Person)
                                        .join(PaymentIntent, PaymentIntent.recipient_id == Person.id)
@@ -322,4 +325,6 @@ async def refund_payment(payment: Payment):
             status=PaymentStatus.REFUNDED
         )
     )
+
+    logger.info(f"Order {payment.order_id} refunded")
     return payment
