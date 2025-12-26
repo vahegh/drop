@@ -114,9 +114,10 @@ async def early_bird_end(db: AsyncSession, event_id: UUID):
 
 @with_db
 async def event_announcement(db: AsyncSession, event_id: UUID):
-    event = await db.get(Event, event_id)
+    event = await get_next_event()
+
     if not event:
-        raise HTTPException(404, "No such event")
+        raise HTTPException(404, "No upcoming event")
 
     all_verified_without_tickets = (
         await db.scalars(
@@ -155,37 +156,32 @@ async def event_announcement(db: AsyncSession, event_id: UUID):
 
 
 @with_db
-async def event_notify(db: AsyncSession, event_id: UUID):
-    event = await db.get(Event, event_id)
+async def event_notify(db: AsyncSession):
+    event = await get_next_event()
+
     if not event:
-        raise HTTPException(404, "No such event")
+        raise HTTPException(404, "No upcoming event")
+
     all_verified_without_tickets = (
         await db.scalars(
             select(Person)
             .where(Person.status.not_in([PersonStatus.pending, PersonStatus.rejected]))
-            .outerjoin(EventTicket, (EventTicket.person_id == Person.id) & (EventTicket.event_id == event_id))
+            .outerjoin(EventTicket, (EventTicket.person_id == Person.id) & (EventTicket.event_id == event.id))
             .where(EventTicket.id.is_(None))
         )
     ).all()
-    starts_at_local = event.starts_at.astimezone()
-    ends_at_local = event.ends_at.astimezone()
 
     context = {
         "event_name": event.name,
         "description": markdown(event.description),
-        "event_date": event.starts_at.astimezone().strftime("%A, %d %B"),
-        "start_time": starts_at_local.strftime("%H:%M"),
-        "end_time": ends_at_local.strftime("%H:%M"),
-        "standard_price": f"{event.general_admission_price} AMD",
-        "member_price": f"{event.member_ticket_price} AMD",
-        "event_url": f"{APP_BASE_URL}/event/{event.id}utm_source=email&utm_medium=marketing&utm_campaign=last_chance_{event.id}"
+        "buy_ticket_url": f"{APP_BASE_URL}/buy-ticket?event_id={event.id}&utm_source=email&utm_medium=marketing&utm_campaign=2_days_left_{event.id}"
     }
 
     for p in all_verified_without_tickets:
         context['name'] = p.first_name
         outgoing_email = EmailRequest(
             recipient_email=p.email,
-            subject=f"Tomorrow - {event.name}",
+            subject=f"This Saturday - {event.name}",
             body=await generate_template("purchase_reminder.html", context)
         )
 

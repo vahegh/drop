@@ -4,25 +4,19 @@
 {% block content %}
 <h1 style="text-align: center">{{ name }},</h1>
 <p>
-    Looking for your party this weekend?<br>
-    We have something you'd want.
+    It's Christmas, and it's the last weekend of the year. We all want to have fun and say goodbye to 2025 with a
+    <b><i>blast</i></b>. This is where we come
+    in.
 </p>
+<h1 style="text-align: center">{{ event_name }}</h1>
 <p style="text-align: center;">
-    <b>The next Drop happens tomorrow - this Saturday:</b>
+    About this event
 </p>
-<h2 style="text-align: center">{{ event_name }}</h2>
-{{ description | default('', true) }}
+{{ description }}
 <p>
-    Date: <b>{{ event_date }}</b><br>
-    Time: <b>{{ start_time }}</b> - <b>{{ end_time }}</b><br>
-    Standard ticket price: <b>{{ standard_price }}</b><br>
-    Member ticket price: <b>{{ member_price }}</b><br>
-    Location: <i><b>Yerevan. </b>You can see the exact location on your ticket.</i><br>
+    If you're reading this - you're already verified, and can buy tickets to any of our events.<br>
 </p>
-<p>
-    If you're reading this, then you're already verified, and can buy tickets to any of our events.<br>
-</p>
-{{ button("get your ticket", event_url) }}
+{{ button("get your ticket", buy_ticket_url) }}
 {{ buy_for_others() }}
 <p style="color: #aaa; text-align: center">
     See you on the dancefloor.

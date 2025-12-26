@@ -1,10 +1,10 @@
 import os
-import asyncio
+# import asyncio
 import logging
 from aiosmtplib import SMTP
 from email.message import EmailMessage
 from pydantic import BaseModel, EmailStr
-from aiosmtplib.errors import SMTPDataError, SMTPServerDisconnected, SMTPException
+# from aiosmtplib.errors import SMTPDataError, SMTPServerDisconnected, SMTPException
 from consts import APP_BASE_URL, ORG_NAME
 
 
@@ -15,8 +15,8 @@ SMTP_PORT = 587
 SENDER_EMAIL = os.environ['smtp_sender_email']
 SENDER_FROM = f"{ORG_NAME} <{SENDER_EMAIL}>"
 SENDER_PASSWORD = os.environ['smtp_sender_password']
-MAX_RETRIES = 3
-RETRY_DELAY = 2
+# MAX_RETRIES = 3
+# RETRY_DELAY = 2
 
 
 class EmailRequest(BaseModel):
@@ -41,34 +41,22 @@ def create_email_message(email_request: EmailRequest):
 async def send_email(email_request: EmailRequest):
     msg = create_email_message(email_request)
 
-    for attempt in range(MAX_RETRIES):
-        smtp_client = SMTP(
-            hostname=SMTP_SERVER,
-            port=SMTP_PORT,
-            start_tls=True,
-            username=SENDER_EMAIL,
-            password=SENDER_PASSWORD,
-            timeout=30.0
-        )
+    smtp_client = SMTP(
+        hostname=SMTP_SERVER,
+        port=SMTP_PORT,
+        start_tls=True,
+        username=SENDER_EMAIL,
+        password=SENDER_PASSWORD,
+        timeout=30.0
+    )
 
-        try:
-            async with smtp_client as client:
-                await client.send_message(msg)
-            logger.info(f"Email sent successfully to {email_request.recipient_email}")
-            return True
+    try:
+        async with smtp_client as client:
+            await client.send_message(msg)
+        logger.info(f"Email sent successfully to {email_request.recipient_email}")
+        return True
 
-        except (SMTPServerDisconnected, SMTPDataError, SMTPException) as e:
-            logger.warning(
-                f"Attempt {attempt + 1}/{MAX_RETRIES} failed for {email_request.recipient_email}: {type(e).__name__}: {str(e)}"
-            )
-            if attempt < MAX_RETRIES - 1:
-                await asyncio.sleep(RETRY_DELAY * (attempt + 1))
-            else:
-                logger.error(
-                    f"Failed to send email to {email_request.recipient_email} after {MAX_RETRIES} attempts")
-            return False
-
-        except Exception as e:
-            logger.error(
-                f"Unexpected error sending email to {email_request.recipient_email}: {type(e).__name__}: {str(e)}")
-            return False
+    except Exception as e:
+        logger.error(
+            f"Failed to send email to {email_request.recipient_email}: {type(e).__name__}: {str(e)}")
+        return False
