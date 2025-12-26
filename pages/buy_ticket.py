@@ -14,17 +14,13 @@ from uuid import UUID
 from services.event_ticket import get_tickets_by_person_id
 from services.payment import init_payment, create_payment
 from services.person import get_person_by_email, create_person
-from services.mailing import EmailRequest, send_email
-from services.templating import generate_template
 from services.drink import get_all_drinks
 from services.vpos_payment import make_binding_payment_vpos
 from services.event import get_event_info, get_next_event
-from routes.attendance import get_attendance
 from dependencies import Depends, logged_in
 from db_models import PaymentIntent, Payment, DrinkPaymentIntent
 from services.payment_intent import create_payment_intent
 from services.drink_payment_intent import create_drink_payment_intent
-from consts import APP_BASE_URL
 import logging
 
 logger = logging.getLogger(__name__)
@@ -236,7 +232,7 @@ async def buy_ticket_page(request: Request, event_id: UUID = None, logged_in=Dep
             new_person = await create_person(payload)
 
             if not new_person:
-                ui.notify('Registration failed. Please try again.', type='warning')
+                ui.notify('Registration failed. Please try again later.', type='warning')
                 continue_btn.props(remove='loading disable')
                 return
 
@@ -414,36 +410,11 @@ async def buy_ticket_page(request: Request, event_id: UUID = None, logged_in=Dep
             new_attendee = await get_person_by_email(email)
 
             if not new_attendee:
-                async def invite(email):
-                    context = {
-                        "inviter_name": person.full_name,
-                        "inviter_first_name": person.first_name,
-                        "event_name": event.name,
-                        "signup_url": f"{APP_BASE_URL}/login?utm_source=email&utm_medium=invite&utm_campaign=event_invite_{event.id}&utm_content=signup_cta&ref={person.id}",
-                        "event_url": f"{APP_BASE_URL}/event/{event.id}?utm_source=email&utm_medium=invite&utm_campaign=event_invite_{event.id}&utm_content=event_link&ref={person.id}"
-                    }
-                    body = await generate_template("invite.html", context=context)
-                    email_req = EmailRequest(
-                        recipient_email=email,
-                        subject="You have been invited to Drop Dead Disco",
-                        body=body
-                    )
-                    await send_email(email_req)
-                    gtag_event("invite_friend", {"person_id": str(person.id)})
-
-                    add_attendee_dl.clear()
-                    with add_attendee_dl:
-                        with ui.card():
-                            with section("Invitation sent!"):
-                                ui.markdown(
-                                    f"You have invited **{email}** to join Drop Dead Disco. You can buy a ticket for them after they are approved.").classes(
-                                    'text-center')
-
                 async def refer_person(email):
                     add_attendee_dl.clear()
                     with add_attendee_dl:
                         with ui.card():
-                            with section("Refer a friend", subtitle="They will be auto-approved on your behalf."):
+                            with section("Refer a friend", subtitle=""):
                                 with ui.column().classes('w-full gap-0'):
                                     email_inp = rectangular_gmail_input(value=email)
                                     with ui.row(wrap=False):
@@ -493,11 +464,7 @@ async def buy_ticket_page(request: Request, event_id: UUID = None, logged_in=Dep
 
                     submit_btn.on_click(lambda: submit())
 
-                person_attendance = await get_attendance(person.id)
-                if person_attendance >= 2 or person.status is PersonStatus.member:
-                    await refer_person(email)
-                else:
-                    await invite(email)
+                await refer_person(email)
 
             elif new_attendee.status not in (PersonStatus.verified, PersonStatus.member):
                 ui.notify('Can\'t buy a ticket for this person', type='warning')
@@ -560,7 +527,7 @@ async def buy_ticket_page(request: Request, event_id: UUID = None, logged_in=Dep
         if logged_in:
             with ui.dialog() as add_attendee_dl:
                 with ui.card():
-                    with section("Add a friend", subtitle="If you have attended two or more Drop events, you can refer a friend to join us. They will be auto-approved on your behalf."):
+                    with section("Add a friend", subtitle="You can buy tickets for registered people or refer new people. If you have attended two or more Drop events, the people you refer will be auto-approved on your behalf."):
                         add_attendee_input = rectangular_gmail_input()
                         save_btn = primary_button("Add").on_click(
                             lambda: validate_and_add_attendee(add_attendee_input))

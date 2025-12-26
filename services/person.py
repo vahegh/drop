@@ -9,13 +9,15 @@ from services.event import get_next_event
 from services.telegram import notify_application
 from services.templating import generate_template
 from services.mailing import EmailRequest, send_email
-from services.payment import get_ticket_payment, refund_payment
+from services.payment import get_payment, refund_payment
 from services.event_ticket import EventTicket, create_event_ticket, send_event_ticket
+from services.payment_intent import get_payment_intent, delete_payment_intent
 from api_models import PersonCreate, PersonUpdate
 from consts import (APP_BASE_URL, APPLICATION_SUBMITTED_TEMPLATE, APPROVED_TEMPLATE,
                     REJECTED_TEMPLATE, APPLICATION_SUBMITTED_SUBJECT,
                     STATUS_CHANGE_SUBJECT)
 from helpers import fbq_event
+from routes.attendance import get_attendance
 
 
 @with_db
@@ -59,9 +61,16 @@ async def create_person(db: AsyncSession, person: PersonCreate):
     db.add(new_person)
     await db.commit()
 
-    context = {"name": person.first_name}
+    if person.referer_id:
+        referer = await get_person(person.referer_id)
+        ref_attendance = await get_attendance(referer.id)
 
-    if not person.referer_id:
+        if referer.status == PersonStatus.member or ref_attendance >= 2:
+            new_person = await update_person(new_person.id, PersonUpdate(status=PersonStatus.verified))
+
+    else:
+        context = {"name": person.first_name}
+
         template = await generate_template(APPLICATION_SUBMITTED_TEMPLATE, context)
 
         email_request = EmailRequest(
@@ -69,10 +78,7 @@ async def create_person(db: AsyncSession, person: PersonCreate):
             subject=APPLICATION_SUBMITTED_SUBJECT,
             body=template
         )
-
         await send_email(email_request)
-    else:
-        new_person = await update_person(new_person.id, PersonUpdate(status=PersonStatus.verified))
 
     fbq_event("CompleteRegistration")
     await notify_application(new_person)
@@ -96,18 +102,18 @@ async def update_person(db: AsyncSession, id: UUID, updated_person: PersonUpdate
     email_request = None
     context = {"name": person.first_name}
 
+    next_event = await get_next_event()
+
     match updated_person.status:
-        case None:
-            pass
-
         case PersonStatus.rejected:
-            next_event = await get_next_event()
-
             if next_event:
-                existing_payment = await get_ticket_payment(person_id=person.id, event_id=next_event.id)
-                if existing_payment and existing_payment.status == PaymentStatus.CONFIRMED:
-                    await refund_payment(existing_payment)
-                    context["refunded"] = True
+                intent = await get_payment_intent(person.id)
+                if intent:
+                    existing_payment = await get_payment(intent.order_id)
+                    if existing_payment.status == PaymentStatus.CONFIRMED:
+                        await refund_payment(existing_payment)
+                        context["refunded"] = True
+                        await delete_payment_intent(intent.order_id, person.id)
 
             template = await generate_template(REJECTED_TEMPLATE, context)
             email_request = EmailRequest(
@@ -117,30 +123,29 @@ async def update_person(db: AsyncSession, id: UUID, updated_person: PersonUpdate
             )
 
         case PersonStatus.verified:
-            next_event = await get_next_event()
+            ticket_sent = False
 
             if next_event:
-                existing_payment = await get_ticket_payment(person_id=person.id, event_id=next_event.id)
-                if existing_payment and existing_payment.status == PaymentStatus.CONFIRMED:
-                    event_ticket = EventTicket(
-                        person_id=person.id, event_id=existing_payment.event_id, payment_order_id=existing_payment.order_id)
-                    await create_event_ticket(event_ticket)
-                    await send_event_ticket(event_ticket)
+                intent = await get_payment_intent(person.id)
+                if intent:
+                    existing_payment = await get_payment(intent.order_id)
+                    if existing_payment.status == PaymentStatus.CONFIRMED:
+                        event_ticket = EventTicket(
+                            person_id=person.id,
+                            event_id=existing_payment.event_id,
+                            payment_order_id=existing_payment.order_id
+                        )
+                        await create_event_ticket(event_ticket)
+                        await send_event_ticket(event_ticket)
+                        await delete_payment_intent(intent.order_id, person.id)
+                        ticket_sent = True
 
-                else:
+            if not ticket_sent:
+                if next_event:
                     context["event_name"] = next_event.name
                     context["event_url"] = f"{APP_BASE_URL}/buy-ticket?event_id={next_event.id}&utm_source=email&utm_medium=transactional&utm_campaign=account_approved&utm_content=buy_ticket_cta"
 
-                    template = await generate_template(APPROVED_TEMPLATE, context)
-
-                    email_request = EmailRequest(
-                        recipient_email=person.email,
-                        subject=STATUS_CHANGE_SUBJECT,
-                        body=template
-                    )
-            else:
                 template = await generate_template(APPROVED_TEMPLATE, context)
-
                 email_request = EmailRequest(
                     recipient_email=person.email,
                     subject=STATUS_CHANGE_SUBJECT,
