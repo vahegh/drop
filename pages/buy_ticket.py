@@ -455,6 +455,7 @@ async def buy_ticket_page(request: Request, event_id: UUID = None, logged_in=Dep
                             attendee_list.refresh()
                             update_totals()
                             add_attendee_dl.close()
+                            ui.notify(f"Successfully registered {email}", type='positive')
 
                         else:
                             add_attendee_dl.clear()
