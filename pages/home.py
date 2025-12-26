@@ -1,6 +1,6 @@
 from nicegui import ui
 from fastapi import Request, HTTPException
-from datetime import timezone, datetime
+from datetime import timezone, datetime, timedelta
 from frame import frame
 from api_models import EventResponse, PersonResponseFull
 from components import (event_card, page_header, section_title,
@@ -15,6 +15,7 @@ from dependencies import Depends, logged_in
 from services.drink_voucher import get_drink_vouchers_by_person_id
 from services.drink import get_drink
 from services.event import get_all_events, get_next_event
+from services.venue import get_venue_info
 from routes.attendance import get_attendance
 
 
@@ -135,8 +136,12 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                             (t for t in event_tickets if t.event_id == next_event.id), None)
 
                         if next_event_ticket:
+                            venue = None
+                            if datetime.now(timezone.utc) + timedelta(1) >= next_event.starts_at:
+                                venue = await get_venue_info(next_event.venue_id)
+
                             with section("Your ticket"):
-                                event_ticket(next_event_ticket, next_event, user_agent)
+                                event_ticket(next_event_ticket, next_event, user_agent, venue)
 
                     person_attendance = await get_attendance(person.id)
                     if person_attendance >= 2:

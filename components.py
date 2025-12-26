@@ -305,7 +305,7 @@ def member_card(member_pass: MemberCardResponse, attendance: int, user_agent):
                 add_to_wallet(user_agent, member_pass.google_pass_url, member_pass.apple_pass_url)
 
 
-def event_ticket(ticket: EventTicketResponse, event: EventResponse, user_agent):
+def event_ticket(ticket: EventTicketResponse, event: EventResponse, user_agent, venue: VenueResponse = None):
     img = generate_qr(ticket.id)
 
     with ui.card().props('bordered flat').classes('w-full max-w-96 gap-4 px-0 justify-around border-black'):
@@ -322,6 +322,11 @@ def event_ticket(ticket: EventTicketResponse, event: EventResponse, user_agent):
                     ui.label("Start time")
                     ui.label(event.starts_at.astimezone().strftime("%H:%M")
                              ).classes('text-right font-bold text-lg')
+            if venue:
+                with ui.column().classes('w-full items-center gap-0'):
+                    ui.label("Location")
+                    ui.label(venue.name).classes('font-bold text-lg')
+
         with section():
             add_to_wallet(user_agent, ticket.google_pass_url, ticket.apple_pass_url)
 
