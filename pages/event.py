@@ -112,5 +112,5 @@ async def event_page(event_id: UUID, logged_in=Depends(logged_in)):
             else:
                 btn = primary_button(
                     '🎟️ Buy your ticket', target=f'/buy-ticket?event_id={event.id}')
-                if logged_in and person.status not in (PersonStatus.member, PersonStatus.verified):
+                if logged_in and person.status == PersonStatus.rejected:
                     btn.props(add='disable')

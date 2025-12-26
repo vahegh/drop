@@ -1,15 +1,16 @@
 import logging
+import asyncio
 from uuid import UUID
 from datetime import datetime, timezone
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
 from enums import PersonStatus
 from services.templating import generate_template
 from services.venue import get_venue_info
-from db_models import Event, Venue, Person, EventTicket
+from db_models import Event, Venue, Person, EventTicket, MemberPass
 from api_models import EventCreate, EventUpdate
-from consts import APP_BASE_URL
+from consts import APP_BASE_URL, VENUE_REVEAL_TEMPLATE
 from services.google_pass import create_ticket_class, update_member_class
 from services.mailing import EmailRequest, send_email
 from decorators import with_db
@@ -54,9 +55,9 @@ async def update_event(db: AsyncSession, id: UUID, request: EventUpdate):
     if not event:
         raise HTTPException(404, "Event not found")
 
-    venue = await db.get(Venue, event.venue_id)
     for field, value in request.model_dump(exclude_unset=True).items():
         setattr(event, field, value)
+    venue = await db.get(Venue, event.venue_id)
 
     await update_member_class(event=event, venue=venue)
     await create_ticket_class(event=event, venue=venue)
@@ -185,3 +186,48 @@ async def event_notify(db: AsyncSession):
         )
 
         await send_email(outgoing_email)
+
+
+@with_db
+async def venue_reveal(db: AsyncSession):
+    event = await get_next_event()
+    if not event:
+        raise HTTPException(404, "No such event")
+
+    venue = await db.get(Venue, event.venue_id)
+    context = {
+        "event_name": event.name,
+        "venue_name": venue.name,
+        "address": venue.address,
+        "google_maps_link": venue.google_maps_link,
+        "yandex_maps_link": venue.yandex_maps_link
+    }
+
+    persons = (
+        await db.scalars(
+            select(Person)
+            .outerjoin(EventTicket, EventTicket.person_id == Person.id)
+            .outerjoin(MemberPass, MemberPass.person_id == Person.id)
+            .where(
+                or_(
+                    EventTicket.event_id == event.id,
+                    MemberPass.id.isnot(None)
+                )
+            )
+            .distinct()
+        )
+    ).all()
+
+    # persons = (await db.scalars(select(Person).where(Person.id == 'c8571072-a0b6-4e27-b646-0090070fa74c'))).all()
+
+    for person in persons:
+        context['name'] = person.first_name
+        outgoing_email = EmailRequest(
+            recipient_email=person.email,
+            subject=f"Location Update For {event.name}",
+            body=await generate_template(VENUE_REVEAL_TEMPLATE, context)
+        )
+        await send_email(outgoing_email)
+        # await asyncio.sleep(1)
+
+    return {"notified": len(persons)}

@@ -44,7 +44,7 @@ async def buy_ticket_page(request: Request, event_id: UUID = None, logged_in=Dep
 
     person: PersonResponseFull = request.state.person if logged_in else None
 
-    if logged_in and person.status not in (PersonStatus.member, PersonStatus.verified):
+    if logged_in and person.status == PersonStatus.rejected:
         ui.navigate.to("/")
         return
 
@@ -144,7 +144,7 @@ async def buy_ticket_page(request: Request, event_id: UUID = None, logged_in=Dep
                         id = "ticket_member"
                         price = event.member_ticket_price
 
-                    elif attendee.status == PersonStatus.verified:
+                    else:
                         if datetime.now(timezone.utc) > event.early_bird_date:
                             id = "ticket_standard"
                             price = event.general_admission_price
@@ -375,7 +375,7 @@ async def buy_ticket_page(request: Request, event_id: UUID = None, logged_in=Dep
             for attendee in cart['tickets']:
                 if attendee.status == PersonStatus.member:
                     total_price += event.member_ticket_price
-                elif attendee.status == PersonStatus.verified:
+                else:
                     total_price += ticket_price
 
             if not logged_in:
@@ -502,7 +502,7 @@ async def buy_ticket_page(request: Request, event_id: UUID = None, logged_in=Dep
                             price = 0
                             if attendee.status == PersonStatus.member:
                                 price = event.member_ticket_price
-                            elif attendee.status == PersonStatus.verified:
+                            else:
                                 price = ticket_price
 
                             if price > 0:

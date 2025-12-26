@@ -130,7 +130,6 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                 event_map = {e.id: e for e in events}
 
                 if person.status == PersonStatus.verified:
-
                     if next_event:
                         next_event_ticket = next(
                             (t for t in event_tickets if t.event_id == next_event.id), None)
@@ -207,8 +206,8 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
             for e in upcoming_events:
                 with section():
                     with ui.link(target=f"/event/{e.id}").classes('w-full max-w-96 justify-center items-center'):
-                        can_buy_ticket = (logged_in and person.status in (
-                            PersonStatus.verified, PersonStatus.member)) or not logged_in
+                        can_buy_ticket = (logged_in and person.status !=
+                                          PersonStatus.rejected) or not logged_in
                         event_card(e, buy_btn=can_buy_ticket)
 
         page_header("The Community")

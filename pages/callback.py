@@ -75,7 +75,7 @@ async def callback_page(confirm_request):
                     id = "ticket_member"
                     price = event.member_ticket_price
 
-                elif person.status == PersonStatus.verified:
+                else:
                     if datetime.now(timezone.utc) > event.early_bird_date:
                         id = "ticket_standard"
                         price = event.general_admission_price
