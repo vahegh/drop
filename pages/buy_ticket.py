@@ -59,7 +59,7 @@ async def buy_ticket_page(request: Request, event_id: UUID = None, logged_in=Dep
             id = "ticket_member"
             price = event.member_ticket_price
 
-        elif person.status == PersonStatus.verified:
+        else:
             if datetime.now(timezone.utc) > event.early_bird_date:
                 id = "ticket_standard"
                 price = event.general_admission_price
@@ -81,7 +81,7 @@ async def buy_ticket_page(request: Request, event_id: UUID = None, logged_in=Dep
             id = "ticket_member"
             price = event.member_ticket_price
 
-        elif person.status == PersonStatus.verified:
+        else:
             if datetime.now(timezone.utc) > event.early_bird_date:
                 id = "ticket_standard"
                 price = event.general_admission_price
@@ -100,7 +100,6 @@ async def buy_ticket_page(request: Request, event_id: UUID = None, logged_in=Dep
         pay_btn = None
         total_price = 0
 
-        # Dialog for guest registration
         guest_dialog = ui.dialog()
 
         async def handle_payment():
@@ -467,8 +466,9 @@ async def buy_ticket_page(request: Request, event_id: UUID = None, logged_in=Dep
 
                 await refer_person(email)
 
-            elif new_attendee.status not in (PersonStatus.verified, PersonStatus.member):
-                ui.notify('Can\'t buy a ticket for this person', type='warning')
+            elif new_attendee.status == PersonStatus.rejected:
+                ui.notify("Can't buy a ticket for this person", type='warning')
+
             else:
                 if await get_tickets_by_person_id(new_attendee.id, event.id):
                     ui.notify(f"This person already has a ticket for {event.name}.")

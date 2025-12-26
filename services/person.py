@@ -60,6 +60,7 @@ async def create_person(db: AsyncSession, person: PersonCreate):
     new_person = Person(**person.model_dump())
     db.add(new_person)
     await db.commit()
+    await db.refresh(new_person)
 
     if person.referer_id:
         referer = await get_person(person.referer_id)
