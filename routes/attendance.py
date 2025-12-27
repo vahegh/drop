@@ -1,11 +1,12 @@
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import APIRouter, Depends, HTTPException
 from decorators import with_db
 from enums import PersonStatus
 from services.event_ticket import add_ticket_to_db
+from services.event import get_next_event
 from services.apple_pass import create_apple_member
 from services.google_pass import patch_member_object
 from db_models import EventTicket, MemberPass, Person, Event
@@ -24,7 +25,8 @@ async def add_attendance(db: AsyncSession, pass_id: UUID):
 
     person = await db.get(Person, db_pass.person_id)
 
-    event = await db.scalar(select(Event).where((Event.starts_at < datetime.now()) & (Event.ends_at > datetime.now())))
+    event = await get_next_event()
+
     if not event:
         raise HTTPException(404, "Event not found")
 

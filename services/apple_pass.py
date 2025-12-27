@@ -129,8 +129,9 @@ def create_pkpass(files, output_pass):
 
 
 async def create_apple_member(member_pass: MemberPass, name, attendance, event: Event = None, venue: Venue = None):
-    starts_at = event.starts_at.astimezone().isoformat()
-    ends_at = event.ends_at.astimezone().isoformat()
+    if event and venue:
+        starts_at = event.starts_at.astimezone().isoformat()
+        ends_at = event.ends_at.astimezone().isoformat()
     pass_id = str(member_pass.id)
     serial_no = str(member_pass.serial_number).zfill(3)
 
@@ -171,8 +172,7 @@ async def create_apple_member(member_pass: MemberPass, name, attendance, event: 
                     "label": "Events Attended",
                     "value": attendance,
                     "textAlignment": "PKTextAlignmentRight",
-                    "changeMessage": f"Events attended: %@"
-
+                    "changeMessage": "Events attended: %@"
                 },
             ],
         },
@@ -199,7 +199,7 @@ async def create_apple_member(member_pass: MemberPass, name, attendance, event: 
                     "label": "Next Event",
                     "value": event.name,
                     "key": "event_name_back",
-                    "changeMessage": f"%@ is now live. Details inside the pass."
+                    "changeMessage": "%@ is now live. Details inside the pass."
                 },
                 {
                     "label": "Date",
