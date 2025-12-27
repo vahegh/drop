@@ -179,13 +179,11 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                     #                     ui.label(qty)
 
                     if person.drive_folder_url:
-                        with section("You at Drop"):
-                            ui.markdown(
-                                "As a Member, you get access to **all photos of you** captured during Drop events, in full quality.").classes('text-center')
+                        with section("You at Drop", subtitle="As a Member, you get access to all photos of you captured during Drop events, in full quality."):
                             outline_button(
                                 "Open in Google Photos", icon=f"img:/static/images/google_photos.svg", target=f"{person.drive_folder_url}?authuser={person.email}")
                             ui.markdown(
-                                "*note: this album is only visible to you*").classes('text-center')
+                                "*note: this album is only visible to you*").classes('text-center text-sm')
 
                     past_tickets_col(event_tickets, event_map)
 
