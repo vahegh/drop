@@ -240,22 +240,52 @@ async def event_details_panel(event_id):
         last_index = time_bins.index(last_bin)
         time_bins = time_bins[:last_index + 2]
 
+    # Calculate both per-bin and cumulative attendance
     y_vals = []
+    cumulative_vals = []
     hover_texts = []
+    cumulative_total = 0
 
     for t in time_bins:
-        y_vals.append(len(attendance_by_bin[t]))
+        bin_count = len(attendance_by_bin[t])
+        cumulative_total += bin_count
+
+        y_vals.append(bin_count)
+        cumulative_vals.append(cumulative_total)
+
         if attendance_by_bin[t]:
             hover_texts.append("<br>".join(attendance_by_bin[t]))
         else:
             hover_texts.append("No attendees")
 
+    # Create figure with two traces
     fig = go.Figure(
-        data=go.Scatter(
-            x=time_bins,
-            y=y_vals,
-            mode='lines+markers'
-        ),
+        data=[
+            go.Scatter(
+                x=time_bins,
+                y=cumulative_vals,
+                mode='lines+markers',
+                name='Cumulative',
+                line=dict(color='blue', width=2),
+                hovertemplate='<b>Cumulative</b><br>' +
+                'Time: %{x|%-I:%M%p}<br>' +
+                'Total attended: %{y}<br>' +
+                '<extra></extra>'
+            ),
+            go.Scatter(
+                x=time_bins,
+                y=y_vals,
+                mode='lines+markers',
+                name='Per 5-min',
+                line=dict(color='lightblue', width=1, dash='dot'),
+                text=hover_texts,
+                hovertemplate='<b>Per 5-min interval</b><br>' +
+                'Time: %{x|%-I:%M%p}<br>' +
+                'Attended: %{y}<br>' +
+                '%{text}<br>' +
+                '<extra></extra>'
+            )
+        ],
         layout=Layout(
             hovermode='closest',
             xaxis=dict(
@@ -267,7 +297,14 @@ async def event_details_panel(event_id):
                 tick0=0
             ),
             margin=dict(l=40, r=20, t=40, b=40),
-            autosize=True
+            autosize=True,
+            legend=dict(
+                orientation="h",
+                yanchor="bottom",
+                y=1.02,
+                xanchor="right",
+                x=1
+            )
         )
     )
 
