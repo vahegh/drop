@@ -67,7 +67,7 @@ async def create_event_ticket(db: AsyncSession, ticket: EventTicket):
 @with_db
 async def get_all_tickets(db: AsyncSession, event_id: str = None):
     if event_id:
-        tickets = await db.scalars(select(EventTicket).where(EventTicket.event_id == event_id))
+        tickets = await db.scalars(select(EventTicket).where(EventTicket.event_id == event_id).order_by(EventTicket.created_at))
     else:
         tickets = await db.scalars(select(EventTicket))
     return tickets.all()

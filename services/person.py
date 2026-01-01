@@ -127,7 +127,7 @@ async def update_person(db: AsyncSession, id: UUID, updated_person: PersonUpdate
             ticket_sent = False
 
             if next_event:
-                intent = await get_payment_intent(person.id)
+                intent = await get_payment_intent(person.id)  # TODO handle multiple intents
                 if intent:
                     existing_payment = await get_payment(intent.order_id)
                     if existing_payment.status == PaymentStatus.CONFIRMED:
