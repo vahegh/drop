@@ -80,7 +80,7 @@ async def init_payment(payment: Payment, save_card=False):
             except Exception as e:
                 raise HTTPException(500, f"Unable to create vPOS payment: {str(e)}")
 
-        case PaymentProvider.APPLEPAY:
+        case PaymentProvider.APPLEPAY | PaymentProvider.GOOGLEPAY:
             try:
                 payment_id = await init_payment_vpos(payment.order_id, payment.amount, save_card=save_card)
                 payment.upstream_payment_id = payment_id
@@ -90,7 +90,8 @@ async def init_payment(payment: Payment, save_card=False):
                 return url
 
             except Exception as e:
-                raise HTTPException(500, f"Unable to create Apple Pay payment: {str(e)}")
+                raise HTTPException(
+                    500, f"Unable to create Apple Pay / Google Pay payment: {str(e)}")
 
         case PaymentProvider.MYAMERIA:
             try:
@@ -127,7 +128,7 @@ async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest, 
                                        .where(PaymentIntent.order_id == payment.order_id))).all()
 
     match transaction.provider:
-        case PaymentProvider.VPOS | PaymentProvider.APPLEPAY:
+        case PaymentProvider.VPOS | PaymentProvider.APPLEPAY | PaymentProvider.GOOGLEPAY:
             try:
                 payment_details = await get_payment_details_vpos(payment.upstream_payment_id)
                 if payment_details.ResponseCode == "00":
@@ -298,11 +299,11 @@ async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest, 
 
 async def refund_payment(payment: Payment):
     match payment.provider:
-        case PaymentProvider.VPOS | PaymentProvider.APPLEPAY:
+        case PaymentProvider.VPOS | PaymentProvider.APPLEPAY | PaymentProvider.GOOGLEPAY:
             try:
                 await cancel_payment_vpos(payment.upstream_payment_id)
             except Exception as e:
-                logger.error(f"Unable to cancel VPOS/ApplePay payment: {str(e)}")
+                logger.error(f"Unable to cancel VPOS/ApplePay/GooglePay payment: {str(e)}")
 
         case PaymentProvider.MYAMERIA:
             try:

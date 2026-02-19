@@ -21,4 +21,5 @@ class PaymentProvider(enum.Enum):
     MYAMERIA = "MYAMERIA"
     IDRAM = "IDRAM"
     APPLEPAY = "APPLEPAY"
+    GOOGLEPAY = "GOOGLEPAY"
     BINDING = "BINDING"

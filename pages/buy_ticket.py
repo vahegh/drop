@@ -618,6 +618,18 @@ async def buy_ticket_page(request: Request, event_id: UUID = None, logged_in=Dep
                 radio.update()
                 idx += 1
 
+            # elif user_agent == "android":
+            #     options[idx] = ""
+            #     payment_methods[idx] = {
+            #         'provider': PaymentProvider.GOOGLEPAY,
+            #         'data': None
+            #     }
+            #     with ui.teleport(f'#{radio.html_id} > div:nth-child({idx}) .q-radio__label'):
+            #         with payment_choice():
+            #             ui.image("/static/images/google_pay.svg").classes('w-10')
+            #     radio.update()
+            #     idx += 1
+
             options[idx] = ""
             payment_methods[idx] = {
                 'provider': PaymentProvider.MYAMERIA,
