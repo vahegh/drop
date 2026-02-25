@@ -280,8 +280,8 @@ def add_to_wallet(user_agent, google_url, apple_url) -> None:
         outline_button("Add to Wallet", target=google_url,
                        icon="img:/static/images/google_wallet.svg")
     elif user_agent == 'ios':
-        outline_button("Add to Wallet", target=apple_url,
-                       icon="img:/static/images/apple_wallet.svg")
+        outline_button(
+            "Add to Wallet", icon="img:/static/images/apple_wallet.svg").on_click(lambda: ui.navigate.to(apple_url))
 
 
 def member_card(member_pass: MemberCardResponse, attendance: int, user_agent):
