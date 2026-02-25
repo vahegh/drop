@@ -90,7 +90,6 @@ async def signup_page(token):
                                         'text-5xl font-bold')
                                     ui.label(
                                         "Please try again a little later.").classes('text-xl')
-                    dl.delete()
                     btn.props(remove='loading disable')
 
                 btn.on_click(submit)
