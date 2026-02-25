@@ -15,7 +15,7 @@ async def upload_apple_pass(filename: str) -> str:
     if blob.exists():
         blob.delete()
     blob.cache_control = "max-age=0"
-    blob.upload_from_filename(filename)
+    blob.upload_from_filename(filename, content_type="application/vnd.apple.pkpass")
     return blob.public_url
 
 

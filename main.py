@@ -152,7 +152,8 @@ def main():
         storage_secret=storage_secret,
         reload=False,
         show=False,
-        fastapi_docs=True
+        fastapi_docs=True,
+        dark=None
     )
 
 
