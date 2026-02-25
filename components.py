@@ -421,22 +421,18 @@ def past_tickets_col(event_tickets, event_map):
 def instagram_dialog(instagram_info):
     with ui.dialog() as dl:
         with ui.card().classes('gap-4 w-full max-w-96'):
-            if instagram_info:
-                with section():
-                    ui.link(
-                        f"@{instagram_info['username']}", f"https://instagram.com/{instagram_info['username']}").classes('text-2xl')
-                    ui.label(f"{instagram_info['followers']} followers").classes(
-                        'text-gray-600')
+            with section():
+                ui.link(
+                    f"@{instagram_info['username']}", f"https://instagram.com/{instagram_info['username']}").classes('text-2xl')
+                ui.label(f"{instagram_info['followers']} followers").classes(
+                    'text-gray-600')
 
-                with section():
-                    section_title("Is this you?")
-                    with ui.row(wrap=False):
-                        outline_button("No").on_click(lambda: dl.submit(False))
-                        primary_button("Yes, submit").on_click(
-                            lambda: dl.submit(True))
-            else:
-                with section(f"Instagram user not found", subtitle="Please check your username."):
-                    primary_button("Fix").on_click(lambda: (dl.submit(False)))
+            with section():
+                section_title("Is this you?")
+                with ui.row(wrap=False):
+                    outline_button("No").on_click(lambda: dl.submit(False))
+                    primary_button("Yes, submit").on_click(
+                        lambda: dl.submit(True))
     return dl
 
 

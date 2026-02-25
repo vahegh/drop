@@ -61,11 +61,12 @@ async def signup_page(token):
 
                     instagram_info = await instagram_check(insta)
 
-                    dl = instagram_dialog(instagram_info)
-
-                    dl.open()
-
-                    result = await dl
+                    if instagram_info:
+                        dl = instagram_dialog(instagram_info)
+                        dl.open()
+                        result = await dl
+                    else:
+                        result = True
 
                     if result:
                         payload = PersonCreate(
