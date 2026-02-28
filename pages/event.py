@@ -49,7 +49,6 @@ async def event_page(event_id: UUID, logged_in=Depends(logged_in)):
         ui.dark_mode(True)
 
         event_passed = event.ends_at < datetime.now(timezone.utc)
-        event_passed = False
 
         with ui.grid().classes('flex w-full justify-center p-0 gap-2'):
             page_header(event.name)
