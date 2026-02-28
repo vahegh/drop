@@ -5,7 +5,7 @@ from fastapi import Request, HTTPException
 from frame import frame
 from enums import PaymentProvider, PersonStatus
 from api_models import PersonResponseFull, PersonCreate
-from helpers import get_user_agent, gtag_event, fbq_event
+from helpers import get_user_agent, gtag_event, fbq_event, get_google_auth_url
 from components import (rectangular_email_input, primary_button,
                         event_datetime_card, page_header, section,
                         binding_card, outline_button, payment_choice, section_title,
@@ -329,7 +329,10 @@ async def buy_ticket_page(request: Request, event_id: UUID = None, logged_in=Dep
 
             if existing_person and existing_person.status in (PersonStatus.verified, PersonStatus.member):
                 guest_dialog.close()
-                ui.navigate.to(f'/login?redirect_url=/buy-ticket?event_id={event_id}')
+                url = await get_google_auth_url(url=ui.context.client.request.url, login_hint=email)
+                ui.navigate.to(url)
+
+                # ui.navigate.to(f'/login?redirect_url=/buy-ticket?event_id={event_id}')
                 return
             else:
                 guest_additional_fields.set_visibility(True)
