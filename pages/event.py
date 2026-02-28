@@ -5,7 +5,7 @@ from uuid import UUID
 from frame import frame
 from helpers import get_album_urls, gtag_event, fbq_event, share_event
 from components import (event_datetime_card, event_card, image_carousel, primary_button,
-                        ticket_card, section, location_card, outline_button)
+                        ticket_card, section, location_card, outline_button, page_header)
 from services.event import get_event_info
 from dependencies import Depends, logged_in
 from api_models import PersonResponseFull
@@ -32,23 +32,39 @@ async def event_page(event_id: UUID, logged_in=Depends(logged_in)):
     ui.page_title(f'{event.name} | Drop Dead Disco')
 
     async with frame():
+        ui.add_css(f'''
+        body::before {{
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url('{event.image_url}');
+            background-size: cover;
+            background-position: center;
+            filter: blur(12px);
+            filter: brightness(25%);
+            transform: scale(1.05);
+            z-index: -1;
+        }}
+    ''')
+        ui.dark_mode(True)
+
         event_passed = event.ends_at < datetime.now(timezone.utc)
+        event_passed = False
 
         with ui.grid().classes('flex w-full justify-center p-0 gap-2'):
-            with section():
-                event_card(event, share=True)
+            page_header(event.name)
+
+            if not event_passed:
+                with section():
+                    event_datetime_card(event)
+
             if event.track_url:
-                ui.element('iframe').props(f'''
+                with section():
+                    ui.element('iframe').props(f'''
                                 src="{event.track_url}"
                                 allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                                loading="lazy"''').classes('rounded-xl w-full max-w-96 px-2 h-20')
-            with section():
-                ui.markdown(f"""
-## {event.name}  
-**Kentron, Yerevan**  
-{event.starts_at.astimezone().strftime("%d %B | %H:%M")} - {event.ends_at.astimezone().strftime("%H:%M")}  
+                                loading="lazy"''').classes('rounded-xl w-full max-w-96 h-20')
 
----""")
             if event.description:
                 with section():
                     ui.markdown(f"""
@@ -68,7 +84,7 @@ async def event_page(event_id: UUID, logged_in=Depends(logged_in)):
 
             if not event_passed:
                 with section():
-                    event_datetime_card(event)
+                    location_card()
 
                 with section("Tickets"):
                     early_bird_active = event.early_bird_date > datetime.now(timezone.utc)
@@ -101,16 +117,13 @@ async def event_page(event_id: UUID, logged_in=Depends(logged_in)):
                     })
                     fbq_event("ViewContent")
 
-                with section():
-                    location_card()
-
-        ui.space().classes('h-[50px]')
+        ui.space().classes('h-14')
         with section() as s:
-            s.classes('fixed bottom-6 z-50')
+            s.classes('fixed bottom-4 z-50 px-2')
             if event_passed:
-                primary_button('This event has ended').props('disabled')
+                primary_button('This event has ended').props('disabled').classes('h-20 text-lg')
             else:
                 btn = primary_button(
-                    '🎟️ Buy your ticket', target=f'/buy-ticket?event_id={event.id}')
+                    '🎟️ Buy your ticket', target=f'/buy-ticket?event_id={event.id}').classes('h-20 text-lg')
                 if logged_in and person.status == PersonStatus.rejected:
                     btn.props(add='disable')

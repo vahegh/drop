@@ -61,7 +61,8 @@ async def frame(show_footer=False):
 
                         primary_button('Your profile', target='/profile')
 
-                        ui.link('Log out', '/logout')
+                        ui.link(
+                            'Log out', f'/logout?redirect_url={request.url.path}?{request.url.query}')
 
                     btn.on_click(menu.toggle)
 

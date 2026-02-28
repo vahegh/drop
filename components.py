@@ -139,7 +139,7 @@ def login_button(target):
     return btn
 
 
-def event_card(event: EventResponse, buy_btn=False, share=False):
+def event_card(event: EventResponse, buy_btn=False):
     with ui.image(event.image_url).classes('aspect-4/5 rounded-3xl w-full max-w-96') as c:
         with ui.column().classes(add='bg-transparent h-full justify-between p-4 w-full items-center'):
             page_header(event.name)
@@ -153,38 +153,18 @@ def event_card(event: EventResponse, buy_btn=False, share=False):
                         target = f"/event/{event.id}"
                     primary_button(btn_text, target=target).on_click(
                         lambda b: b.sender.props(add='loading disable')).on_click(lambda b: b.sender.run_method("stopPropagation"))
-                elif share:
-                    outline_button("Share with a friend").props(
-                        'icon-right="send"').on_click(lambda: share_event(event))
     return c
 
 
 def event_datetime_card(event: EventResponse):
-    def countdown_to_date(target_datetime: datetime):
-        now = datetime.now(timezone.utc)
-        delta = target_datetime - now
-
-        days = delta.days
-        hours, remainder = divmod(delta.seconds, 3600)
-        minutes, seconds = divmod(remainder, 60)
-
-        if delta.total_seconds() < 0:
-            timer.deactivate()
-            countdown_label.delete()
-
-        else:
-            countdown_label.set_text(f"{days}d {hours}h {minutes}m {seconds}s")
-
-    with ui.card().classes('p-0').props('flat') as card:
+    with ui.card().classes('p-0 bg-transparent').props('flat') as card:
         event_duration = (event.ends_at - event.starts_at).total_seconds()
         elapsed = (datetime.now(timezone.utc) - event.starts_at).total_seconds()
         progress_value = 0
         if elapsed > 0:
             progress_value = elapsed / event_duration
 
-        with section("Date and Time", subtitle=event.starts_at.astimezone().strftime("%A, %d %B")):
-            timer = ui.timer(1.0, lambda: countdown_to_date(event.starts_at))
-
+        with section(event.starts_at.astimezone().strftime("%A, %d %B")):
             with ui.row(wrap=False).classes('px-4 gap-2'):
                 ui.label(event.starts_at.astimezone().strftime("%I %p").lstrip('0')
                          )
@@ -193,31 +173,33 @@ def event_datetime_card(event: EventResponse):
                 ui.label(event.ends_at.astimezone().strftime("%I %p").lstrip('0')
                          )
 
-            countdown_label = ui.label('').classes('text-gray-500')
             start_dt_google = event.starts_at.strftime("%Y%m%dT%H%M%SZ")
             end_dt_google = event.ends_at.strftime("%Y%m%dT%H%M%SZ")
 
             desc = f"""{event.description}
             Tickets: {APP_BASE_URL}/buy-ticket?event_id={event.id}"""
 
-            outline_button(
-                "Add to Calendar",
-                icon=f'img:{google_calendar_img_url}',
-                target=f"{calendar_base_url}&dates={start_dt_google}/{end_dt_google}&details={urllib.parse.quote_plus(desc)}&location=Yerevan&text={urllib.parse.quote_plus(event.name)}"
-            ).on_click(lambda: gtag_event("add_to_calendar"))
+            with ui.row(wrap=False).classes('gap-2'):
+                outline_button(
+                    "Add to Calendar",
+                    icon=f'img:{google_calendar_img_url}',
+                    target=f"{calendar_base_url}&dates={start_dt_google}/{end_dt_google}&details={urllib.parse.quote_plus(desc)}&location=Yerevan&text={urllib.parse.quote_plus(event.name)}"
+                ).on_click(lambda: gtag_event("add_to_calendar"))
+                with ui.button().props('flat round').on_click(lambda: share_event(event)):
+                    ui.icon("ios_share")
 
     return card
 
 
 def location_card():
-    with ui.card().classes('p-0').props('flat') as card:
+    with ui.card().classes('p-0 bg-transparent').props('flat') as card:
         with section("Location", subtitle="Kentron, Yerevan"):
             ui.element('iframe').props(f'''
                 loading="lazy"
                 src="https://www.google.com/maps/embed/v1/place?q=Kentron&key={maps_api_key}"
             ''').classes('rounded-3xl w-full aspect-square h-auto invert-90 hue-rotate-180')
             section_subtitle(
-                "Exact location will be provided 24h in advance, only to ticket holders.")
+                "Exact location will be provided to ticket holders 24h in advance.")
 
     return card
 
@@ -483,8 +465,5 @@ def binding_card(card: CardBindingResponse):
 
 @contextmanager
 def payment_choice():
-    c = ui.card().classes(
-        'w-full rounded-full h-[40px] p-0 justify-center items-center').props('flat')
-    with c:
-        with ui.row(wrap=False).classes('justify-center items-center'):
-            yield
+    with ui.row(wrap=False).classes('justify-center items-center gap-2'):
+        yield
