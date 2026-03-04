@@ -52,9 +52,11 @@ async def event_page(event_id: UUID, logged_in=Depends(logged_in)):
             if event.track_url:
                 with section():
                     ui.element('iframe').props(f'''
-                                src="{event.track_url}"
+                                src="{event.track_url}?utm_source=generator"
+                                data-testid="embed-iframe" 
+                                allowfullscreen=""
                                 allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                                loading="eager"''').classes('rounded-xl w-full max-w-96 h-20')
+                                loading="eager"''').classes('rounded-xl w-full max-w-96 h-[152px]')
 
             if event.description:
                 with section():

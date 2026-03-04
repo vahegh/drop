@@ -236,5 +236,7 @@ Every guest has to pass **verification** before they're able to buy tickets and 
         with section("Spotify playlist", subtitle="Updated regularly with your favourites"):
             ui.element('iframe').props('''
                                     src="https://open.spotify.com/embed/playlist/49t6kUgW6nB7Kcv4d357qy?utm_source=generator"
+                                    data-testid="embed-iframe"
+                                    allowfullscreen=""
                                     allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                                    loading="eager"''').classes('rounded-xl w-full max-w-96')
+                                    loading="eager"''').classes('rounded-xl w-full max-w-96 h-[352px]')
