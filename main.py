@@ -28,7 +28,6 @@ storage_secret = os.getenv('storage_secret')
 
 head_html = '''
 <meta name="description" content="Drop Dead Disco - ask around.">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -154,7 +153,7 @@ def main():
         reload=False,
         show=False,
         fastapi_docs=True,
-        dark=None
+        dark=True
     )
 
 

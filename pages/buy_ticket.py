@@ -88,7 +88,6 @@ async def buy_ticket_page(request: Request, event_id: UUID = None, logged_in=Dep
             z-index: -1;
         }}
     ''')
-    ui.dark_mode(True)
 
     cart = {
         'tickets': [],

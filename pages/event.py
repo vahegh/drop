@@ -1,23 +1,17 @@
 from datetime import timezone, datetime
 from nicegui import ui
-from fastapi import HTTPException, Request
+from fastapi import HTTPException
 from uuid import UUID
 from frame import frame
-from helpers import get_album_urls, gtag_event, fbq_event, share_event
-from components import (event_datetime_card, event_card, image_carousel, primary_button,
-                        ticket_card, section, location_card, outline_button, page_header)
+from helpers import get_album_urls, gtag_event, fbq_event
+from components import (event_datetime_card, image_carousel, primary_button,
+                        ticket_card, section, location_card, page_header)
 from services.event import get_event_info
 from dependencies import Depends, logged_in
 from api_models import PersonResponseFull
 from enums import PersonStatus
 
 PHOTO_STORAGE_DIR = "photos"
-
-
-@ui.page('/drop-5')
-async def drop_5():
-    ui.navigate.to("/event/d350a039-2316-41b4-9dfd-5d9c1e715d71")
-    return
 
 
 @ui.page('/event/{event_id}', response_timeout=10)
@@ -40,13 +34,11 @@ async def event_page(event_id: UUID, logged_in=Depends(logged_in)):
             background-image: url('{event.image_url}');
             background-size: cover;
             background-position: center;
-            filter: blur(12px);
-            filter: brightness(25%);
+            filter: blur(12px) brightness(25%);
             transform: scale(1.05);
             z-index: -1;
         }}
     ''')
-        ui.dark_mode(True)
 
         event_passed = event.ends_at < datetime.now(timezone.utc)
 
@@ -119,9 +111,7 @@ async def event_page(event_id: UUID, logged_in=Depends(logged_in)):
         ui.space().classes('h-14')
         with section() as s:
             s.classes('fixed bottom-4 z-50 px-2')
-            if event_passed:
-                primary_button('This event has ended').props('disabled').classes('h-20 text-lg')
-            else:
+            if not event_passed:
                 btn = primary_button(
                     '🎟️ Buy your ticket', target=f'/buy-ticket?event_id={event.id}').classes('h-20 text-lg')
                 if logged_in and person.status == PersonStatus.rejected:

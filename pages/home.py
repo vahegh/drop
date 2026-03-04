@@ -7,7 +7,8 @@ from components import (event_card, page_header, section_title,
                         status_icon, member_card, event_ticket,
                         image_carousel, google_button, primary_button,
                         section, past_tickets_col, outline_button,
-                        status_colors, name_input, instagram_input, rectangular_email_input)
+                        status_colors, name_input, instagram_input, rectangular_email_input,
+                        outline_google_button)
 from helpers import get_user_agent, get_album_urls, gtag_event, fbq_event
 from enums import PersonStatus
 from services.person import get_all_person_stats, PersonCreate, create_person, get_person_by_email
@@ -21,10 +22,26 @@ from routes.attendance import get_attendance
 
 @ui.page('/', title='Home | Drop Dead Disco', response_timeout=50)
 async def home_page(request: Request, logged_in=Depends(logged_in)):
+    async with frame(show_footer=True):
+        ui.add_body_html('''
+            <video autoplay muted loop playsinline id="bg-video">
+                <source src="/static/images/bg_video.mp4" type="video/mp4">
+            </video>
+        ''')
 
-    video_h = "[20vh]" if logged_in else "[80vh]"
+        ui.add_css('''
+            #bg-video {
+                position: fixed;
+                inset: 0;
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                filter: blur(2px) brightness(50%);
+                transform: scale(1.05);
+                z-index: -1;
+            }
+        ''')
 
-    async with frame(show_footer=True) as f:
         events = await get_all_events()
         upcoming_events: list[EventResponse] = []
         past_events: list[EventResponse] = []
@@ -36,10 +53,6 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                     upcoming_events.append(e)
             else:
                 past_events.append(e)
-
-        f.classes('pt-0')
-        ui.video("/static/images/bg_video.mp4", controls=False).classes(
-            f'object-cover h-{video_h} w-full').props('autoplay loop muted playsinline')
 
         if logged_in:
             person: PersonResponseFull = request.state.person
@@ -195,27 +208,25 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
 
                                 We'll get back to you ASAP. You'll receive an email about your status.""").classes('text-center')
 
-        else:
-            with section("Wanna join the fun?", subtitle="Sign up to get verified."):
-                google_button("Sign up with Google", request.url.path)
-
         if upcoming_events:
             page_header("Next event")
             for e in upcoming_events:
                 with section():
-                    with ui.link(target=f"/event/{e.id}").classes('w-full max-w-96 justify-center items-center'):
-                        can_buy_ticket = (logged_in and person.status !=
-                                          PersonStatus.rejected) or not logged_in
-                        event_card(e, buy_btn=can_buy_ticket)
+                    event_card(e)
 
-        page_header("The Community")
-        ui.markdown('''
-**Drop Dead Disco** is a dance music community for those who want more from a night out.  
-We host our events in unexpected locations - whatever has the most sparkle.  
-We don't tell you the location beforehand, and every guest has to pass **verification** before they're able to buy tickets and attend.
-''').classes('text-center px-4 max-w-[800px]')
         with section():
+            page_header("The Community")
+            ui.markdown('''
+Drop Dead Disco is a hand-picked community hosting dance parties in secret locations around Yerevan.  
+Every guest has to pass **verification** before they're able to buy tickets and attend.
+''')
             outline_button("Read more", target='/about')
+
+        if not logged_in:
+            with section("Wanna join the fun?", subtitle="Sign up to get verified."):
+                with ui.row(wrap=False).classes('gap-2'):
+                    google_button("Sign up", request.url.path)
+                    outline_google_button("Log in", request.url.path)
 
         with ui.grid().classes('flex w-full justify-center p-2 gap-4'):
             with section("Stats", subtitle="Our community numbers as of right now.") as s:
@@ -223,11 +234,11 @@ We don't tell you the location beforehand, and every guest has to pass **verific
                 person_counts = await get_all_person_stats()
 
                 with ui.row(wrap=False):
-                    ui.label("MEMBERS").classes('font-semibold text-gray-500')
+                    ui.label("MEMBERS").classes('font-semibold')
                     ui.label(person_counts[PersonStatus.member]).classes(
                         f'text-3xl font-semibold text-[{status_colors.get(PersonStatus.member)}]')
                 with ui.row(wrap=False):
-                    ui.label("VERIFIED").classes('font-semibold text-gray-500')
+                    ui.label("VERIFIED").classes('font-semibold')
                     ui.label(person_counts[PersonStatus.verified]).classes(
                         f'text-3xl font-semibold text-[{status_colors.get(PersonStatus.verified)}]')
 
@@ -238,8 +249,7 @@ We don't tell you the location beforehand, and every guest has to pass **verific
         page_header("Previous events")
         with ui.grid().classes('flex w-full justify-center p-2 gap-4'):
             for e in past_events:
-                with ui.link(target=f"/event/{e.id}").classes('w-full max-w-96 justify-center items-center'):
-                    event_card(e, buy_btn=True)
+                event_card(e)
 
         section_title("Find us on Spotify")
         ui.element('iframe').props('''

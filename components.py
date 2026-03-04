@@ -125,7 +125,7 @@ def accented_button(text='', target=None, **kwargs):
 
 def outline_button(text='', target=None, **kwargs):
     btn = ui.button(text, color=None, **
-                    kwargs).props(add='rounded no-caps outline').classes('h-[40px] w-full max-w-96')
+                    kwargs).props(add='rounded no-caps outline').classes('h-[40px] w-full max-w-96 backdrop-blur-sm')
     if target:
         btn.props(add=f'href={target}')
     return btn
@@ -133,26 +133,14 @@ def outline_button(text='', target=None, **kwargs):
 
 def login_button(target):
     btn = ui.button("Sign Up", color=None)
-    btn.props(add='''size="12px" unelevated rounded no-caps :color="Quasar.Dark.isActive ? 'light' : 'dark'"''')
-    btn.props(add=''':text-color="Quasar.Dark.isActive ? 'dark' : 'light'"''')
-    btn.props(add=f'href={target}')
+    btn.props(f'size="12px" outline rounded no-caps href={target}')
     return btn
 
 
-def event_card(event: EventResponse, buy_btn=False):
-    with ui.image(event.image_url).classes('aspect-4/5 rounded-3xl w-full max-w-96') as c:
-        with ui.column().classes(add='bg-transparent h-full justify-between p-4 w-full items-center'):
-            page_header(event.name)
-            with ui.column().classes('w-full'):
-                if buy_btn:
-                    if event.ends_at > datetime.now(timezone.utc):
-                        btn_text = "🎟️ Buy your ticket"
-                        target = f"/buy-ticket?event_id={event.id}"
-                    else:
-                        btn_text = "View event"
-                        target = f"/event/{event.id}"
-                    primary_button(btn_text, target=target).on_click(
-                        lambda b: b.sender.props(add='loading disable')).on_click(lambda b: b.sender.run_method("stopPropagation"))
+def event_card(event: EventResponse):
+    with ui.link(target=f"/event/{event.id}").classes('w-full max-w-96 justify-center items-center') as c:
+        with ui.image(event.image_url).classes('aspect-4/5 rounded-3xl w-full max-w-96 items-center'):
+            page_header(event.name).classes('bg-transparent w-full')
     return c
 
 
@@ -241,7 +229,7 @@ def subsection_title(text=''):
 
 
 def section_subtitle(text=''):
-    return ui.label(text).classes('text-center text-gray-500')
+    return ui.label(text).classes('text-center')
 
 
 def ticket_indicator(exists: bool, used: bool):
@@ -280,8 +268,10 @@ def member_card(member_pass: MemberCardResponse, attendance: int, user_agent):
                     ui.label("Events")
                     ui.label(attendance).classes('text-right font-bold text-lg')
             ui.image(f'data:image/png;base64,{img}').classes('w-3/4')
-            ui.label(f"Member since {member_pass.created_at.strftime("%B %Y")}".upper()).classes(
-                f'text-[{color}] font-semibold')
+            with ui.row(wrap=False).classes('justify-center gap-2', remove='justify-between'):
+                ui.label(f"MEMBER SINCE").classes('font-semibold')
+                ui.label(member_pass.created_at.strftime("%B %Y").upper()).classes(
+                    f'text-[{color}] font-semibold')
 
             with section():
                 add_to_wallet(user_agent, member_pass.google_pass_url, member_pass.apple_pass_url)
