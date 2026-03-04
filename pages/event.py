@@ -63,27 +63,26 @@ async def event_page(event_id: UUID, logged_in=Depends(logged_in)):
                 ''')
 
         if event.description:
-            with section():
+            with section(sep=True):
                 ui.markdown(f"""
 ##### **About this event**  
-{event.description}
+{event.description}  
 
----
 """)
         if event.album_url:
-            with section():
+            with section(sep=True):
                 image_carousel(await get_album_urls(event.album_url))
 
         if event.video_url:
-            with section():
+            with section(sep=True):
                 ui.element('iframe').props(
                     f'src="{event.video_url}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen').classes('w-full h-auto aspect-16/9')
 
         if not event_passed:
-            with section():
+            with section(sep=True):
                 location_card()
 
-            with section("Tickets"):
+            with section("Tickets", sep=True):
                 early_bird_active = event.early_bird_date > datetime.now(timezone.utc)
                 member_selected = logged_in and person.status == PersonStatus.member
                 early_bird_selected = early_bird_active and not member_selected

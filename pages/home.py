@@ -50,12 +50,10 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                     else:
                         ui.icon('account_circle', size='64px', color="gray")
 
-                ui.separator()
-
             async def refer_person():
                 with ui.dialog(value=True) as dl:
                     with ui.card():
-                        with section("Your friend's info", subtitle="They will be auto-approved on your behalf."):
+                        with section("Your friend's info"):
                             with ui.column().classes('w-full gap-0'):
                                 with ui.row(wrap=False):
                                     fn_inp = name_input("First name", "John")
@@ -117,91 +115,90 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
 
                 submit_btn.on_click(lambda: submit())
 
-            with ui.grid().classes('flex w-full justify-center p-2 gap-4'):
-                user_agent = await get_user_agent(request)
+            user_agent = await get_user_agent(request)
 
-                event_tickets = person.event_tickets
-                event_map = {e.id: e for e in events}
+            event_tickets = person.event_tickets
+            event_map = {e.id: e for e in events}
 
-                if person.status == PersonStatus.verified:
-                    if next_event:
-                        next_event_ticket = next(
-                            (t for t in event_tickets if t.event_id == next_event.id), None)
+            if person.status == PersonStatus.verified:
+                if next_event:
+                    next_event_ticket = next(
+                        (t for t in event_tickets if t.event_id == next_event.id), None)
 
-                        if next_event_ticket:
-                            venue = None
-                            if datetime.now(timezone.utc) + timedelta(1) >= next_event.starts_at:
-                                venue = await get_venue_info(next_event.venue_id)
+                    if next_event_ticket:
+                        venue = None
+                        if datetime.now(timezone.utc) + timedelta(1) >= next_event.starts_at:
+                            venue = await get_venue_info(next_event.venue_id)
 
-                            with section("Your ticket"):
-                                event_ticket(next_event_ticket, next_event, user_agent, venue)
+                        with section("Your ticket", sep=True):
+                            event_ticket(next_event_ticket, next_event, user_agent, venue)
 
-                    person_attendance = await get_attendance(person.id)
-                    if person_attendance >= 2:
-                        with section("Bring a friend!", "Since you have attended 2 or more Drops, you can refer a friend to join us. They will be auto-approved on your behalf."):
-                            primary_button("Enter details").on_click(
-                                lambda: refer_person())
-
-                    # if vouchers:
-                    #     with section("Your drinks"):
-                    #         for id, qty in vouchers.items():
-                    #             drink = await get_drink(id)
-                    #             with ui.card().classes(
-                    #                     'w-full rounded-full h-[40px] py-0 justify-center items-center').props('flat'):
-                    #                 with ui.row(wrap=False):
-                    #                     ui.label(drink.name)
-                    #                     ui.label(qty)
-
-                    past_tickets_col(event_tickets, event_map)
-
-                elif person.status == PersonStatus.member:
-                    with section("Your Membership pass"):
-                        member_card(person.member_pass, person.events_attended, user_agent)
-
-                    with section("Bring a friend!", "As a Member, you can refer a friend to join us. They will be auto-approved on your behalf."):
+                person_attendance = await get_attendance(person.id)
+                if person_attendance >= 2:
+                    with section("Bring a friend!", "Since you have attended 2 or more Drops, you can refer a friend to join us.", sep=True):
                         primary_button("Enter details").on_click(
                             lambda: refer_person())
 
-                    # if vouchers:
-                    #     with section("Your drinks"):
-                    #         for id, qty in vouchers.items():
-                    #             drink = await get_drink(id)
-                    #             with ui.card().classes(
-                    #                     'w-full rounded-full h-[40px] py-0 justify-center items-center').props('flat'):
-                    #                 with ui.row(wrap=False):
-                    #                     ui.label(drink.name)
-                    #                     ui.label(qty)
+                # if vouchers:
+                #     with section("Your drinks"):
+                #         for id, qty in vouchers.items():
+                #             drink = await get_drink(id)
+                #             with ui.card().classes(
+                #                     'w-full rounded-full h-[40px] py-0 justify-center items-center').props('flat'):
+                #                 with ui.row(wrap=False):
+                #                     ui.label(drink.name)
+                #                     ui.label(qty)
 
-                    if person.drive_folder_url:
-                        with section("You at Drop", subtitle="As a Member, you get access to all photos of you captured during Drop events, in full quality."):
-                            outline_button(
-                                "Open in Google Photos", icon=f"img:/static/images/google_photos.svg", target=f"{person.drive_folder_url}?authuser={person.email}")
-                            ui.markdown(
-                                "*note: this album is only visible to you*").classes('text-center text-sm')
+                past_tickets_col(event_tickets, event_map)
 
-                    past_tickets_col(event_tickets, event_map)
+            elif person.status == PersonStatus.member:
+                with section("Your Membership pass", sep=True):
+                    member_card(person.member_pass, person.events_attended, user_agent)
 
-                elif person.status == PersonStatus.pending:
-                    with section("Review in progress"):
-                        ui.image('/static/images/review.gif')
-                        ui.markdown("""
-                                We are working day and night to review all of your applications!  
+                with section("Bring a friend!", "As a Member, you can refer a friend to join us.", sep=True):
+                    primary_button("Enter details").on_click(
+                        lambda: refer_person())
 
-                                We'll get back to you ASAP. You'll receive an email about your status.""").classes('text-center')
+                # if vouchers:
+                #     with section("Your drinks"):
+                #         for id, qty in vouchers.items():
+                #             drink = await get_drink(id)
+                #             with ui.card().classes(
+                #                     'w-full rounded-full h-[40px] py-0 justify-center items-center').props('flat'):
+                #                 with ui.row(wrap=False):
+                #                     ui.label(drink.name)
+                #                     ui.label(qty)
 
+                if person.drive_folder_url:
+                    with section("You at Drop", subtitle="As a Member, you get access to all photos of you captured during Drop events, in full quality.", sep=True):
+                        outline_button(
+                            "Open in Google Photos", icon=f"img:/static/images/google_photos.svg", target=f"{person.drive_folder_url}?authuser={person.email}")
+                        ui.markdown(
+                            "*note: this album is only visible to you*").classes('text-center text-sm')
+
+                past_tickets_col(event_tickets, event_map)
+
+            elif person.status == PersonStatus.pending:
+                with section("Review in progress", sep=True):
+                    ui.image('/static/images/review.gif')
+                    ui.markdown("""
+                            We are working day and night to review all of your applications!  
+
+                            We'll get back to you ASAP. You'll receive an email about your status.""").classes('text-center')
+
+            ui.separator()
         if upcoming_events:
             section_title("Next event")
             for e in upcoming_events:
                 with section():
                     event_card(e)
 
-        with section():
-            page_header("The community")
+        with section("The community"):
             ui.markdown('''
 Drop Dead Disco is a hand-picked community hosting dance parties in secret locations around Yerevan.  
-Every guest has to pass **verification** before they're able to buy tickets and attend.
+Every guest has to pass **verification** before they're able to buy tickets and attend.  
+[Read more](/about)  
 ''')
-            outline_button("Read more", target='/about')
 
         if not logged_in:
             with section("Wanna join the fun?", subtitle="Sign up to get verified"):
@@ -209,31 +206,29 @@ Every guest has to pass **verification** before they're able to buy tickets and 
                     google_button("Sign up", request.url.path)
                     outline_google_button("Log in", request.url.path)
 
-        with ui.grid().classes('flex w-full justify-center p-2 gap-4'):
-            with section("People", subtitle="Live stats from the community") as s:
-                s.classes('px-4')
-                person_counts = await get_all_person_stats()
+        with section("People", subtitle="Live stats from the community", sep=True):
+            person_counts = await get_all_person_stats()
 
+            with section():
                 with ui.row(wrap=False):
                     ui.label("MEMBERS").classes('font-semibold')
                     ui.label(person_counts[PersonStatus.member]).classes(
-                        f'text-3xl font-semibold text-[{status_colors.get(PersonStatus.member)}]')
+                        f'text-xl font-semibold text-[{status_colors.get(PersonStatus.member)}]')
                 with ui.row(wrap=False):
                     ui.label("VERIFIED").classes('font-semibold')
                     ui.label(person_counts[PersonStatus.verified]).classes(
-                        f'text-3xl font-semibold text-[{status_colors.get(PersonStatus.verified)}]')
+                        f'text-xl font-semibold text-[{status_colors.get(PersonStatus.verified)}]')
 
-            with section():
-                album_url = "https://photos.google.com/share/AF1QipNb8__JbXtuax9DJm21Ca666tb2o4voA1u09nj0Z04jhyNjfdzcQ-1KTMqI7N9zNA?key=MG11Qm01N1JRWGxZUElGazdvcGlzOEw4VWVobUdR"
-                image_carousel(await get_album_urls(album_url))
+            album_url = "https://photos.google.com/share/AF1QipNb8__JbXtuax9DJm21Ca666tb2o4voA1u09nj0Z04jhyNjfdzcQ-1KTMqI7N9zNA?key=MG11Qm01N1JRWGxZUElGazdvcGlzOEw4VWVobUdR"
+            image_carousel(await get_album_urls(album_url))
 
-        with section("Previous events", subtitle="Photos and videos from the past"):
+        with section("Previous events", subtitle="Photos and videos from the past", sep=True):
             pass
-        with ui.grid().classes('flex w-full justify-center p-2 gap-4'):
+        with ui.grid().classes('flex w-full justify-center p-2 pt-0 gap-4'):
             for e in past_events:
                 event_card(e)
 
-        with section("Spotify playlist", subtitle="Updated regularly with your favourites"):
+        with section("Playlist", subtitle="Updated regularly with your favourites", sep=True):
             ui.element('iframe').props('''
                 data-testid="embed-iframe"
                 style="border-radius:12px"

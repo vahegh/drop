@@ -221,7 +221,7 @@ def page_subheader(text=''):
 
 
 def section_title(text=''):
-    return ui.label(text).classes('text-xl font-medium')
+    return ui.label(text).classes('text-2xl font-medium')
 
 
 def subsection_title(text=''):
@@ -304,15 +304,17 @@ def event_ticket(ticket: EventTicketResponse, event: EventResponse, user_agent, 
 
 
 def image_carousel(urls):
-    with ui.carousel().classes('w-full max-w-96 bg-transparent h-auto').props('infinite autoplay="2500" swipeable animated arrows'):
+    with ui.carousel().classes('w-full max-w-96 bg-transparent h-auto ').props('infinite autoplay="2500" swipeable animated arrows'):
         for url in urls:
             with ui.carousel_slide().classes('justify-center p-0'):
                 ui.image(f'{url}=w1080-h1080').props('fit="scale-down"').classes('w-full aspect-3/2')
 
 
 @contextmanager
-def section(title: str = None, subtitle: str = None):
-    with ui.column().classes('gap-2 p-2 w-full items-center justify-start max-w-96') as main:
+def section(title: str = None, subtitle: str = None, sep: bool = False):
+    if sep:
+        ui.separator()
+    with ui.column().classes('gap-2 p-2 pt-0 w-full items-center justify-start max-w-96') as main:
         if title:
             with ui.column().classes('gap-0 items-center'):
                 section_title(title).classes('text-center')
@@ -368,6 +370,7 @@ def person_card(person: PersonResponse):
 
 
 def past_tickets_col(event_tickets, event_map):
+    ui.separator()
     with section("Your events"):
         if event_tickets:
             with ui.grid().classes('flex justify-center gap-2 p-0 w-full max-w-96'):
