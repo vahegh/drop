@@ -132,7 +132,7 @@ def outline_button(text='', target=None, **kwargs):
 
 
 def login_button(target):
-    btn = ui.button("Sign Up", color=None)
+    btn = ui.button("Sign up", color=None)
     btn.props(f'size="12px" outline rounded no-caps href={target}')
     return btn
 

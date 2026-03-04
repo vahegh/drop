@@ -126,7 +126,7 @@ async def login_page(token: str = None, redirect_url='/', logged_in=Depends(logg
         with ui.card().classes('gap-4 w-full max-w-96 justify-center').props('flat'):
             ui.image(logo_gray_path).classes('w-24 h-8')
 
-            with section("Sign Up", subtitle="You must be verified to purchase tickets."):
+            with section("Sign up", subtitle="You must be verified to purchase tickets."):
                 google_button("Sign up with Google", redirect_url)
 
             ui.separator()
