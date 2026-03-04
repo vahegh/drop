@@ -1,16 +1,17 @@
 steps:
-  # ── Notify: started ────────────────────────────────────────────────────────
+  # ── Notify: started + save start time ─────────────────────────────────────
   - name: 'gcr.io/cloud-builders/gke-deploy'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
+        date +%s > /workspace/tg_start_time
         SHORT=$(echo $COMMIT_SHA | cut -c1-7)
         RESP=$(curl -s -X POST \
           "https://api.telegram.org/bot$${TELEGRAM_BOT_TOKEN}/sendMessage" \
           -H "Content-Type: application/json" \
           -d "{\"chat_id\":\"-4997958781\",\"parse_mode\":\"HTML\",
-               \"text\":\"🔨 <b>Drop — Build started</b>\n\nCommit: <code>$${SHORT}</code>\n\n⏳ Pulling cache...\"}")
+               \"text\":\"🔨 <b>Drop — Build started</b>\n\n$BRANCH_NAME · <code>$${SHORT}</code>\n<i>$COMMIT_MESSAGE</i>\n\n⏳ Pulling cache...\"}")
         echo $${RESP} | grep -o '"message_id":[0-9]*' | grep -o '[0-9]*' > /workspace/tg_msg_id
     id: 'notify-start'
     secretEnv: ['TELEGRAM_BOT_TOKEN']
@@ -37,7 +38,7 @@ steps:
           "https://api.telegram.org/bot$${TELEGRAM_BOT_TOKEN}/editMessageText" \
           -H "Content-Type: application/json" \
           -d "{\"chat_id\":\"-4997958781\",\"message_id\":$${MID},\"parse_mode\":\"HTML\",
-               \"text\":\"🔨 <b>Drop — Build in progress</b>\n\nCommit: <code>$${SHORT}</code>\n\n✅ Cache pulled\n⏳ Building image...\"}"
+               \"text\":\"🔨 <b>Drop — Building image...</b>\n\n$BRANCH_NAME · <code>$${SHORT}</code>\n<i>$COMMIT_MESSAGE</i>\"}"
     id: 'notify-building'
     secretEnv: ['TELEGRAM_BOT_TOKEN']
     waitFor: ['pull-cache']
@@ -72,7 +73,7 @@ steps:
           "https://api.telegram.org/bot$${TELEGRAM_BOT_TOKEN}/editMessageText" \
           -H "Content-Type: application/json" \
           -d "{\"chat_id\":\"-4997958781\",\"message_id\":$${MID},\"parse_mode\":\"HTML\",
-               \"text\":\"🔨 <b>Drop — Build in progress</b>\n\nCommit: <code>$${SHORT}</code>\n\n✅ Cache pulled\n✅ Image built\n⏳ Pushing to registry...\"}"
+               \"text\":\"🔨 <b>Drop — Pushing image...</b>\n\n$BRANCH_NAME · <code>$${SHORT}</code>\n<i>$COMMIT_MESSAGE</i>\"}"
     id: 'notify-pushing'
     secretEnv: ['TELEGRAM_BOT_TOKEN']
     waitFor: ['build']
@@ -98,7 +99,7 @@ steps:
           "https://api.telegram.org/bot$${TELEGRAM_BOT_TOKEN}/editMessageText" \
           -H "Content-Type: application/json" \
           -d "{\"chat_id\":\"-4997958781\",\"message_id\":$${MID},\"parse_mode\":\"HTML\",
-               \"text\":\"🔨 <b>Drop — Build in progress</b>\n\nCommit: <code>$${SHORT}</code>\n\n✅ Cache pulled\n✅ Image built\n✅ Pushed to registry\n⏳ Deploying to Cloud Run...\"}"
+               \"text\":\"🔨 <b>Drop — Deploying to Cloud Run...</b>\n\n$BRANCH_NAME · <code>$${SHORT}</code>\n<i>$COMMIT_MESSAGE</i>\"}"
     id: 'notify-deploying'
     secretEnv: ['TELEGRAM_BOT_TOKEN']
     waitFor: ['push']
@@ -161,28 +162,30 @@ steps:
     id: 'deploy'
     waitFor: ['notify-deploying']
 
-  # ── Notify: done ───────────────────────────────────────────────────────────
+  # ── Notify: done (delete progress, send final) ─────────────────────────────
   - name: 'gcr.io/cloud-builders/gke-deploy'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
         MID=$(cat /workspace/tg_msg_id)
+        START=$(cat /workspace/tg_start_time)
         SHORT=$(echo $COMMIT_SHA | cut -c1-7)
+        ELAPSED=$(( $(date +%s) - $${START} ))
+        MINS=$(( ELAPSED / 60 ))
+        SECS=$(( ELAPSED % 60 ))
 
-        # Delete the progress message
         curl -s -X POST \
           "https://api.telegram.org/bot$${TELEGRAM_BOT_TOKEN}/deleteMessage" \
           -H "Content-Type: application/json" \
           -d "{\"chat_id\":\"-4997958781\",\"message_id\":$${MID}}"
 
-        # Send fresh final message (triggers notification)
         curl -s -X POST \
           "https://api.telegram.org/bot$${TELEGRAM_BOT_TOKEN}/sendMessage" \
           -H "Content-Type: application/json" \
           -d "{\"chat_id\":\"-4997958781\",\"parse_mode\":\"HTML\",
-              \"text\":\"✅ <b>Drop — Deployed successfully</b>\n\nCommit: <code>$${SHORT}</code>\n\n✅ Cache pulled\n✅ Image built\n✅ Pushed to registry\n✅ Live on Cloud Run\"}"    id: 'notify-complete'
-    
+               \"text\":\"✅ <b>Drop is live</b>\n\n$BRANCH_NAME · <code>$${SHORT}</code>\n<i>$COMMIT_MESSAGE</i>\n\n⏱ $${MINS}m $${SECS}s\"}"
+    id: 'notify-complete'
     secretEnv: ['TELEGRAM_BOT_TOKEN']
     waitFor: ['deploy']
 
