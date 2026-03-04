@@ -169,12 +169,20 @@ steps:
       - |
         MID=$(cat /workspace/tg_msg_id)
         SHORT=$(echo $COMMIT_SHA | cut -c1-7)
+
+        # Delete the progress message
         curl -s -X POST \
-          "https://api.telegram.org/bot$${TELEGRAM_BOT_TOKEN}/editMessageText" \
+          "https://api.telegram.org/bot$${TELEGRAM_BOT_TOKEN}/deleteMessage" \
           -H "Content-Type: application/json" \
-          -d "{\"chat_id\":\"-4997958781\",\"message_id\":$${MID},\"parse_mode\":\"HTML\",
-               \"text\":\"✅ <b>Drop — Deployed successfully</b>\n\nCommit: <code>$${SHORT}</code>\n\n✅ Cache pulled\n✅ Image built\n✅ Pushed to registry\n✅ Live on Cloud Run\"}"
-    id: 'notify-complete'
+          -d "{\"chat_id\":\"-4997958781\",\"message_id\":$${MID}}"
+
+        # Send fresh final message (triggers notification)
+        curl -s -X POST \
+          "https://api.telegram.org/bot$${TELEGRAM_BOT_TOKEN}/sendMessage" \
+          -H "Content-Type: application/json" \
+          -d "{\"chat_id\":\"-4997958781\",\"parse_mode\":\"HTML\",
+              \"text\":\"✅ <b>Drop — Deployed successfully</b>\n\nCommit: <code>$${SHORT}</code>\n\n✅ Cache pulled\n✅ Image built\n✅ Pushed to registry\n✅ Live on Cloud Run\"}"    id: 'notify-complete'
+    
     secretEnv: ['TELEGRAM_BOT_TOKEN']
     waitFor: ['deploy']
 
