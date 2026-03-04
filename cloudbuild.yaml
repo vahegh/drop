@@ -1,4 +1,14 @@
 steps:
+  # ── Fetch commit message ───────────────────────────────────────────────────
+  - name: 'gcr.io/cloud-builders/git'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        git log --format=%s -n 1 $COMMIT_SHA > /workspace/tg_commit_msg
+    id: 'get-commit-msg'
+    waitFor: ['-']
+
   # ── Notify: started + save start time ─────────────────────────────────────
   - name: 'gcr.io/cloud-builders/gke-deploy'
     entrypoint: 'bash'
@@ -7,15 +17,16 @@ steps:
       - |
         date +%s > /workspace/tg_start_time
         SHORT=$(echo $COMMIT_SHA | cut -c1-7)
+        MSG=$(cat /workspace/tg_commit_msg)
         RESP=$(curl -s -X POST \
           "https://api.telegram.org/bot$${TELEGRAM_BOT_TOKEN}/sendMessage" \
           -H "Content-Type: application/json" \
           -d "{\"chat_id\":\"-4997958781\",\"parse_mode\":\"HTML\",
-               \"text\":\"🔨 <b>Drop — Build started</b>\n\n$BRANCH_NAME · <code>$${SHORT}</code>\n<i>$COMMIT_MESSAGE</i>\n\n⏳ Pulling cache...\"}")
+               \"text\":\"🔨 <b>Drop — Build started</b>\n\n$BRANCH_NAME · <code>$${SHORT}</code>\n<i>$${MSG}</i>\n\n⏳ Pulling cache...\"}")
         echo $${RESP} | grep -o '"message_id":[0-9]*' | grep -o '[0-9]*' > /workspace/tg_msg_id
     id: 'notify-start'
     secretEnv: ['TELEGRAM_BOT_TOKEN']
-    waitFor: ['-']
+    waitFor: ['get-commit-msg']
 
   # ── Pull cache ─────────────────────────────────────────────────────────────
   - name: 'gcr.io/cloud-builders/docker'
@@ -34,11 +45,12 @@ steps:
       - |
         MID=$(cat /workspace/tg_msg_id)
         SHORT=$(echo $COMMIT_SHA | cut -c1-7)
+        MSG=$(cat /workspace/tg_commit_msg)
         curl -s -X POST \
           "https://api.telegram.org/bot$${TELEGRAM_BOT_TOKEN}/editMessageText" \
           -H "Content-Type: application/json" \
           -d "{\"chat_id\":\"-4997958781\",\"message_id\":$${MID},\"parse_mode\":\"HTML\",
-               \"text\":\"🔨 <b>Drop — Building image...</b>\n\n$BRANCH_NAME · <code>$${SHORT}</code>\n<i>$COMMIT_MESSAGE</i>\"}"
+               \"text\":\"🔨 <b>Drop — Building image...</b>\n\n$BRANCH_NAME · <code>$${SHORT}</code>\n<i>$${MSG}</i>\"}"
     id: 'notify-building'
     secretEnv: ['TELEGRAM_BOT_TOKEN']
     waitFor: ['pull-cache']
@@ -69,11 +81,12 @@ steps:
       - |
         MID=$(cat /workspace/tg_msg_id)
         SHORT=$(echo $COMMIT_SHA | cut -c1-7)
+        MSG=$(cat /workspace/tg_commit_msg)
         curl -s -X POST \
           "https://api.telegram.org/bot$${TELEGRAM_BOT_TOKEN}/editMessageText" \
           -H "Content-Type: application/json" \
           -d "{\"chat_id\":\"-4997958781\",\"message_id\":$${MID},\"parse_mode\":\"HTML\",
-               \"text\":\"🔨 <b>Drop — Pushing image...</b>\n\n$BRANCH_NAME · <code>$${SHORT}</code>\n<i>$COMMIT_MESSAGE</i>\"}"
+               \"text\":\"🔨 <b>Drop — Pushing image...</b>\n\n$BRANCH_NAME · <code>$${SHORT}</code>\n<i>$${MSG}</i>\"}"
     id: 'notify-pushing'
     secretEnv: ['TELEGRAM_BOT_TOKEN']
     waitFor: ['build']
@@ -95,11 +108,12 @@ steps:
       - |
         MID=$(cat /workspace/tg_msg_id)
         SHORT=$(echo $COMMIT_SHA | cut -c1-7)
+        MSG=$(cat /workspace/tg_commit_msg)
         curl -s -X POST \
           "https://api.telegram.org/bot$${TELEGRAM_BOT_TOKEN}/editMessageText" \
           -H "Content-Type: application/json" \
           -d "{\"chat_id\":\"-4997958781\",\"message_id\":$${MID},\"parse_mode\":\"HTML\",
-               \"text\":\"🔨 <b>Drop — Deploying to Cloud Run...</b>\n\n$BRANCH_NAME · <code>$${SHORT}</code>\n<i>$COMMIT_MESSAGE</i>\"}"
+               \"text\":\"🔨 <b>Drop — Deploying to Cloud Run...</b>\n\n$BRANCH_NAME · <code>$${SHORT}</code>\n<i>$${MSG}</i>\"}"
     id: 'notify-deploying'
     secretEnv: ['TELEGRAM_BOT_TOKEN']
     waitFor: ['push']
@@ -171,6 +185,7 @@ steps:
         MID=$(cat /workspace/tg_msg_id)
         START=$(cat /workspace/tg_start_time)
         SHORT=$(echo $COMMIT_SHA | cut -c1-7)
+        MSG=$(cat /workspace/tg_commit_msg)
         ELAPSED=$(( $(date +%s) - $${START} ))
         MINS=$(( ELAPSED / 60 ))
         SECS=$(( ELAPSED % 60 ))
@@ -184,7 +199,7 @@ steps:
           "https://api.telegram.org/bot$${TELEGRAM_BOT_TOKEN}/sendMessage" \
           -H "Content-Type: application/json" \
           -d "{\"chat_id\":\"-4997958781\",\"parse_mode\":\"HTML\",
-               \"text\":\"✅ <b>Drop is live</b>\n\n$BRANCH_NAME · <code>$${SHORT}</code>\n<i>$COMMIT_MESSAGE</i>\n\n⏱ $${MINS}m $${SECS}s\"}"
+               \"text\":\"✅ <b>Drop is live</b>\n\n$BRANCH_NAME · <code>$${SHORT}</code>\n<i>$${MSG}</i>\n\n⏱ $${MINS}m $${SECS}s\"}"
     id: 'notify-complete'
     secretEnv: ['TELEGRAM_BOT_TOKEN']
     waitFor: ['deploy']
