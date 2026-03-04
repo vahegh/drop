@@ -86,8 +86,27 @@ head_html = '''
         width: 100%;
         align-items: start;
     }
+
+    #bg-video {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: blur(2px) brightness(50%);
+        transform: scale(1.05);
+        z-index: -1;
+    }
+
+
         
 </style>
+'''
+
+bg_video_code = '''
+<video autoplay muted loop playsinline id="bg-video">
+    <source src="/static/images/bg_video.mp4" type="video/mp4">
+</video>
 '''
 
 pixel_code = '''
@@ -143,6 +162,7 @@ def main():
     app.add_middleware(AuthMiddleware)
     app.add_static_files(url_path='/static',
                          local_directory=os.path.join(os.path.dirname(__file__), 'static'))
+    ui.add_body_html(bg_video_code, shared=True)
 
     ui.run(
         favicon="static/images/favicon.png",

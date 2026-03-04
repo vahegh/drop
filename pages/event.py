@@ -54,7 +54,7 @@ async def event_page(event_id: UUID, logged_in=Depends(logged_in)):
                     ui.element('iframe').props(f'''
                                 src="{event.track_url}"
                                 allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                                loading="lazy"''').classes('rounded-xl w-full max-w-96 h-20')
+                                loading="eager"''').classes('rounded-xl w-full max-w-96 h-20')
 
             if event.description:
                 with section():

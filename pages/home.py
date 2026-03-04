@@ -8,7 +8,7 @@ from components import (event_card, page_header, section_title,
                         image_carousel, google_button, primary_button,
                         section, past_tickets_col, outline_button,
                         status_colors, name_input, instagram_input, rectangular_email_input,
-                        outline_google_button)
+                        outline_google_button, section_subtitle)
 from helpers import get_user_agent, get_album_urls, gtag_event, fbq_event
 from enums import PersonStatus
 from services.person import get_all_person_stats, PersonCreate, create_person, get_person_by_email
@@ -23,25 +23,6 @@ from routes.attendance import get_attendance
 @ui.page('/', title='Home | Drop Dead Disco', response_timeout=50)
 async def home_page(request: Request, logged_in=Depends(logged_in)):
     async with frame(show_footer=True):
-        ui.add_body_html('''
-            <video autoplay muted loop playsinline id="bg-video">
-                <source src="/static/images/bg_video.mp4" type="video/mp4">
-            </video>
-        ''')
-
-        ui.add_css('''
-            #bg-video {
-                position: fixed;
-                inset: 0;
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-                filter: blur(2px) brightness(50%);
-                transform: scale(1.05);
-                z-index: -1;
-            }
-        ''')
-
         events = await get_all_events()
         upcoming_events: list[EventResponse] = []
         past_events: list[EventResponse] = []
@@ -209,13 +190,13 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                                 We'll get back to you ASAP. You'll receive an email about your status.""").classes('text-center')
 
         if upcoming_events:
-            page_header("Next event")
+            section_title("Next event")
             for e in upcoming_events:
                 with section():
                     event_card(e)
 
         with section():
-            page_header("The Community")
+            page_header("The community")
             ui.markdown('''
 Drop Dead Disco is a hand-picked community hosting dance parties in secret locations around Yerevan.  
 Every guest has to pass **verification** before they're able to buy tickets and attend.
@@ -223,13 +204,13 @@ Every guest has to pass **verification** before they're able to buy tickets and 
             outline_button("Read more", target='/about')
 
         if not logged_in:
-            with section("Wanna join the fun?", subtitle="Sign up to get verified."):
+            with section("Wanna join the fun?", subtitle="Sign up to get verified"):
                 with ui.row(wrap=False).classes('gap-2'):
                     google_button("Sign up", request.url.path)
                     outline_google_button("Log in", request.url.path)
 
         with ui.grid().classes('flex w-full justify-center p-2 gap-4'):
-            with section("Stats", subtitle="Our community numbers as of right now.") as s:
+            with section("People", subtitle="Live stats from the community") as s:
                 s.classes('px-4')
                 person_counts = await get_all_person_stats()
 
@@ -246,13 +227,14 @@ Every guest has to pass **verification** before they're able to buy tickets and 
                 album_url = "https://photos.google.com/share/AF1QipNb8__JbXtuax9DJm21Ca666tb2o4voA1u09nj0Z04jhyNjfdzcQ-1KTMqI7N9zNA?key=MG11Qm01N1JRWGxZUElGazdvcGlzOEw4VWVobUdR"
                 image_carousel(await get_album_urls(album_url))
 
-        page_header("Previous events")
         with ui.grid().classes('flex w-full justify-center p-2 gap-4'):
+            with section("Previous events", subtitle="Photos and videos from the past"):
+                pass
             for e in past_events:
                 event_card(e)
 
-        section_title("Find us on Spotify")
-        ui.element('iframe').props('''
+        with section("Spotify playlist", subtitle="Updated regularly with your favourites"):
+            ui.element('iframe').props('''
                                     src="https://open.spotify.com/embed/playlist/49t6kUgW6nB7Kcv4d357qy?utm_source=generator"
                                     allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                                    loading="lazy"''').classes('rounded-xl w-full h-[500px] px-2')
+                                    loading="eager"''').classes('rounded-xl w-full max-w-96')
