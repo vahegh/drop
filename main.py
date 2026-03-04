@@ -149,7 +149,7 @@ def main():
         favicon="static/images/favicon.png",
         title="Drop Dead Disco",
         viewport="width=device-width, initial-scale=1, maximum-scale=1",
-        reconnect_timeout=30.0,
+        reconnect_timeout=600.0,
         storage_secret=storage_secret,
         reload=False,
         show=False,
