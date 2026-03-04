@@ -227,16 +227,21 @@ Every guest has to pass **verification** before they're able to buy tickets and 
                 album_url = "https://photos.google.com/share/AF1QipNb8__JbXtuax9DJm21Ca666tb2o4voA1u09nj0Z04jhyNjfdzcQ-1KTMqI7N9zNA?key=MG11Qm01N1JRWGxZUElGazdvcGlzOEw4VWVobUdR"
                 image_carousel(await get_album_urls(album_url))
 
+        with section("Previous events", subtitle="Photos and videos from the past"):
+            pass
         with ui.grid().classes('flex w-full justify-center p-2 gap-4'):
-            with section("Previous events", subtitle="Photos and videos from the past"):
-                pass
             for e in past_events:
                 event_card(e)
 
         with section("Spotify playlist", subtitle="Updated regularly with your favourites"):
             ui.element('iframe').props('''
-                                    src="https://open.spotify.com/embed/playlist/49t6kUgW6nB7Kcv4d357qy?utm_source=generator"
-                                    data-testid="embed-iframe"
-                                    allowfullscreen=""
-                                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                                    loading="eager"''').classes('rounded-xl w-full max-w-96 h-[352px]')
+                data-testid="embed-iframe"
+                style="border-radius:12px"
+                src="https://open.spotify.com/embed/playlist/49t6kUgW6nB7Kcv4d357qy?utm_source=generator"
+                width="100%"
+                height="152"
+                frameBorder="0"
+                allowfullscreen=""
+                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                loading="eager"
+            ''')

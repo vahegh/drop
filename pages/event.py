@@ -42,73 +42,77 @@ async def event_page(event_id: UUID, logged_in=Depends(logged_in)):
 
         event_passed = event.ends_at < datetime.now(timezone.utc)
 
-        with ui.grid().classes('flex w-full justify-center p-0 gap-2'):
-            page_header(event.name)
+        page_header(event.name)
 
-            if not event_passed:
-                with section():
-                    event_datetime_card(event)
+        if not event_passed:
+            with section():
+                event_datetime_card(event)
 
-            if event.track_url:
-                with section():
-                    ui.element('iframe').props(f'''
-                                src="{event.track_url}?utm_source=generator"
-                                data-testid="embed-iframe" 
-                                allowfullscreen=""
-                                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                                loading="eager"''').classes('rounded-xl w-full max-w-96 h-[152px]')
+        if event.track_url:
+            with section():
+                ui.element('iframe').props(f'''
+                    data-testid="embed-iframe"
+                    style="border-radius:12px"
+                    src="{event.track_url}?utm_source=generator"
+                    width="100%"
+                    height="152"
+                    frameBorder="0"
+                    allowfullscreen=""
+                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                    loading="eager"
+                ''')
 
-            if event.description:
-                with section():
-                    ui.markdown(f"""
+        if event.description:
+            with section():
+                ui.markdown(f"""
 ##### **About this event**  
 {event.description}
 
 ---
 """)
-            if event.album_url:
-                with section():
-                    image_carousel(await get_album_urls(event.album_url))
+        if event.album_url:
+            with section():
+                image_carousel(await get_album_urls(event.album_url))
 
-            if event.video_url:
-                with section():
-                    ui.element('iframe').props(
-                        f'src="{event.video_url}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen').classes('w-full h-auto aspect-16/9')
+        if event.video_url:
+            with section():
+                ui.element('iframe').props(
+                    f'src="{event.video_url}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen').classes('w-full h-auto aspect-16/9')
 
-            if not event_passed:
-                with section():
-                    location_card()
+        if not event_passed:
+            with section():
+                location_card()
 
-                with section("Tickets"):
-                    early_bird_active = event.early_bird_date > datetime.now(timezone.utc)
-                    member_selected = logged_in and person.status == PersonStatus.member
-                    early_bird_selected = early_bird_active and not member_selected
-                    standard_selected = not early_bird_active and not member_selected
+            with section("Tickets"):
+                early_bird_active = event.early_bird_date > datetime.now(timezone.utc)
+                member_selected = logged_in and person.status == PersonStatus.member
+                early_bird_selected = early_bird_active and not member_selected
+                standard_selected = not early_bird_active and not member_selected
 
-                    ticket_card("Members", event.member_ticket_price,
-                                selected=member_selected)
-                    ticket_card(
-                        "Early Bird", event.early_bird_price, sold_out=not early_bird_active, selected=early_bird_selected)
-                    ticket_card(
-                        "Standard", event.general_admission_price, selected=standard_selected)
+                ticket_card("Members", event.member_ticket_price,
+                            selected=member_selected)
+                ticket_card(
+                    "Early Bird", event.early_bird_price, sold_out=not early_bird_active, selected=early_bird_selected)
+                ticket_card(
+                    "Standard", event.general_admission_price, selected=standard_selected)
 
-                    gtag_event("view_item_list", {
-                        "items": [
-                            {
-                                "item_id": "ticket_member",
-                                "price": event.member_ticket_price,
-                            },
-                            {
-                                "item_id": "ticket_early_bird",
-                                "price": event.early_bird_price,
-                            },
-                            {
-                                "item_id": "ticket_standard",
-                                "price": event.general_admission_price,
-                            },
-                        ]
-                    })
-                    fbq_event("ViewContent")
+                gtag_event("view_item_list", {
+                    "items": [
+                        {
+                            "item_id": "ticket_member",
+                            "price": event.member_ticket_price,
+                        },
+                        {
+                            "item_id": "ticket_early_bird",
+                            "price": event.early_bird_price,
+                        },
+                        {
+                            "item_id": "ticket_standard",
+                            "price": event.general_admission_price,
+                        },
+                    ]
+                })
+                fbq_event("ViewContent")
 
         ui.space().classes('h-14')
         with section() as s:
