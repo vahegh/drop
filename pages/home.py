@@ -130,12 +130,18 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                         if datetime.now(timezone.utc) + timedelta(1) >= next_event.starts_at:
                             venue = await get_venue_info(next_event.venue_id)
 
-                        with section("Your ticket", sep=True):
-                            event_ticket(next_event_ticket, next_event, user_agent, venue)
+                        with section("Your ticket", subtitle="Show this at the entrance, add to your Wallet for location and other updates", sep=True):
+                            event_ticket(person.full_name, next_event_ticket,
+                                         next_event, user_agent, venue)
+
+                    else:
+                        with section("Still no ticket?", subtitle=f"Get yours to join us at {next_event.name}", sep=True):
+                            primary_button("🎟️ Buy your ticket",
+                                           target=f"/buy-ticket?event_id={next_event.id}")
 
                 person_attendance = await get_attendance(person.id)
                 if person_attendance >= 2:
-                    with section("Bring a friend!", "Since you have attended 2 or more Drops, you can refer a friend to join us.", sep=True):
+                    with section("Bring a friend!", subtitle="Since you have attended 2 or more Drops, you can refer a friend to join us", sep=True):
                         primary_button("Enter details").on_click(
                             lambda: refer_person())
 
@@ -152,10 +158,10 @@ async def home_page(request: Request, logged_in=Depends(logged_in)):
                 past_tickets_col(event_tickets, event_map)
 
             elif person.status == PersonStatus.member:
-                with section("Your Membership pass", sep=True):
+                with section("Your Membership pass", subtitle="Use this to enter any Drop event", sep=True):
                     member_card(person.member_pass, person.events_attended, user_agent)
 
-                with section("Bring a friend!", "As a Member, you can refer a friend to join us.", sep=True):
+                with section("Bring a friend!", subtitle="As a Member, you can refer a friend to join us.", sep=True):
                     primary_button("Enter details").on_click(
                         lambda: refer_person())
 
@@ -222,7 +228,7 @@ Every guest has to pass **verification** before they're able to buy tickets and 
             album_url = "https://photos.google.com/share/AF1QipNb8__JbXtuax9DJm21Ca666tb2o4voA1u09nj0Z04jhyNjfdzcQ-1KTMqI7N9zNA?key=MG11Qm01N1JRWGxZUElGazdvcGlzOEw4VWVobUdR"
             image_carousel(await get_album_urls(album_url))
 
-        with section("Previous events", subtitle="Photos and videos from the past", sep=True):
+        with section("Previous events", subtitle="Photos and videos from past events", sep=True):
             pass
         with ui.grid().classes('flex w-full justify-center p-2 pt-0 gap-4'):
             for e in past_events:

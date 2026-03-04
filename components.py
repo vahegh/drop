@@ -277,12 +277,12 @@ def member_card(member_pass: MemberCardResponse, attendance: int, user_agent):
                 add_to_wallet(user_agent, member_pass.google_pass_url, member_pass.apple_pass_url)
 
 
-def event_ticket(ticket: EventTicketResponse, event: EventResponse, user_agent, venue: VenueResponse = None):
+def event_ticket(name, ticket: EventTicketResponse, event: EventResponse, user_agent, venue: VenueResponse = None):
     img = generate_qr(ticket.id)
 
     with ui.card().props('bordered flat').classes('w-full max-w-96 gap-4 px-0 justify-around border-black'):
         with ui.column().classes('gap-0 items-center'):
-            ui.link(event.name, f"/event/{event.id}").classes('text-lg')
+            section_title(name)
         with ui.column().classes('w-full items-center px-6 py-0'):
             ui.image(f'data:image/png;base64,{img}').classes('w-3/4')
             with ui.row(wrap=False):
@@ -312,11 +312,11 @@ def image_carousel(urls):
 
 @contextmanager
 def section(title: str = None, subtitle: str = None, sep: bool = False):
-    if sep:
-        ui.separator()
-    with ui.column().classes('gap-2 p-2 pt-0 w-full items-center justify-start max-w-96') as main:
+    with ui.column().classes('gap-2 px-2 py-0 w-full items-center justify-start max-w-96') as main:
+        if sep:
+            ui.separator()
         if title:
-            with ui.column().classes('gap-0 items-center'):
+            with ui.column().classes('gap-0 p-2 items-center'):
                 section_title(title).classes('text-center')
                 if subtitle:
                     section_subtitle(subtitle)
@@ -370,8 +370,7 @@ def person_card(person: PersonResponse):
 
 
 def past_tickets_col(event_tickets, event_map):
-    ui.separator()
-    with section("Your events"):
+    with section("Your attendance", sep=True):
         if event_tickets:
             with ui.grid().classes('flex justify-center gap-2 p-0 w-full max-w-96'):
                 for ticket in event_tickets:
@@ -390,7 +389,7 @@ def past_tickets_col(event_tickets, event_map):
 
                                         Since you don't have any, here's Colonel Hans Landa judging you silently.""")
             ui.element('iframe').props(
-                'src="https://giphy.com/embed/9JeJxpaQlbcGC1zZNh"').classes('h-auto w-auto')
+                'src="https://giphy.com/embed/9JeJxpaQlbcGC1zZNh"').classes('h-auto w-full')
 
 
 def instagram_dialog(instagram_info):
