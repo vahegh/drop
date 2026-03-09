@@ -20,9 +20,7 @@ from routes.client import tickets as client_tickets
 from dependencies import AuthMiddleware
 import logging
 
-# logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
 
 logging.getLogger('socketio').setLevel(logging.ERROR)
 logging.getLogger('engineio').setLevel(logging.ERROR)
@@ -31,136 +29,15 @@ logging.getLogger('httpx').setLevel(logging.WARNING)
 
 
 env = os.getenv('env')
-storage_secret = os.getenv('storage_secret')
-
-head_html = '''
-<meta name="description" content="Drop Dead Disco - ask around.">
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet">
-
-<script src="https://www.googletagmanager.com/gtag/js?id=G-152G4X4VLJ" async defer></script>
-
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-</script>
-
-<style>
-    body.body--light {
-        background-color: #f3f4f6;
-    }
-    body.body--dark {
-        background-color: #24262b;
-    }
-
-    * { font-family: 'Montserrat' }
-
-    html {
-        scroll-behavior: smooth;
-    }
-
-    @keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.03); }
-    100% { transform: scale(1); }
-    }
-
-    .pulse-animation {
-    animation: pulse 0.5s ease-in-out;
-    }
-
-    .event-card-img {
-        object-fit: cover;
-        border-radius: 16px;
-        width: 100%;
-        height: 100%;
-        min-height: 420px;
-    }
-
-    .q-btn--push.q-btn--actionable {
-        transition: transform 0.05s cubic-bezier(0.25,0.8,0.5,1);
-    }
-
-    .q-radio__label {
-        width: 100%;
-    }
-
-    .q-radio {
-        width: 100%;
-        align-items: start;
-    }
-
-    #bg-video {
-        position: fixed;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        filter: blur(2px) brightness(50%);
-        transform: scale(1.05);
-        z-index: -1;
-    }
-
-
-        
-</style>
-'''
-
-bg_video_code = '''
-<video autoplay muted loop playsinline id="bg-video">
-    <source src="/static/images/bg_video.mp4" type="video/mp4">
-</video>
-'''
-
-pixel_code = '''
-<!-- Meta Pixel Code -->
-<script>
-!function(f,b,e,v,n,t,s)
-{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-n.queue=[];t=b.createElement(e);t.async=!0;
-t.src=v;s=b.getElementsByTagName(e)[0];
-s.parentNode.insertBefore(t,s)}(window, document,'script',
-'https://connect.facebook.net/en_US/fbevents.js');
-fbq('init', '2205711949883411');
-fbq('track', 'PageView');
-</script>
-<noscript><img height="1" width="1" style="display:none"
-src="https://www.facebook.com/tr?id=2205711949883411&ev=PageView&noscript=1"
-/></noscript>
-<!-- End Meta Pixel Code -->
-'''
 
 
 def main():
-    from nicegui import ui, app
+    from fastapi import FastAPI
     from fastapi.responses import FileResponse
+    from fastapi.staticfiles import StaticFiles
+    import uvicorn
 
-    ui.add_head_html(head_html, shared=True)
-    if env != "local":
-        ui.add_head_html(pixel_code, shared=True)
-
-    import components
-    from pages import (
-        about,
-        admin,
-        event,
-        errors,
-        home,
-        unsubscribe,
-        buy_ticket,
-        callback,
-        policy,
-        signup,
-        login,
-        logout,
-        profile,
-    )
+    app = FastAPI(title="Drop Dead Disco", docs_url="/docs")
 
     app.include_router(auth_router)
     app.include_router(tg_webhook_router)
@@ -186,32 +63,20 @@ def main():
         )
 
     app.add_middleware(AuthMiddleware)
-    app.add_static_files(url_path='/static',
-                         local_directory=os.path.join(os.path.dirname(__file__), 'static'))
+
+    static_dir = os.path.join(os.path.dirname(__file__), 'static')
+    app.mount('/static', StaticFiles(directory=static_dir), name='static')
 
     # Serve React frontend (built)
     frontend_dist = os.path.join(os.path.dirname(__file__), 'frontend', 'dist')
     if os.path.isdir(frontend_dist):
-        app.add_static_files(url_path='/app/assets',
-                             local_directory=os.path.join(frontend_dist, 'assets'))
+        app.mount('/app/assets', StaticFiles(directory=os.path.join(frontend_dist, 'assets')), name='assets')
 
         @app.get('/app/{full_path:path}', include_in_schema=False)
         async def serve_react(full_path: str):
             return FileResponse(os.path.join(frontend_dist, 'index.html'))
-    ui.add_body_html(bg_video_code, shared=True)
 
-    ui.run(
-        host='0.0.0.0',
-        favicon="static/images/favicon.png",
-        title="Drop Dead Disco",
-        viewport="width=device-width, initial-scale=1, maximum-scale=1",
-        reconnect_timeout=600.0,
-        storage_secret=storage_secret,
-        reload=False,
-        show=False,
-        fastapi_docs=True,
-        dark=True
-    )
+    uvicorn.run(app, host='0.0.0.0', port=8080)
 
 
 if __name__ == "__main__":
