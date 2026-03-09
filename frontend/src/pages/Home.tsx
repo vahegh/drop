@@ -57,7 +57,7 @@ export default function Home() {
     <Layout showFooter>
       {/* Guest welcome header */}
       {!me && (
-        <Section className="pt-8">
+        <Section>
           <div className="flex flex-col items-center gap-2 text-center w-full">
             <h1 className="text-3xl font-bold tracking-tight">Drop Dead Disco</h1>
           </div>
@@ -256,10 +256,10 @@ export default function Home() {
           style={{ borderRadius: '12px' }}
           src="https://open.spotify.com/embed/playlist/49t6kUgW6nB7Kcv4d357qy?utm_source=generator"
           width="100%"
-          height="152"
+          height="352"
           frameBorder={0}
+          allowFullScreen
           allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-          loading="lazy"
           className="w-full max-w-96"
         />
       </Section>

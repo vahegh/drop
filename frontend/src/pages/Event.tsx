@@ -89,8 +89,8 @@ export default function Event() {
             style={{ borderRadius: '12px' }}
             src={`${event.track_url}?utm_source=generator`}
             width="100%"
-            height="152"
-            frameBorder={0}
+            height="80"
+            allowFullScreen
             allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
             loading="lazy"
             className="w-full max-w-96"
