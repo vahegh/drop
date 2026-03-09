@@ -29,6 +29,17 @@ export default function BuyTicket() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  useEffect(() => {
+    if (!event || !me) return
+    const now = new Date()
+    const earlyBirdActive = event.early_bird_date ? new Date(event.early_bird_date) > now : false
+    const price =
+      me.status === 'member' ? event.member_ticket_price
+      : earlyBirdActive && event.early_bird_price ? event.early_bird_price
+      : event.general_admission_price
+    gtagEvent('begin_checkout', { currency: 'AMD', value: price, items: [{ item_id: event.id, price }] })
+  }, [event?.id, me?.id])
+
   if (!eventId) return (
     <Layout>
       <div className="flex items-center justify-center min-h-[60vh] text-white/45">No event selected.</div>
@@ -80,10 +91,6 @@ export default function BuyTicket() {
   const ticketLabel =
     me.status === 'member' ? 'Member Ticket' :
     earlyBirdActive ? 'Early Bird Ticket' : 'Standard Ticket'
-
-  useEffect(() => {
-    gtagEvent('begin_checkout', { currency: 'AMD', value: price, items: [{ item_id: event!.id, price }] })
-  }, [event!.id])
 
   async function handlePay() {
     if (!me) return

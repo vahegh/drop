@@ -19,6 +19,17 @@ export default function Event() {
   const { data: event, isLoading, error } = useEvent(id ?? '')
   const { data: me } = useMe()
 
+  useEffect(() => {
+    if (!event) return
+    gtagEvent('view_item_list', {
+      items: [
+        { item_id: 'ticket_member', price: event.member_ticket_price },
+        { item_id: 'ticket_early_bird', price: event.early_bird_price },
+        { item_id: 'ticket_general', price: event.general_admission_price },
+      ],
+    })
+  }, [event?.id])
+
   if (isLoading) return (
     <Layout showFooter={false}>
       <div className="w-full max-w-96 rounded-2xl bg-white/5 animate-pulse mt-4" style={{ minHeight: 420 }} />
@@ -29,16 +40,6 @@ export default function Event() {
       <div className="flex items-center justify-center min-h-[60vh] text-white/45">Event not found.</div>
     </Layout>
   )
-
-  useEffect(() => {
-    gtagEvent('view_item_list', {
-      items: [
-        { item_id: 'ticket_member', price: event.member_ticket_price },
-        { item_id: 'ticket_early_bird', price: event.early_bird_price },
-        { item_id: 'ticket_general', price: event.general_admission_price },
-      ],
-    })
-  }, [event.id])
 
   const now = new Date()
   const eventPassed = new Date(event.ends_at) < now
