@@ -1,14 +1,8 @@
 import os
 import re
-import base64
-import qrcode
-from io import BytesIO
 from typing import List
 import httpx
 from fastapi import Request
-from qrcode.image.styledpil import StyledPilImage
-from qrcode.image.styles.colormasks import SolidFillColorMask
-from qrcode.image.styles.moduledrawers.pil import RoundedModuleDrawer
 
 
 def is_cloud_run():
@@ -30,28 +24,6 @@ async def get_user_agent(request: Request):
         return "ios"
     else:
         return "web"
-
-
-def generate_qr(id):
-    qr = qrcode.QRCode(
-        version=1,
-        error_correction=qrcode.constants.ERROR_CORRECT_H,
-        box_size=15,
-        border=2,
-    )
-    qr.add_data(id)
-    qr.make(fit=True)
-
-    img = qr.make_image(
-        image_factory=StyledPilImage,
-        module_drawer=RoundedModuleDrawer(),
-        color_mask=SolidFillColorMask(back_color=(255, 255, 255), front_color=(0, 0, 0))
-    )
-
-    buffer = BytesIO()
-    img.save(buffer, format='PNG')
-
-    return base64.b64encode(buffer.getvalue()).decode('utf-8')
 
 
 def get_card_type(bin_6: str) -> str:

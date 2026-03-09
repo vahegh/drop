@@ -6,8 +6,6 @@ pydantic[email]
 google-auth
 google-api-python-client
 google-cloud-storage
-qrcode
-qrcode[pil]
 PyJWT
 httpx
 aioapns
@@ -15,4 +13,4 @@ aiosmtplib
 jinja2
 tzdata
 python-dotenv
-plotly
+markdown2
