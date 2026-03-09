@@ -1,7 +1,7 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useMe } from '../hooks/useMe'
 import { logout } from '../api/auth'
-import { useQueryClient } from '@tanstack/react-query'
+// import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { loginUrl } from '../lib/loginUrl'
 
@@ -13,7 +13,7 @@ export const STATUS_COLORS: Record<string, string> = {
 }
 
 interface LayoutProps {
-  children: React.ReactNode
+  children?: React.ReactNode
   /** Per-page blurred bg override (event pages) — replaces the video */
   heroBg?: string
   showFooter?: boolean
@@ -21,8 +21,8 @@ interface LayoutProps {
 
 export default function Layout({ children, heroBg, showFooter = true }: LayoutProps) {
   const { data: me } = useMe()
-  const qc = useQueryClient()
-  const navigate = useNavigate()
+//   const qc = useQueryClient()
+//   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
 
   async function handleLogout() {
