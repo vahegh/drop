@@ -70,9 +70,9 @@ def main():
     # Serve React frontend (built)
     frontend_dist = os.path.join(os.path.dirname(__file__), 'frontend', 'dist')
     if os.path.isdir(frontend_dist):
-        app.mount('/app/assets', StaticFiles(directory=os.path.join(frontend_dist, 'assets')), name='assets')
+        app.mount('/assets', StaticFiles(directory=os.path.join(frontend_dist, 'assets')), name='assets')
 
-        @app.get('/app/{full_path:path}', include_in_schema=False)
+        @app.get('/{full_path:path}', include_in_schema=False)
         async def serve_react(full_path: str):
             return FileResponse(os.path.join(frontend_dist, 'index.html'))
 

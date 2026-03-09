@@ -90,11 +90,11 @@ async def early_bird_end(db: AsyncSession, event_id: UUID):
         "event_day_of_week": starts_at_local.strftime("%A"),
         "early_bird_price": f"{event.early_bird_price} AMD",
         "standard_price": f"{event.general_admission_price} AMD",
-        "event_url": f"{APP_BASE_URL}/app/event/{event.id}",
+        "event_url": f"{APP_BASE_URL}/event/{event.id}",
         "event_date": starts_at_local.strftime("%A %d %B"),
         "start_time": starts_at_local.strftime("%H:%M"),
         "end_time": ends_at_local.strftime("%H:%M"),
-        "unsubscribe_url": f"{APP_BASE_URL}/app/unsubscribe",
+        "unsubscribe_url": f"{APP_BASE_URL}/unsubscribe",
         "preheader_text": "Your review has started. You'll be updated shortly."
     }
 
@@ -142,11 +142,11 @@ async def event_announcement(db: AsyncSession, event_id: UUID):
         "early_bird_price": f"{event.early_bird_price} AMD",
         "standard_price": f"{event.general_admission_price} AMD",
         "member_price": f"{event.member_ticket_price} AMD",
-        "event_url": f"{APP_BASE_URL}/app/event/{event.id}?utm_source=email&utm_medium=marketing&utm_campaign=announcement_{event.id}",
+        "event_url": f"{APP_BASE_URL}/event/{event.id}?utm_source=email&utm_medium=marketing&utm_campaign=announcement_{event.id}",
     }
 
     for p in all_verified_without_tickets:
-        context["unsubscribe_url"] = f"{APP_BASE_URL}/app/unsubscribe?email={p.email}"
+        context["unsubscribe_url"] = f"{APP_BASE_URL}/unsubscribe?email={p.email}"
         outgoing_email = EmailRequest(
             recipient_email=p.email,
             subject=f"🪩 {event.starts_at.astimezone().strftime("%A %d %B")} | {event.name}",
@@ -174,7 +174,7 @@ async def event_notify(db: AsyncSession):
     context = {
         "event_name": event.name,
         "description": markdown(event.description),
-        "buy_ticket_url": f"{APP_BASE_URL}/app/buy-ticket?event_id={event.id}&utm_source=email&utm_medium=marketing&utm_campaign=2_days_left_{event.id}"
+        "buy_ticket_url": f"{APP_BASE_URL}/buy-ticket?event_id={event.id}&utm_source=email&utm_medium=marketing&utm_campaign=2_days_left_{event.id}"
     }
 
     for p in all_verified_without_tickets:
