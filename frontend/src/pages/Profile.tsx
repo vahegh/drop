@@ -115,7 +115,7 @@ export default function Profile() {
             <h1 className="text-xl font-bold">{me.full_name}</h1>
             <a
               href={`https://instagram.com/${me.instagram_handle}`}
-              target="_blank"
+              
               rel="noopener noreferrer"
               className="text-sm text-white/45 hover:text-white/80 transition-colors"
             >
@@ -238,7 +238,7 @@ export default function Profile() {
         <Section title="You at Drop" subtitle="Your photos from past events, in full quality." sep>
           <a
             href={`${me.drive_folder_url}?authuser=${me.email}`}
-            target="_blank"
+            
             rel="noopener noreferrer"
             className="btn-outline"
           >

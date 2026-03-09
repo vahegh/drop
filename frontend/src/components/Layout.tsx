@@ -135,15 +135,15 @@ export default function Layout({ children, heroBg, showFooter = true }: LayoutPr
             <Link to="/policy" className="hover:text-white/80 transition-colors">Policy</Link>
           </div>
           <div className="flex gap-1">
-            <a href="https://www.instagram.com/dropdeadisco/" target="_blank" rel="noopener noreferrer"
+            <a href="https://www.instagram.com/dropdeadisco/" rel="noopener noreferrer"
               className="p-2 opacity-50 hover:opacity-90 transition-opacity">
               <img src="/static/images/instagram.svg" alt="Instagram" className="w-5 h-5 invert" />
             </a>
-            <a href="https://open.spotify.com/user/31y7wk6nzdmkzfwhc4apgv5kv47q" target="_blank" rel="noopener noreferrer"
+            <a href="https://open.spotify.com/user/4tqtnbljmj15sta3zq3dq6d1v?si=3e5307488a9546c7" rel="noopener noreferrer"
               className="p-2 opacity-50 hover:opacity-90 transition-opacity">
               <img src="/static/images/spotify.svg" alt="Spotify" className="w-5 h-5 invert" />
             </a>
-            <a href="https://www.youtube.com/@dropdeaddisco" target="_blank" rel="noopener noreferrer"
+            <a href="https://www.youtube.com/@dropdeadisco" rel="noopener noreferrer"
               className="p-2 opacity-50 hover:opacity-90 transition-opacity">
               <img src="/static/images/youtube.svg" alt="YouTube" className="w-5 h-5 invert" />
             </a>

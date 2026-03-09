@@ -139,7 +139,7 @@ export default function Home() {
         <Section title="You at Drop" subtitle="Your photos in full quality" sep>
           <a
             href={`${me.drive_folder_url}?authuser=${me.email}`}
-            target="_blank"
+            
             rel="noopener noreferrer"
             className="btn-outline"
           >

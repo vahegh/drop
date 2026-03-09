@@ -58,7 +58,7 @@ function MagicLinkDialog({ onClose }: { onClose: () => void }) {
           <Section title="Check your email!" subtitle="If verified, you'll receive a link to log in.">
             <a
               href="https://mail.google.com"
-              target="_blank"
+              
               rel="noopener noreferrer"
               className="btn-primary"
               style={{ gap: '8px' }}
