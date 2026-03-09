@@ -33,7 +33,7 @@ export default function Profile() {
   )
 
   if (error || !me) {
-    window.location.href = loginUrl('/app/profile')
+    window.location.href = loginUrl('/profile')
     return null
   }
 
@@ -324,7 +324,7 @@ export default function Profile() {
       )}
 
       <Section sep className="pb-4">
-        <Link to="/app" className="btn-outline">← Home</Link>
+        <Link to="/" className="btn-outline">← Home</Link>
       </Section>
     </Layout>
   )

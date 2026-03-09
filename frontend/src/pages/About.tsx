@@ -80,7 +80,7 @@ export default function About() {
           </Section>
 
           <Section title="Wanna join the fun?" subtitle="Sign up to get verified" sep>
-            <a href={loginUrl('/app')} className="btn-primary">
+            <a href={loginUrl('/')} className="btn-primary">
               <img src="/static/images/google.svg" alt="" className="w-4 h-4 mr-2" />
               Sign up with Google
             </a>
@@ -89,7 +89,7 @@ export default function About() {
       )}
 
       <Section sep className="pb-4">
-        <Link to="/app" className="btn-outline">← Home</Link>
+        <Link to="/" className="btn-outline">← Home</Link>
       </Section>
     </Layout>
   )

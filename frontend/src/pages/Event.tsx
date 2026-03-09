@@ -134,7 +134,7 @@ export default function Event() {
             </button>
           ) : (
             <a
-              href={`/app/buy-ticket?event_id=${event.id}`}
+              href={`/buy-ticket?event_id=${event.id}`}
               className="btn-primary h-16 text-base"
               style={{ maxWidth: '24rem' }}
             >

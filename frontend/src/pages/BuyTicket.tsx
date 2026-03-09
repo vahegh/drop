@@ -55,7 +55,7 @@ export default function BuyTicket() {
               Sign in to buy a ticket for <strong>{event.name}</strong>.
             </p>
             <a
-              href={loginUrl(`/app/buy-ticket?event_id=${eventId}`)}
+              href={loginUrl(`/buy-ticket?event_id=${eventId}`)}
               className="btn-primary"
             >
               <img src="/static/images/google.svg" alt="" className="w-4 h-4 mr-2" />
@@ -102,7 +102,7 @@ export default function BuyTicket() {
   return (
     <Layout heroBg={event.image_url}>
       <Section className="pt-4">
-        <Link to={`/app/event/${event.id}`} className="text-sm text-white/45 hover:text-white/80 w-full">
+        <Link to={`/event/${event.id}`} className="text-sm text-white/45 hover:text-white/80 w-full">
           ← Back
         </Link>
 

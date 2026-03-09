@@ -105,7 +105,7 @@ async def send_magic_link(body: MagicLinkRequest):
         token = await create_jwt(person.email, expires_in=30)
         context = {
             "name": person.first_name,
-            "magic_link": f"{APP_BASE_URL}/app/login?token={token}",
+            "magic_link": f"{APP_BASE_URL}/login?token={token}",
         }
         template = await generate_template("magic_link.html", context)
         await send_email(EmailRequest(
@@ -129,7 +129,7 @@ async def verify_magic_link(token: str):
     if not person:
         raise HTTPException(404, "Person not found")
 
-    return await generate_and_set_tokens(person.id, redirect_url="/app")
+    return await generate_and_set_tokens(person.id, redirect_url="/")
 
 
 @router.post("/signup")

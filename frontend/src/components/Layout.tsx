@@ -29,7 +29,7 @@ export default function Layout({ children, heroBg, showFooter = true }: LayoutPr
     setMenuOpen(false)
     await logout()
     // Hard reload so all query cache + React state resets cleanly
-    window.location.href = '/app'
+    window.location.href = '/'
   }
 
   return (
@@ -59,7 +59,7 @@ export default function Layout({ children, heroBg, showFooter = true }: LayoutPr
         style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
         className="fixed top-0 left-0 right-0 h-14 px-4 flex items-center justify-between z-50 bg-black/20"
       >
-        <Link to="/app" className="flex items-center">
+        <Link to="/" className="flex items-center">
           <img src="/static/images/logo_gray.png" alt="Drop Dead Disco" className="h-8 w-14 object-contain" />
         </Link>
 
@@ -104,7 +104,7 @@ export default function Layout({ children, heroBg, showFooter = true }: LayoutPr
                       @{me.instagram_handle}
                     </a>
                   </div>
-                  <Link to="/app/profile" onClick={() => setMenuOpen(false)} className="btn-primary text-sm text-center">
+                  <Link to="/profile" onClick={() => setMenuOpen(false)} className="btn-primary text-sm text-center">
                     Your profile
                   </Link>
                   <button onClick={handleLogout} className="text-sm text-white/45 hover:text-white/80 transition-colors">
@@ -133,13 +133,13 @@ export default function Layout({ children, heroBg, showFooter = true }: LayoutPr
       {/* Footer — mirrors frame.py show_footer */}
       {showFooter && (
         <footer className="w-full border-t border-white/10 py-6 flex flex-col items-center gap-4">
-          <Link to="/app">
+          <Link to="/">
             <img src="/static/images/logo_gray.png" alt="Drop Dead Disco" className="h-10 w-20 object-contain opacity-60 hover:opacity-90 transition-opacity" />
           </Link>
           <div className="flex gap-6 text-sm text-white/45">
-            <Link to="/app" className="hover:text-white/80 transition-colors">Home</Link>
-            <Link to="/app/about" className="hover:text-white/80 transition-colors">About</Link>
-            <Link to="/app/policy" className="hover:text-white/80 transition-colors">Policy</Link>
+            <Link to="/" className="hover:text-white/80 transition-colors">Home</Link>
+            <Link to="/about" className="hover:text-white/80 transition-colors">About</Link>
+            <Link to="/policy" className="hover:text-white/80 transition-colors">Policy</Link>
           </div>
           <div className="flex gap-1">
             <a href="https://www.instagram.com/dropdeadisco/" target="_blank" rel="noopener noreferrer"

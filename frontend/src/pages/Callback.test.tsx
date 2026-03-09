@@ -13,10 +13,10 @@ function wrapper(search = '') {
   const qc = new QueryClient()
   return render(
     <QueryClientProvider client={qc}>
-      <MemoryRouter initialEntries={[`/app/callback${search}`]}>
+      <MemoryRouter initialEntries={[`/callback${search}`]}>
         <Routes>
-          <Route path="/app/callback" element={<Callback />} />
-          <Route path="/app/callback/*" element={<Callback />} />
+          <Route path="/callback" element={<Callback />} />
+          <Route path="/callback/*" element={<Callback />} />
         </Routes>
       </MemoryRouter>
     </QueryClientProvider>

@@ -30,9 +30,9 @@ function wrapper() {
   const qc = new QueryClient()
   return render(
     <QueryClientProvider client={qc}>
-      <MemoryRouter initialEntries={['/app/event/evt-1']}>
+      <MemoryRouter initialEntries={['/event/evt-1']}>
         <Routes>
-          <Route path="/app/event/:id" element={<Event />} />
+          <Route path="/event/:id" element={<Event />} />
         </Routes>
       </MemoryRouter>
     </QueryClientProvider>

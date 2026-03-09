@@ -10,7 +10,7 @@ export default function NotFound() {
           <h1 className="text-3xl font-bold">404</h1>
           <p className="text-white/45 mt-1">Page not found.</p>
         </div>
-        <Link to="/app" className="btn-outline" style={{ width: 'auto', padding: '0 24px' }}>
+        <Link to="/" className="btn-outline" style={{ width: 'auto', padding: '0 24px' }}>
           Go home
         </Link>
       </div>

@@ -7,7 +7,7 @@ import BuyTicket from './BuyTicket'
 vi.mock('../hooks/useMe', () => ({ useMe: vi.fn() }))
 vi.mock('../hooks/useEvents', () => ({ useEvent: vi.fn() }))
 vi.mock('../api/payments', () => ({ initiatePayment: vi.fn() }))
-vi.mock('../lib/loginUrl', () => ({ loginUrl: (p: string) => `/app/login?redirect_url=${encodeURIComponent(p)}` }))
+vi.mock('../lib/loginUrl', () => ({ loginUrl: (p: string) => `/login?redirect_url=${encodeURIComponent(p)}` }))
 
 import { useMe } from '../hooks/useMe'
 import { useEvent } from '../hooks/useEvents'
@@ -36,9 +36,9 @@ function wrapper(search = '?event_id=evt-1') {
   const qc = new QueryClient()
   return render(
     <QueryClientProvider client={qc}>
-      <MemoryRouter initialEntries={[`/app/buy-ticket${search}`]}>
+      <MemoryRouter initialEntries={[`/buy-ticket${search}`]}>
         <Routes>
-          <Route path="/app/buy-ticket" element={<BuyTicket />} />
+          <Route path="/buy-ticket" element={<BuyTicket />} />
         </Routes>
       </MemoryRouter>
     </QueryClientProvider>

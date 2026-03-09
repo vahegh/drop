@@ -13,9 +13,9 @@ function wrapper(search = '') {
   const qc = new QueryClient()
   return render(
     <QueryClientProvider client={qc}>
-      <MemoryRouter initialEntries={[`/app/unsubscribe${search}`]}>
+      <MemoryRouter initialEntries={[`/unsubscribe${search}`]}>
         <Routes>
-          <Route path="/app/unsubscribe" element={<Unsubscribe />} />
+          <Route path="/unsubscribe" element={<Unsubscribe />} />
         </Routes>
       </MemoryRouter>
     </QueryClientProvider>

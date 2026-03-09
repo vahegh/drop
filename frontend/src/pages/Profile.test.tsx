@@ -8,7 +8,7 @@ vi.mock('../hooks/useMe', () => ({ useMe: vi.fn() }))
 vi.mock('../hooks/useTickets', () => ({ useTickets: vi.fn() }))
 vi.mock('../hooks/useEvents', () => ({ useEvents: vi.fn() }))
 vi.mock('../api/people', () => ({ updateMe: vi.fn(), uploadAvatar: vi.fn() }))
-vi.mock('../lib/loginUrl', () => ({ loginUrl: (p: string) => `/app/login?redirect_url=${encodeURIComponent(p)}` }))
+vi.mock('../lib/loginUrl', () => ({ loginUrl: (p: string) => `/login?redirect_url=${encodeURIComponent(p)}` }))
 vi.mock('react-qr-code', () => ({ default: () => <svg data-testid="qr-code" /> }))
 
 import { useMe } from '../hooks/useMe'

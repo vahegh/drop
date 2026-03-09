@@ -13,7 +13,7 @@ export default function Policy() {
         <div className="text-sm text-white/80 leading-relaxed w-full flex flex-col gap-4">
           <p>
             Any ticket purchased from{' '}
-            <Link to="/app" className="underline hover:text-white transition-colors">
+            <Link to="/" className="underline hover:text-white transition-colors">
               our website
             </Link>{' '}
             may be refunded until the previous day (included) of the event it is designated for.
@@ -33,7 +33,7 @@ export default function Policy() {
       </Section>
 
       <Section sep className="pb-4">
-        <Link to="/app" className="btn-outline">← Home</Link>
+        <Link to="/" className="btn-outline">← Home</Link>
       </Section>
     </Layout>
   )

@@ -14,7 +14,7 @@ interface PendingSignup {
 
 export default function Signup() {
   const [searchParams] = useSearchParams()
-  const redirectUrl = searchParams.get('redirect_url') ?? '/app'
+  const redirectUrl = searchParams.get('redirect_url') ?? '/'
   const navigate = useNavigate()
 
   const [pending, setPending] = useState<PendingSignup | null>(null)
@@ -27,7 +27,7 @@ export default function Signup() {
   useEffect(() => {
     const raw = sessionStorage.getItem('drop_signup')
     if (!raw) {
-      navigate('/app/login')
+      navigate('/login')
       return
     }
     const data: PendingSignup = JSON.parse(raw)

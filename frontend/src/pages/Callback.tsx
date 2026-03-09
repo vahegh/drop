@@ -44,7 +44,7 @@ export default function Callback() {
           <p className="font-bold" style={{ color: 'var(--drop-negative)' }}>Payment failed</p>
           <p className="text-sm text-white/45 mt-1">{error}</p>
         </div>
-        <button onClick={() => navigate('/app')} className="btn-outline">Go home</button>
+        <button onClick={() => navigate('/')} className="btn-outline">Go home</button>
       </div>
     </Layout>
   )
@@ -81,12 +81,12 @@ export default function Callback() {
         </div>
         <div className="flex flex-col gap-2 w-full">
           <button
-            onClick={() => navigate('/app/profile')}
+            onClick={() => navigate('/profile')}
             className="btn-primary"
           >
             View tickets
           </button>
-          <button onClick={() => navigate('/app')} className="btn-outline">
+          <button onClick={() => navigate('/')} className="btn-outline">
             Go home
           </button>
         </div>

@@ -158,7 +158,7 @@ export default function Home() {
       {/* Next event card */}
       {nextEvent && (
         <Section>
-          <Link to={`/app/event/${nextEvent.id}`} className="w-full max-w-96 block">
+          <Link to={`/event/${nextEvent.id}`} className="w-full max-w-96 block">
             <div className="relative w-full overflow-hidden rounded-lg group cursor-pointer" style={{ aspectRatio: '4/5' }}>
               <img
                 src={nextEvent.image_url}
@@ -191,7 +191,7 @@ export default function Home() {
         <p className="text-sm text-white/70 leading-relaxed w-full">
           Drop Dead Disco is a hand-picked community hosting dance parties in secret locations around Yerevan.
           Every guest has to pass <strong>verification</strong> before they're able to buy tickets and attend.{' '}
-          <Link to="/app/about" className="underline underline-offset-2 text-white/55 hover:text-white/80">Read more</Link>
+          <Link to="/about" className="underline underline-offset-2 text-white/55 hover:text-white/80">Read more</Link>
         </p>
       </Section>
 
@@ -199,11 +199,11 @@ export default function Home() {
       {!me && (
         <Section title="Wanna join the fun?" subtitle="Sign up to get verified">
           <div className="flex gap-2 w-full max-w-96">
-            <a href={loginUrl('/app')} className="btn-primary flex-1" style={{ maxWidth: 'none' }}>
+            <a href={loginUrl('/')} className="btn-primary flex-1" style={{ maxWidth: 'none' }}>
               <img src="/static/images/google.svg" alt="" className="w-4 h-4 mr-2" />
               Sign up
             </a>
-            <a href={loginUrl('/app')} className="btn-outline flex-1" style={{ maxWidth: 'none' }}>
+            <a href={loginUrl('/')} className="btn-outline flex-1" style={{ maxWidth: 'none' }}>
               <img src="/static/images/google.svg" alt="" className="w-4 h-4 mr-2 opacity-50" />
               Log in
             </a>
@@ -216,7 +216,7 @@ export default function Home() {
         <Section title="Previous events" subtitle="Photos and videos from past events" sep>
           <div className="grid grid-cols-2 gap-3 w-full max-w-96">
             {pastEvents.map((event) => (
-              <Link key={event.id} to={`/app/event/${event.id}`} className="block">
+              <Link key={event.id} to={`/event/${event.id}`} className="block">
                 <div className="relative rounded-lg overflow-hidden group" style={{ aspectRatio: '4/5' }}>
                   <img
                     src={event.image_url}

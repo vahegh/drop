@@ -23,7 +23,7 @@ function GoogleButton({ text, variant, redirectUrl }: { text: string; variant: '
           avatar_url: result.avatar_url,
         }
         sessionStorage.setItem('drop_signup', JSON.stringify(pending))
-        navigate(`/app/signup?redirect_url=${encodeURIComponent(redirectUrl)}`)
+        navigate(`/signup?redirect_url=${encodeURIComponent(redirectUrl)}`)
       }
     },
     onError: () => {},
@@ -107,7 +107,7 @@ function MagicLinkDialog({ onClose }: { onClose: () => void }) {
 
 export default function Login() {
   const [searchParams] = useSearchParams()
-  const redirectUrl = searchParams.get('redirect_url') ?? '/app'
+  const redirectUrl = searchParams.get('redirect_url') ?? '/'
   const token = searchParams.get('token')
   const [dialogOpen, setDialogOpen] = useState(false)
   const [tokenError, setTokenError] = useState<string | null>(null)
@@ -142,7 +142,7 @@ export default function Login() {
           {tokenError ? (
             <>
               <p className="text-center text-white/70">{tokenError}</p>
-              <a href="/app/login" className="btn-primary" style={{ marginTop: '8px' }}>Try again</a>
+              <a href="/login" className="btn-primary" style={{ marginTop: '8px' }}>Try again</a>
             </>
           ) : (
             <p className="text-center text-white/70">Signing you in…</p>
