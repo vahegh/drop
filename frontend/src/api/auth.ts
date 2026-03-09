@@ -14,13 +14,17 @@ export type GoogleAuthResponse =
   | { status: 'ok' }
   | { status: 'new_user'; email: string; first_name: string; last_name: string; avatar_url: string | null }
 
-export async function googleAuth(credential: string): Promise<GoogleAuthResponse> {
-  const res = await client.post<GoogleAuthResponse>('/auth/google', { credential })
+export async function googleAuth(access_token: string): Promise<GoogleAuthResponse> {
+  const res = await client.post<GoogleAuthResponse>('/auth/google', { access_token })
   return res.data
 }
 
+export async function sendMagicLink(email: string): Promise<void> {
+  await client.post('/auth/magic-link', { email })
+}
+
 export async function signupWithGoogle(data: {
-  credential: string
+  access_token: string
   first_name: string
   last_name: string
   instagram_handle: string

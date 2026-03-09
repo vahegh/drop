@@ -5,7 +5,7 @@ import Section from '../components/Section'
 import { signupWithGoogle } from '../api/auth'
 
 interface PendingSignup {
-  credential: string
+  access_token: string
   email: string
   first_name: string
   last_name: string
@@ -43,7 +43,7 @@ export default function Signup() {
     setSubmitting(true)
     try {
       await signupWithGoogle({
-        credential: pending.credential,
+        access_token: pending.access_token,
         first_name: firstName,
         last_name: lastName,
         instagram_handle: instagram,

@@ -1,30 +1,45 @@
 import os
+import jwt as pyjwt
+import httpx
 from sqlalchemy import select
 from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from google.oauth2 import id_token
-from google.auth.transport import requests as google_requests
 from decorators import with_db
 from decorators import verify_user_token
 from db_models import RefreshToken
 from sqlalchemy.ext.asyncio import AsyncSession
 from services.user import user_info
 from services.person import create_person, get_person_by_email
+from services.auth import create_jwt, auth_secret
+from services.mailing import EmailRequest, send_email
+from services.templating import generate_template
 from api_models import PersonCreate
 from routes.auth import generate_and_set_tokens
+from consts import APP_BASE_URL
 
-aud = os.environ['google_client_id']
+GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo"
+
+
+async def _get_google_userinfo(access_token: str) -> dict:
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(
+            GOOGLE_USERINFO_URL,
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+    if resp.status_code != 200:
+        raise HTTPException(401, "Invalid Google access token")
+    return resp.json()
 
 router = APIRouter(tags=["Client Auth"], prefix="/auth")
 
 
 class GoogleAuthRequest(BaseModel):
-    credential: str
+    access_token: str
 
 
 class SignupRequest(BaseModel):
-    credential: str
+    access_token: str
     first_name: str
     last_name: str
     instagram_handle: str
@@ -55,12 +70,7 @@ async def logout(db: AsyncSession, request: Request):
 
 @router.post("/google")
 async def google_auth(body: GoogleAuthRequest):
-    try:
-        info = id_token.verify_oauth2_token(
-            body.credential, google_requests.Request(), aud, clock_skew_in_seconds=5)
-    except ValueError:
-        raise HTTPException(401, "Invalid Google token")
-
+    info = await _get_google_userinfo(body.access_token)
     email = info['email']
     person = await get_person_by_email(email)
 
@@ -84,13 +94,47 @@ async def google_auth(body: GoogleAuthRequest):
     return json_resp
 
 
+class MagicLinkRequest(BaseModel):
+    email: str
+
+
+@router.post("/magic-link")
+async def send_magic_link(body: MagicLinkRequest):
+    person = await get_person_by_email(body.email)
+    if person:
+        token = await create_jwt(person.email, expires_in=30)
+        context = {
+            "name": person.first_name,
+            "magic_link": f"{APP_BASE_URL}/app/login?token={token}",
+        }
+        template = await generate_template("magic_link.html", context)
+        await send_email(EmailRequest(
+            recipient_email=body.email,
+            subject="Your Signin Link",
+            body=template,
+        ))
+    return JSONResponse({"status": "ok"})
+
+
+@router.get("/magic-link/verify")
+async def verify_magic_link(token: str):
+    try:
+        payload = pyjwt.decode(token, auth_secret, algorithms=["HS256"])
+    except pyjwt.ExpiredSignatureError:
+        raise HTTPException(401, "Link expired")
+    except pyjwt.InvalidTokenError:
+        raise HTTPException(401, "Invalid link")
+
+    person = await get_person_by_email(payload["email"])
+    if not person:
+        raise HTTPException(404, "Person not found")
+
+    return await generate_and_set_tokens(person.id, redirect_url="/app")
+
+
 @router.post("/signup")
 async def signup_react(body: SignupRequest):
-    try:
-        info = id_token.verify_oauth2_token(
-            body.credential, google_requests.Request(), aud, clock_skew_in_seconds=5)
-    except ValueError:
-        raise HTTPException(401, "Invalid Google token")
+    info = await _get_google_userinfo(body.access_token)
 
     person = await create_person(PersonCreate(
         first_name=body.first_name,
