@@ -21,6 +21,9 @@ from routes.admin import auth as admin_auth
 from routes.admin import people as admin_people
 from routes.admin import events as admin_events
 from routes.admin import payments as admin_payments
+from routes.admin import venues as admin_venues
+from fastapi import Depends
+from decorators import verify_admin_token
 from dependencies import AuthMiddleware
 import logging
 
@@ -56,9 +59,10 @@ def main():
     app.include_router(client_payments.router, prefix="/api/client")
     app.include_router(client_tickets.router, prefix="/api/client")
     app.include_router(admin_auth.router, prefix="/api/admin")
-    app.include_router(admin_people.router, prefix="/api/admin")
-    app.include_router(admin_events.router, prefix="/api/admin")
-    app.include_router(admin_payments.router, prefix="/api/admin")
+    app.include_router(admin_people.router, prefix="/api/admin", dependencies=[Depends(verify_admin_token)])
+    app.include_router(admin_events.router, prefix="/api/admin", dependencies=[Depends(verify_admin_token)])
+    app.include_router(admin_payments.router, prefix="/api/admin", dependencies=[Depends(verify_admin_token)])
+    app.include_router(admin_venues.router, prefix="/api/admin", dependencies=[Depends(verify_admin_token)])
 
     if env == "local":
         from fastapi.middleware.cors import CORSMiddleware

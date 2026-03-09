@@ -6,6 +6,7 @@ from enums import PersonStatus
 from decorators import with_db
 from decorators import verify_user_token
 from db_models import Person,  MemberPass
+from consts import admins
 from api_models import PersonUpdate, PersonResponseFull
 from services.event_ticket import get_tickets_by_person_id
 from services.card_binding import get_card_binding_by_person_id
@@ -43,7 +44,8 @@ async def user_info(db: AsyncSession, request: Request):
         events_attended=attendance,
         referral_count=referral_count,
         drive_folder_url=person.drive_folder_url,
-        card_bindings=card_bindings
+        card_bindings=card_bindings,
+        is_admin=person.email in admins,
     )
 
     return response

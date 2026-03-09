@@ -63,6 +63,7 @@ export interface PersonResponseFull {
   referral_count: number
   drive_folder_url: string | null
   card_bindings: CardBindingResponse[]
+  is_admin: boolean
 }
 
 export interface EventResponse {

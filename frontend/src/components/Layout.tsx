@@ -104,6 +104,11 @@ export default function Layout({ children, heroBg, showFooter = true }: LayoutPr
                   <Link to="/profile" onClick={() => setMenuOpen(false)} className="btn-primary text-sm text-center">
                     Your profile
                   </Link>
+                  {me.is_admin && (
+                    <Link to="/admin" onClick={() => setMenuOpen(false)} className="text-sm text-center text-white/60 hover:text-white transition-colors">
+                      Admin panel
+                    </Link>
+                  )}
                   <button onClick={handleLogout} disabled={loggingOut} className="text-sm text-white/45 hover:text-white/80 transition-colors disabled:opacity-50">
                     {loggingOut ? 'Logging out…' : 'Log out'}
                   </button>

@@ -521,6 +521,7 @@ class PersonResponseFull(BaseModel):
     referral_count: int = 0
     drive_folder_url: Optional[str] = None
     card_bindings: list[CardBindingResponse] = []
+    is_admin: bool = False
 
 
 class DriveFolder(BaseModel):

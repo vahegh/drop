@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Home from './pages/Home'
 import Event from './pages/Event'
 import BuyTicket from './pages/BuyTicket'
@@ -10,6 +10,16 @@ import Policy from './pages/Policy'
 import Unsubscribe from './pages/Unsubscribe'
 import Callback from './pages/Callback'
 import NotFound from './pages/NotFound'
+import AdminLayout from './pages/admin/AdminLayout'
+import AdminPeople from './pages/admin/People'
+import AdminPersonDetail from './pages/admin/PersonDetail'
+import AdminEvents from './pages/admin/Events'
+import AdminEventDetail from './pages/admin/EventDetail'
+import AdminEventForm from './pages/admin/EventForm'
+import AdminVenues from './pages/admin/Venues'
+import AdminVenueDetail from './pages/admin/VenueDetail'
+import AdminVenueForm from './pages/admin/VenueForm'
+import AdminPayments from './pages/admin/Payments'
 
 export default function App() {
   return (
@@ -25,6 +35,20 @@ export default function App() {
         <Route path="/policy" element={<Policy />} />
         <Route path="/unsubscribe" element={<Unsubscribe />} />
         <Route path="/callback/*" element={<Callback />} />
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<Navigate to="/admin/people" replace />} />
+          <Route path="people" element={<AdminPeople />} />
+          <Route path="people/:id" element={<AdminPersonDetail />} />
+          <Route path="events" element={<AdminEvents />} />
+          <Route path="events/create" element={<AdminEventForm />} />
+          <Route path="events/:id" element={<AdminEventDetail />} />
+          <Route path="events/:id/edit" element={<AdminEventForm />} />
+          <Route path="venues" element={<AdminVenues />} />
+          <Route path="venues/create" element={<AdminVenueForm />} />
+          <Route path="venues/:id" element={<AdminVenueDetail />} />
+          <Route path="venues/:id/edit" element={<AdminVenueForm />} />
+          <Route path="payments" element={<AdminPayments />} />
+        </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>

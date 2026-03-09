@@ -29,12 +29,12 @@ async def get_venue_info(db: AsyncSession, id: UUID):
 async def create_venue(db: AsyncSession, venue: VenueCreate):
     db_venue = Venue(
         name=venue.name,
+        short_name=venue.short_name,
         address=venue.address,
         latitude=venue.latitude,
         longitude=venue.longitude,
         google_maps_link=venue.google_maps_link,
         yandex_maps_link=venue.yandex_maps_link,
-
     )
     db.add(db_venue)
     await db.commit()
