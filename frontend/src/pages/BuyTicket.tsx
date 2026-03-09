@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { useEvent } from '../hooks/useEvents'
 import { useMe } from '../hooks/useMe'
@@ -6,6 +6,7 @@ import { initiatePayment } from '../api/payments'
 import Layout from '../components/Layout'
 import Section from '../components/Section'
 import { loginUrl } from '../lib/loginUrl'
+import { gtagEvent } from '../lib/analytics'
 import type { PaymentProvider } from '../types'
 
 const PROVIDERS: { label: string; icon: string; value: PaymentProvider }[] = [
@@ -80,8 +81,13 @@ export default function BuyTicket() {
     me.status === 'member' ? 'Member Ticket' :
     earlyBirdActive ? 'Early Bird Ticket' : 'Standard Ticket'
 
+  useEffect(() => {
+    gtagEvent('begin_checkout', { currency: 'AMD', value: price, items: [{ item_id: event!.id, price }] })
+  }, [event!.id])
+
   async function handlePay() {
     if (!me) return
+    gtagEvent('add_to_cart', { currency: 'AMD', value: price, items: [{ item_id: event!.id, price }] })
     setLoading(true)
     setError(null)
     try {

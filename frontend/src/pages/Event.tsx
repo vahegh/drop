@@ -1,9 +1,11 @@
+import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
 import { useEvent } from '../hooks/useEvents'
 import { useMe } from '../hooks/useMe'
 import Layout from '../components/Layout'
 import Section from '../components/Section'
+import { gtagEvent } from '../lib/analytics'
 
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
@@ -27,6 +29,16 @@ export default function Event() {
       <div className="flex items-center justify-center min-h-[60vh] text-white/45">Event not found.</div>
     </Layout>
   )
+
+  useEffect(() => {
+    gtagEvent('view_item_list', {
+      items: [
+        { item_id: 'ticket_member', price: event.member_ticket_price },
+        { item_id: 'ticket_early_bird', price: event.early_bird_price },
+        { item_id: 'ticket_general', price: event.general_admission_price },
+      ],
+    })
+  }, [event.id])
 
   const now = new Date()
   const eventPassed = new Date(event.ends_at) < now

@@ -76,7 +76,7 @@ def main():
         with open(index_path, 'r', encoding='utf-8') as f:
             index_html = f.read()
         env_script = f'<script>window.__ENV__ = "{env or "production"}";</script>'
-        index_html = index_html.replace('</head>', f'{env_script}\n  </head>', 1)
+        index_html = index_html.replace('<head>', f'<head>\n    {env_script}', 1)
 
         from fastapi.responses import HTMLResponse
 
