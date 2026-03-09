@@ -1,0 +1,146 @@
+// Mirrors api_models.py Pydantic models
+
+export type PersonStatus = 'pending' | 'verified' | 'rejected' | 'member'
+export type PaymentStatus = 'CREATED' | 'PENDING' | 'CONFIRMED' | 'REJECTED' | 'REFUNDED'
+export type PaymentProvider = 'VPOS' | 'MYAMERIA' | 'IDRAM' | 'APPLEPAY' | 'GOOGLEPAY' | 'BINDING'
+
+export interface VenueResponse {
+  id: string
+  name: string
+  short_name: string
+  address: string | null
+  latitude: number
+  longitude: number
+  google_maps_link: string
+  yandex_maps_link: string
+}
+
+export interface MemberCardResponse {
+  id: string
+  serial_number: number
+  person_id: string
+  apple_pass_url: string
+  google_pass_url: string
+  created_at: string
+  updated_at: string | null
+}
+
+export interface EventTicketResponse {
+  id: string
+  person_id: string
+  event_id: string
+  payment_order_id: number | null
+  apple_pass_url: string | null
+  google_pass_url: string | null
+  created_at: string
+  updated_at: string | null
+  attended_at: string | null
+}
+
+export interface CardBindingResponse {
+  id: string
+  person_id: string
+  masked_card_number: string
+  card_expiry_date: string
+  is_active: boolean
+  created_at: string
+  updated_at: string | null
+}
+
+export interface PersonResponseFull {
+  id: string
+  first_name: string
+  last_name: string
+  full_name: string
+  email: string
+  instagram_handle: string
+  telegram_handle: string | null
+  status: PersonStatus
+  avatar_url: string | null
+  member_pass: MemberCardResponse | null
+  event_tickets: EventTicketResponse[]
+  events_attended: number
+  drive_folder_url: string | null
+  card_bindings: CardBindingResponse[]
+}
+
+export interface EventResponse {
+  id: string
+  name: string
+  starts_at: string
+  ends_at: string
+  venue_id: string
+  image_url: string
+  video_url: string | null
+  album_url: string | null
+  track_url: string | null
+  description: string
+  early_bird_date: string | null
+  early_bird_price: number | null
+  general_admission_price: number
+  member_ticket_price: number
+  max_capacity: number
+  shared: boolean
+  created_at: string
+}
+
+export interface PersonCreate {
+  first_name: string
+  last_name: string
+  email: string
+  instagram_handle: string
+  telegram_handle?: string
+  avatar_url?: string
+  referer_id?: string
+}
+
+export interface PersonUpdate {
+  first_name?: string
+  last_name?: string
+  email?: string
+  instagram_handle?: string
+  telegram_handle?: string
+  avatar_url?: string
+}
+
+export interface DrinkResponse {
+  id: string
+  name: string
+  price: number
+  created_at: string
+}
+
+export interface PaymentConfirmRequest {
+  order_id: number
+  provider: PaymentProvider
+  payment_id?: string
+}
+
+export interface PaymentConfirmResponse {
+  order_id: number
+  provider: PaymentProvider
+  payment_id: string | null
+  status: PaymentStatus
+  description: string | null
+  person_id: string
+  event_id: string
+  amount: number
+  num_tickets: number
+}
+
+export interface InitiatePaymentRequest {
+  event_id: string
+  provider: PaymentProvider
+  attendees: { person_id: string }[]
+  drink_ids?: string[]
+  save_card?: boolean
+}
+
+export interface InitiatePaymentResponse {
+  order_id: number
+  redirect_url: string
+}
+
+export interface PersonStats {
+  [status: string]: number
+}
