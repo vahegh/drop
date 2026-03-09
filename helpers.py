@@ -1,19 +1,9 @@
 import os
-import re
-from typing import List
-import httpx
 from fastapi import Request
 
 
 def is_cloud_run():
     return os.getenv("K_SERVICE") is not None
-
-
-async def get_album_urls(album_url: str) -> List[str]:
-    async with httpx.AsyncClient() as client:
-        response = await client.get(album_url, follow_redirects=False)
-        urls = re.findall(r'https://lh3\.googleusercontent\.com/pw/[A-Za-z0-9_-]+', response.text)
-        return list(set(urls))
 
 
 async def get_user_agent(request: Request):

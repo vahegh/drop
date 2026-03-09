@@ -1,7 +1,7 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
-import { useEvent } from '../hooks/useEvents'
+import { useEvent, useEventPhotos } from '../hooks/useEvents'
 import { useMe } from '../hooks/useMe'
 import Layout from '../components/Layout'
 import Section from '../components/Section'
@@ -18,6 +18,7 @@ export default function Event() {
   const { id } = useParams<{ id: string }>()
   const { data: event, isLoading, error } = useEvent(id ?? '')
   const { data: me } = useMe()
+  const { data: photos } = useEventPhotos(id ?? '', !!event?.album_url)
 
   useEffect(() => {
     if (!event) return
@@ -138,6 +139,14 @@ export default function Event() {
         </Section>
       )}
 
+      {/* Photo album carousel */}
+      {Array.isArray(photos) && photos.length > 0 && (
+        <Section sep>
+          <p className="text-xs uppercase tracking-wider text-white/40 w-full mb-3">Photos</p>
+          <AlbumCarousel photos={photos} />
+        </Section>
+      )}
+
       {/* Spacer for fixed CTA */}
       {!eventPassed && <div className="h-20 w-full" />}
 
@@ -164,6 +173,61 @@ export default function Event() {
         </div>
       )}
     </Layout>
+  )
+}
+
+function AlbumCarousel({ photos }: { photos: string[] }) {
+  const [active, setActive] = useState(0)
+
+  return (
+    <div className="w-full max-w-96 space-y-2">
+      {/* Preload all images for instant switching */}
+      <div className="hidden">
+        {photos.map((url, i) => <img key={i} src={`${url}=w800`} />)}
+      </div>
+
+      {/* Main image */}
+      <div className="relative w-full rounded-xl overflow-hidden bg-black/30" style={{ aspectRatio: '4/3' }}>
+        <img
+          src={`${photos[active]}=w800`}
+          alt={`Photo ${active + 1}`}
+          className="w-full h-full object-contain"
+        />
+        {photos.length > 1 && (
+          <>
+            <button
+              onClick={() => setActive(i => (i - 1 + photos.length) % photos.length)}
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 flex items-center justify-center text-white text-sm"
+              aria-label="Previous"
+            >‹</button>
+            <button
+              onClick={() => setActive(i => (i + 1) % photos.length)}
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 flex items-center justify-center text-white text-sm"
+              aria-label="Next"
+            >›</button>
+            <span className="absolute bottom-2 right-3 text-xs text-white/60 tabular-nums">
+              {active + 1} / {photos.length}
+            </span>
+          </>
+        )}
+      </div>
+
+      {/* Thumbnails */}
+      {photos.length > 1 && (
+        <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+          {photos.map((url, i) => (
+            <button
+              key={i}
+              onClick={() => setActive(i)}
+              className="flex-none w-14 h-14 rounded-lg overflow-hidden transition-opacity"
+              style={{ opacity: i === active ? 1 : 0.45 }}
+            >
+              <img src={`${url}=w120`} alt="" className="w-full h-full object-cover" />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
 

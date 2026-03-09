@@ -15,3 +15,8 @@ export async function getEvent(id: string): Promise<EventResponse> {
   const res = await client.get<EventResponse>(`/events/${id}`)
   return res.data
 }
+
+export async function getEventPhotos(id: string): Promise<string[]> {
+  const res = await client.get<string[]>(`/events/${id}/photos`)
+  return res.data
+}

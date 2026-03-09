@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { getEvents, getNextEvent, getEvent } from '../api/events'
+import { getEvents, getNextEvent, getEvent, getEventPhotos } from '../api/events'
 
 export function useEvents() {
   return useQuery({
@@ -20,5 +20,14 @@ export function useEvent(id: string) {
     queryKey: ['events', id],
     queryFn: () => getEvent(id),
     enabled: !!id,
+  })
+}
+
+export function useEventPhotos(id: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ['events', id, 'photos'],
+    queryFn: () => getEventPhotos(id),
+    enabled: !!id && enabled,
+    staleTime: 1000 * 60 * 50, // 50 min — URLs expire in ~1h
   })
 }
