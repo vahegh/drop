@@ -1,5 +1,5 @@
 import logging
-from sqlalchemy import select
+from sqlalchemy import select, func
 from fastapi import HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from enums import PersonStatus
@@ -24,6 +24,9 @@ async def user_info(db: AsyncSession, request: Request):
     event_tickets = await get_tickets_by_person_id(person.id)
     attendance = len([e for e in event_tickets if e.attended_at])
     card_bindings = await get_card_binding_by_person_id(person.id)
+    referral_count = await db.scalar(
+        select(func.count(Person.id)).where(Person.referer_id == person.id)
+    ) or 0
 
     response = PersonResponseFull(
         id=person.id,
@@ -38,6 +41,7 @@ async def user_info(db: AsyncSession, request: Request):
         member_pass=member_pass,
         event_tickets=event_tickets,
         events_attended=attendance,
+        referral_count=referral_count,
         drive_folder_url=person.drive_folder_url,
         card_bindings=card_bindings
     )

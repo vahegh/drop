@@ -518,6 +518,7 @@ class PersonResponseFull(BaseModel):
     member_pass: MemberCardResponse | None = None
     event_tickets: list[EventTicketResponse] = []
     events_attended: int = 0
+    referral_count: int = 0
     drive_folder_url: Optional[str] = None
     card_bindings: list[CardBindingResponse] = []
 

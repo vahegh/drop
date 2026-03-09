@@ -94,14 +94,12 @@ export default function Layout({ children, heroBg, showFooter = true }: LayoutPr
                     )}
                     <p className="font-semibold text-sm text-center">{me.full_name}</p>
                     <p className="text-xs" style={{ color: STATUS_COLORS[me.status] }}>{me.status}</p>
-                    <a
-                      href={`https://instagram.com/${me.instagram_handle}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-white/40 hover:text-white/70 transition-colors"
-                    >
-                      @{me.instagram_handle}
-                    </a>
+                    {me.events_attended > 0 && (
+                      <p className="text-xs text-white/45">🔥 {me.events_attended}</p>
+                    )}
+                    {me.referral_count > 0 && (
+                      <p className="text-xs text-white/45">👥 {me.referral_count} referred</p>
+                    )}
                   </div>
                   <Link to="/profile" onClick={() => setMenuOpen(false)} className="btn-primary text-sm text-center">
                     Your profile

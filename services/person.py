@@ -28,6 +28,7 @@ async def get_person_by_email(db: AsyncSession, email: str):
 async def get_all_person_stats(db: AsyncSession):
     result = await db.execute(
         select(Person.status, func.count(Person.id).label('count'))
+        .where(Person.status.in_([PersonStatus.verified, PersonStatus.member]))
         .group_by(Person.status)
     )
 

@@ -60,6 +60,7 @@ export interface PersonResponseFull {
   member_pass: MemberCardResponse | null
   event_tickets: EventTicketResponse[]
   events_attended: number
+  referral_count: number
   drive_folder_url: string | null
   card_bindings: CardBindingResponse[]
 }
