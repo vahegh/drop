@@ -12,10 +12,12 @@ export default defineConfig({
     },
   },
   server: {
+    host: true,
     proxy: {
         '/api': 'http://localhost:8080',
         '/static': 'http://localhost:8080',
     },  
+    allowedHosts: ['dropdeadisco.serveousercontent.com', 'dropdeadisco.com'],
     },
   test: {
     globals: true,

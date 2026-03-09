@@ -35,12 +35,12 @@ export default function MemberPassCard({ pass, eventsAttended }: Props) {
       {(pass.apple_pass_url || pass.google_pass_url) && (
         <div className="flex gap-2 w-full px-6 justify-center">
           {pass.apple_pass_url && (
-            <a href={pass.apple_pass_url} target="_blank" rel="noopener noreferrer">
+            <a href={pass.apple_pass_url} rel="noopener noreferrer">
               <img src="/static/images/apple_wallet.svg" alt="Apple Wallet" className="h-8" />
             </a>
           )}
           {pass.google_pass_url && (
-            <a href={pass.google_pass_url} target="_blank" rel="noopener noreferrer">
+            <a href={pass.google_pass_url} rel="noopener noreferrer">
               <img src="/static/images/google_wallet.svg" alt="Google Wallet" className="h-8" />
             </a>
           )}

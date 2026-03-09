@@ -36,12 +36,12 @@ export default function EventTicketCard({ ticket, event }: Props) {
       {(ticket.apple_pass_url || ticket.google_pass_url) && (
         <div className="flex gap-2 justify-center">
           {ticket.apple_pass_url && (
-            <a href={ticket.apple_pass_url} target="_blank" rel="noopener noreferrer">
+            <a href={ticket.apple_pass_url} rel="noopener noreferrer">
               <img src="/static/images/apple_wallet.svg" alt="Apple Wallet" className="h-8" />
             </a>
           )}
           {ticket.google_pass_url && (
-            <a href={ticket.google_pass_url} target="_blank" rel="noopener noreferrer">
+            <a href={ticket.google_pass_url} rel="noopener noreferrer">
               <img src="/static/images/google_wallet.svg" alt="Google Wallet" className="h-8" />
             </a>
           )}
