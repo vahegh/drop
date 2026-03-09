@@ -13,8 +13,8 @@ export default defineConfig({
   },
   server: {
     proxy: {
-        '/api': 'https://dropdeadisco.com',
-        '/static': 'https://dropdeadisco.com',
+        '/api': 'http://localhost:8080',
+        '/static': 'http://localhost:8080',
     },  
     },
   test: {

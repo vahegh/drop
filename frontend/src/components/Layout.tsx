@@ -1,9 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useMe } from '../hooks/useMe'
 import { logout } from '../api/auth'
-// import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { loginUrl } from '../lib/loginUrl'
 
 export const STATUS_COLORS: Record<string, string> = {
   verified: '#00c951',
@@ -14,22 +12,23 @@ export const STATUS_COLORS: Record<string, string> = {
 
 interface LayoutProps {
   children?: React.ReactNode
-  /** Per-page blurred bg override (event pages) — replaces the video */
+  /** Per-page blurred bg override (event pages) - replaces the video */
   heroBg?: string
   showFooter?: boolean
 }
 
 export default function Layout({ children, heroBg, showFooter = true }: LayoutProps) {
-  const { data: me } = useMe()
-//   const qc = useQueryClient()
-//   const navigate = useNavigate()
+  const { data: me, isLoading: meLoading } = useMe()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [loggingOut, setLoggingOut] = useState(false)
 
   async function handleLogout() {
     setMenuOpen(false)
+    setLoggingOut(true)
+    const returnTo = window.location.pathname + window.location.search
     await logout()
     // Hard reload so all query cache + React state resets cleanly
-    window.location.href = '/'
+    window.location.href = returnTo
   }
 
   return (
@@ -60,10 +59,10 @@ export default function Layout({ children, heroBg, showFooter = true }: LayoutPr
         className="fixed top-0 left-0 right-0 h-14 px-4 flex items-center justify-between z-50 bg-black/20"
       >
         <Link to="/" className="flex items-center">
-          <img src="/static/images/logo_gray.png" alt="Drop Dead Disco" className="h-8 w-14 object-contain" />
+          <img src="/static/images/logo_gray.png" alt="Drop Dead Disco" className="h-12 w-14 object-contain" />
         </Link>
 
-        {me ? (
+        {meLoading ? null : me ? (
           <div className="relative">
             <button
               onClick={() => setMenuOpen(!menuOpen)}
@@ -82,7 +81,7 @@ export default function Layout({ children, heroBg, showFooter = true }: LayoutPr
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
                 <div
-                  className="absolute right-0 top-10 z-50 w-56 rounded-3xl p-4 flex flex-col gap-3"
+                  className="absolute right-0 top-10 z-50 w-56 rounded-xl p-4 flex flex-col gap-3"
                   style={{ background: 'var(--drop-card)', boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}
                 >
                   <div className="flex flex-col items-center gap-2 pb-3 border-b border-white/10">
@@ -107,21 +106,17 @@ export default function Layout({ children, heroBg, showFooter = true }: LayoutPr
                   <Link to="/profile" onClick={() => setMenuOpen(false)} className="btn-primary text-sm text-center">
                     Your profile
                   </Link>
-                  <button onClick={handleLogout} className="text-sm text-white/45 hover:text-white/80 transition-colors">
-                    Log out
+                  <button onClick={handleLogout} disabled={loggingOut} className="text-sm text-white/45 hover:text-white/80 transition-colors disabled:opacity-50">
+                    {loggingOut ? 'Logging out…' : 'Log out'}
                   </button>
                 </div>
               </>
             )}
           </div>
         ) : (
-          <a
-            href={loginUrl(window.location.pathname + window.location.search)}
-            className="btn-outline"
-            style={{ width: 'auto', height: '32px', padding: '0 16px', fontSize: '0.8rem' }}
-          >
+          <Link to="/login" className="btn-outline" style={{ height: '32px', padding: '0 16px', fontSize: '0.8rem', width: 'auto' }}>
             Sign in
-          </a>
+          </Link>
         )}
       </nav>
 
@@ -130,11 +125,11 @@ export default function Layout({ children, heroBg, showFooter = true }: LayoutPr
         {children}
       </div>
 
-      {/* Footer — mirrors frame.py show_footer */}
+      {/* Footer - mirrors frame.py show_footer */}
       {showFooter && (
         <footer className="w-full border-t border-white/10 py-6 flex flex-col items-center gap-4">
           <Link to="/">
-            <img src="/static/images/logo_gray.png" alt="Drop Dead Disco" className="h-10 w-20 object-contain opacity-60 hover:opacity-90 transition-opacity" />
+            <img src="/static/images/logo_gray.png" alt="Drop Dead Disco" className="h-12 w-20 object-contain opacity-60 hover:opacity-90 transition-opacity" />
           </Link>
           <div className="flex gap-6 text-sm text-white/45">
             <Link to="/" className="hover:text-white/80 transition-colors">Home</Link>

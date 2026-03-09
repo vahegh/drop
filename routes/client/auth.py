@@ -129,6 +129,9 @@ async def verify_magic_link(token: str):
     if not person:
         raise HTTPException(404, "Person not found")
 
+    if person.status == 'rejected':
+        raise HTTPException(403, "Account rejected")
+
     return await generate_and_set_tokens(person.id, redirect_url="/")
 
 

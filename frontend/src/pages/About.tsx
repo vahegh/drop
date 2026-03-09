@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { useMe } from '../hooks/useMe'
 import Layout from '../components/Layout'
 import Section from '../components/Section'
-import { loginUrl } from '../lib/loginUrl'
+import GoogleButton from '../components/GoogleButton'
 
 export default function About() {
   const { data: me } = useMe()
@@ -19,7 +19,7 @@ export default function About() {
             <strong>Drop Dead Disco</strong> is a dance music community for those who want more from a night out.
           </p>
           <p>
-            We host our events in unexpected locations — whatever has the most sparkle.
+            We host our events in unexpected locations - whatever has the most sparkle.
           </p>
           <p>
             We don't tell you the location beforehand, and every guest has to pass <strong>verification</strong> before they're able to buy tickets and attend.
@@ -31,7 +31,7 @@ export default function About() {
         <div className="text-sm text-white/80 leading-relaxed w-full flex flex-col gap-4">
           <p>Yes.</p>
           <p>
-            The reason we started this was to gather like-minded people around the thing we love the most — <strong>music</strong>.
+            The reason we started this was to gather like-minded people around the thing we love the most - <strong>music</strong>.
             We want to make sure that everyone gets that. Thus, we are very strict about who we let in.
           </p>
           <p>
@@ -44,7 +44,7 @@ export default function About() {
       <Section title="Who are the Members?" sep>
         <div className="text-sm text-white/80 leading-relaxed w-full flex flex-col gap-4">
           <p>
-            <strong>Members</strong> are the heart and soul of Drop Dead Disco — without them this couldn't happen.
+            <strong>Members</strong> are the heart and soul of Drop Dead Disco - without them this couldn't happen.
             As such, they get more benefits like:
           </p>
           <ul className="list-disc list-inside flex flex-col gap-1 text-white/70">
@@ -80,10 +80,7 @@ export default function About() {
           </Section>
 
           <Section title="Wanna join the fun?" subtitle="Sign up to get verified" sep>
-            <a href={loginUrl('/')} className="btn-primary">
-              <img src="/static/images/google.svg" alt="" className="w-4 h-4 mr-2" />
-              Sign up with Google
-            </a>
+            <GoogleButton text="Sign up with Google" variant="primary" redirectUrl="/" />
           </Section>
         </>
       )}

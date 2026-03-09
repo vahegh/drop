@@ -102,6 +102,10 @@ async def refresh(db: AsyncSession, request: Request):
     if not stored:
         raise HTTPException(401, "Token revoked")
 
+    person = await db.get(Person, payload['person_id'])
+    if not person or person.status == PersonStatus.rejected:
+        raise HTTPException(403, "Rejected")
+
     await db.delete(stored)
 
     return await generate_and_set_tokens(payload['person_id'], redirect_url=request.url)

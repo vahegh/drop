@@ -1,15 +1,19 @@
 import httpx
 from fastapi.responses import Response
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, HTTPException
 from api_models import PersonUpdate
 from services.person import update_person
-from services.telegram import telegram_api_url
+from services.telegram import telegram_api_url, telegram_bot_token
 
 router = APIRouter(tags=['Telegram Webhook'], prefix="/api/telegram")
 
 
 @router.post("/webhook/")
 async def webhook(request: Request):
+    secret = request.headers.get("X-Telegram-Bot-Api-Secret-Token")
+    if secret != telegram_bot_token:
+        raise HTTPException(403, "Forbidden")
+
     update = await request.json()
 
     if "callback_query" in update:

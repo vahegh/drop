@@ -96,12 +96,21 @@ async def unsubscribe(body: EmailRequest):
     return {"ok": True}
 
 
-@router.delete("/by-email")
-async def delete_by_email(body: EmailRequest):
+@router.post("/resubscribe")
+async def resubscribe(body: EmailRequest):
     person = await get_person_by_email(body.email)
     if not person:
         raise HTTPException(404, "Person not found")
-    await delete_person(person.id)
+    print(f"Resubscribe request received for: {body.email}")
+    return {"ok": True}
+
+
+@router.delete("/by-email")
+async def delete_by_email(body: EmailRequest, request: Request):
+    me = await verify_user_token(request)
+    if me.email != body.email:
+        raise HTTPException(403, "Forbidden")
+    await delete_person(me.id)
     return {"ok": True}
 
 

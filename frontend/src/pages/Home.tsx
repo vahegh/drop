@@ -5,7 +5,9 @@ import { useTickets } from '../hooks/useTickets'
 import Layout from '../components/Layout'
 import Section from '../components/Section'
 import { STATUS_COLORS } from '../components/Layout'
-import { loginUrl } from '../lib/loginUrl'
+import GoogleButton from '../components/GoogleButton'
+import MemberPassCard from '../components/MemberPassCard'
+import EventTicketCard from '../components/EventTicketCard'
 
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
@@ -20,7 +22,26 @@ export default function Home() {
   const { data: events } = useEvents()
   const { data: tickets } = useTickets()
 
-  if (meLoading) return <Layout showFooter />
+  if (meLoading) return (
+    <Layout showFooter>
+      <div className="w-full max-w-96 mt-6 space-y-5">
+        <div className="flex items-center gap-3">
+          <div className="skeleton w-16 h-16 rounded-full flex-shrink-0" />
+          <div className="space-y-2 flex-1">
+            <div className="skeleton h-5 w-36" />
+            <div className="skeleton h-4 w-24" />
+          </div>
+        </div>
+        <div className="skeleton h-64 w-full rounded-2xl" />
+        <div className="grid grid-cols-2 gap-3">
+          <div className="skeleton rounded-2xl" style={{ aspectRatio: '4/5' }} />
+          <div className="skeleton rounded-2xl" style={{ aspectRatio: '4/5' }} />
+          <div className="skeleton rounded-2xl" style={{ aspectRatio: '4/5' }} />
+          <div className="skeleton rounded-2xl" style={{ aspectRatio: '4/5' }} />
+        </div>
+      </div>
+    </Layout>
+  )
 
   const now = new Date()
   const pastEvents = (events ?? []).filter(e => new Date(e.ends_at) < now)
@@ -69,7 +90,7 @@ export default function Home() {
       {me?.status === 'pending' && (
         <Section title="Review in progress" sep>
           <div className="drop-card p-5 flex flex-col items-center gap-3 text-center">
-            <img src="/static/images/review.gif" alt="reviewing" className="w-32 rounded-2xl" />
+            <img src="/static/images/review.gif" alt="reviewing" className="w-32 rounded-xl" />
             <p className="text-sm text-white/70 leading-relaxed">
               We're working day and night to review your application!<br />
               We'll get back to you ASAP via email.
@@ -82,24 +103,7 @@ export default function Home() {
       {me?.status === 'verified' && nextEvent && (
         nextEventTicket ? (
           <Section title="Your ticket" subtitle="Show this at the entrance" sep>
-            <div className="drop-card p-4 flex items-center justify-between w-full">
-              <div className="flex flex-col gap-0.5">
-                <p className="font-semibold text-sm">{nextEvent.name}</p>
-                <p className="text-xs text-white/45">{fmtDate(nextEvent.starts_at)}</p>
-              </div>
-              <div className="flex gap-2">
-                {nextEventTicket.apple_pass_url && (
-                  <a href={nextEventTicket.apple_pass_url} target="_blank" rel="noopener noreferrer">
-                    <img src="/static/images/apple_wallet.svg" alt="Apple Wallet" className="h-8" />
-                  </a>
-                )}
-                {nextEventTicket.google_pass_url && (
-                  <a href={nextEventTicket.google_pass_url} target="_blank" rel="noopener noreferrer">
-                    <img src="/static/images/google_wallet.svg" alt="Google Wallet" className="h-8" />
-                  </a>
-                )}
-              </div>
-            </div>
+            <EventTicketCard ticket={nextEventTicket} event={nextEvent} />
           </Section>
         ) : (
           <Section title="Still no ticket?" subtitle={`Get yours for ${nextEvent.name}`} sep>
@@ -113,24 +117,7 @@ export default function Home() {
       {/* Member: membership pass */}
       {me?.status === 'member' && me.member_pass && (
         <Section title="Your Membership Pass" subtitle="Use this to enter any Drop event" sep>
-          <div className="drop-card p-4 flex items-center justify-between w-full">
-            <div className="flex flex-col gap-0.5">
-              <p className="font-semibold">Member #{me.member_pass.serial_number}</p>
-              <p className="text-xs text-white/45">Drop Dead Disco</p>
-            </div>
-            <div className="flex gap-2">
-              {me.member_pass.apple_pass_url && (
-                <a href={me.member_pass.apple_pass_url} target="_blank" rel="noopener noreferrer">
-                  <img src="/static/images/apple_wallet.svg" alt="Apple Wallet" className="h-8" />
-                </a>
-              )}
-              {me.member_pass.google_pass_url && (
-                <a href={me.member_pass.google_pass_url} target="_blank" rel="noopener noreferrer">
-                  <img src="/static/images/google_wallet.svg" alt="Google Wallet" className="h-8" />
-                </a>
-              )}
-            </div>
-          </div>
+          <MemberPassCard pass={me.member_pass} eventsAttended={me.events_attended} />
           {nextEvent && (
             <a href={`/buy-ticket?event_id=${nextEvent.id}`} className="btn-primary">
               🎟️ Buy your ticket
@@ -159,7 +146,7 @@ export default function Home() {
       {nextEvent && (
         <Section>
           <Link to={`/event/${nextEvent.id}`} className="w-full max-w-96 block">
-            <div className="relative w-full overflow-hidden rounded-lg group cursor-pointer" style={{ aspectRatio: '4/5' }}>
+            <div className="relative w-full overflow-hidden rounded-xl group cursor-pointer" style={{ aspectRatio: '4/5' }}>
               <img
                 src={nextEvent.image_url}
                 alt={nextEvent.name}
@@ -199,14 +186,8 @@ export default function Home() {
       {!me && (
         <Section title="Wanna join the fun?" subtitle="Sign up to get verified">
           <div className="flex gap-2 w-full max-w-96">
-            <a href={loginUrl('/')} className="btn-primary flex-1" style={{ maxWidth: 'none' }}>
-              <img src="/static/images/google.svg" alt="" className="w-4 h-4 mr-2" />
-              Sign up
-            </a>
-            <a href={loginUrl('/')} className="btn-outline flex-1" style={{ maxWidth: 'none' }}>
-              <img src="/static/images/google.svg" alt="" className="w-4 h-4 mr-2 opacity-50" />
-              Log in
-            </a>
+            <GoogleButton text="Sign up" variant="primary" redirectUrl="/" className="flex-1" style={{ maxWidth: 'none' }} />
+            <GoogleButton text="Log in" variant="outline" redirectUrl="/" className="flex-1" style={{ maxWidth: 'none' }} />
           </div>
         </Section>
       )}
@@ -217,7 +198,7 @@ export default function Home() {
           <div className="grid grid-cols-2 gap-3 w-full max-w-96">
             {pastEvents.map((event) => (
               <Link key={event.id} to={`/event/${event.id}`} className="block">
-                <div className="relative rounded-lg overflow-hidden group" style={{ aspectRatio: '4/5' }}>
+                <div className="relative rounded-xl overflow-hidden group" style={{ aspectRatio: '4/5' }}>
                   <img
                     src={event.image_url}
                     alt={event.name}

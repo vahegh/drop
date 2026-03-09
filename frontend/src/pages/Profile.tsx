@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import QRCode from 'react-qr-code'
 import { useMe } from '../hooks/useMe'
 import { useTickets } from '../hooks/useTickets'
 import { useEvents } from '../hooks/useEvents'
@@ -9,6 +8,8 @@ import { useQueryClient } from '@tanstack/react-query'
 import Layout from '../components/Layout'
 import Section from '../components/Section'
 import { STATUS_COLORS } from '../components/Layout'
+import MemberPassCard from '../components/MemberPassCard'
+import EventTicketCard from '../components/EventTicketCard'
 import { loginUrl } from '../lib/loginUrl'
 import type { PersonUpdate } from '../types'
 
@@ -25,9 +26,16 @@ export default function Profile() {
 
   if (isLoading) return (
     <Layout>
-      <div className="w-full max-w-96 space-y-3 mt-4">
-        <div className="h-20 w-20 rounded-full bg-white/5 animate-pulse mx-auto" />
-        <div className="h-6 w-48 bg-white/5 animate-pulse mx-auto rounded" />
+      <div className="w-full max-w-96 mt-6 space-y-5">
+        <div className="skeleton w-20 h-20 rounded-full mx-auto" />
+        <div className="skeleton h-5 w-40 mx-auto" />
+        <div className="skeleton h-4 w-24 mx-auto" />
+        <div className="skeleton h-20 w-full rounded-2xl" />
+        <div className="space-y-3">
+          <div className="skeleton h-12 w-full rounded-xl" />
+          <div className="skeleton h-12 w-full rounded-xl" />
+          <div className="skeleton h-12 w-full rounded-xl" />
+        </div>
       </div>
     </Layout>
   )
@@ -174,102 +182,20 @@ export default function Profile() {
         </Section>
       )}
 
-      {/* Member pass — mirrors member_card() in components.py */}
+      {/* Member pass */}
       {me.member_pass && (
         <Section title="Membership Pass" sep>
-          <div
-            className="flex flex-col items-center gap-4 px-0 py-4 w-full max-w-96 rounded-3xl"
-            style={{ border: `1px solid ${STATUS_COLORS['member']}`, background: 'var(--drop-card)' }}
-          >
-            <div className="flex items-center justify-between w-full px-6">
-              <div className="flex flex-col gap-0">
-                <span className="text-xs text-white/45">Member ID</span>
-                <span className="font-bold text-lg">{String(me.member_pass.serial_number).padStart(3, '0')}</span>
-              </div>
-              <div className="flex flex-col gap-0 text-right">
-                <span className="text-xs text-white/45">Events</span>
-                <span className="font-bold text-lg">{me.events_attended}</span>
-              </div>
-            </div>
-            <div className="w-3/4 bg-white p-3 rounded-2xl">
-              <QRCode value={me.member_pass.id} style={{ width: '100%', height: 'auto' }} />
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="font-semibold text-sm">MEMBER SINCE</span>
-              <span className="font-semibold text-sm" style={{ color: STATUS_COLORS['member'] }}>
-                {new Date(me.member_pass.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toUpperCase()}
-              </span>
-            </div>
-            {(me.member_pass.apple_pass_url || me.member_pass.google_pass_url) && (
-              <div className="flex gap-2 w-full px-6 justify-center">
-                {me.member_pass.apple_pass_url && (
-                  <a href={me.member_pass.apple_pass_url} target="_blank" rel="noopener noreferrer">
-                    <img src="/static/images/apple_wallet.svg" alt="Apple Wallet" className="h-8" />
-                  </a>
-                )}
-                {me.member_pass.google_pass_url && (
-                  <a href={me.member_pass.google_pass_url} target="_blank" rel="noopener noreferrer">
-                    <img src="/static/images/google_wallet.svg" alt="Google Wallet" className="h-8" />
-                  </a>
-                )}
-              </div>
-            )}
-          </div>
+          <MemberPassCard pass={me.member_pass} eventsAttended={me.events_attended} />
         </Section>
       )}
 
-      {/* Upcoming ticket — mirrors event_ticket() in components.py */}
+      {/* Upcoming tickets */}
       {pendingTickets.length > 0 && (
         <Section title="Your ticket" subtitle="Show this at the entrance" sep>
           {pendingTickets.map((ticket) => {
             const ev = eventMap.get(ticket.event_id)
-            const startsAt = ev ? new Date(ev.starts_at) : null
-            return (
-              <div
-                key={ticket.id}
-                className="flex flex-col items-center gap-4 px-0 py-4 w-full max-w-96 rounded-3xl"
-                style={{ border: '1px solid rgba(255,255,255,0.15)', background: 'var(--drop-card)' }}
-              >
-                {ev && (
-                  <div className="flex flex-col items-center gap-0 px-6 w-full">
-                    <p className="text-2xl font-medium text-center">{ev.name}</p>
-                  </div>
-                )}
-                <div className="w-3/4 bg-white p-3 rounded-2xl">
-                  <QRCode value={ticket.id} style={{ width: '100%', height: 'auto' }} />
-                </div>
-                {startsAt && (
-                  <div className="flex items-center justify-between w-full px-6">
-                    <div className="flex flex-col gap-0">
-                      <span className="text-xs text-white/45">Event date</span>
-                      <span className="font-bold text-lg">
-                        {startsAt.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' })}
-                      </span>
-                    </div>
-                    <div className="flex flex-col gap-0 text-right">
-                      <span className="text-xs text-white/45">Start time</span>
-                      <span className="font-bold text-lg">
-                        {startsAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-                  </div>
-                )}
-                {(ticket.apple_pass_url || ticket.google_pass_url) && (
-                  <div className="flex gap-2 justify-center">
-                    {ticket.apple_pass_url && (
-                      <a href={ticket.apple_pass_url} target="_blank" rel="noopener noreferrer">
-                        <img src="/static/images/apple_wallet.svg" alt="Apple Wallet" className="h-8" />
-                      </a>
-                    )}
-                    {ticket.google_pass_url && (
-                      <a href={ticket.google_pass_url} target="_blank" rel="noopener noreferrer">
-                        <img src="/static/images/google_wallet.svg" alt="Google Wallet" className="h-8" />
-                      </a>
-                    )}
-                  </div>
-                )}
-              </div>
-            )
+            if (!ev) return null
+            return <EventTicketCard key={ticket.id} ticket={ticket} event={ev} />
           })}
         </Section>
       )}

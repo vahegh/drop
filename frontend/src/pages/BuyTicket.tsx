@@ -23,7 +23,7 @@ export default function BuyTicket() {
   const eventId = params.get('event_id') ?? ''
 
   const { data: event, isLoading: eventLoading } = useEvent(eventId)
-  const { data: me } = useMe()
+  const { data: me, isLoading: meLoading } = useMe()
 
   const [provider, setProvider] = useState<PaymentProvider>('VPOS')
   const [saveCard, setSaveCard] = useState(false)
@@ -57,13 +57,30 @@ export default function BuyTicket() {
 
   if (eventLoading) return (
     <Layout>
-      <div className="w-full max-w-96 h-32 rounded-3xl bg-white/5 animate-pulse mt-4" />
+      <div className="w-full max-w-96 mt-4 space-y-3">
+        <div className="skeleton h-20 w-full rounded-3xl" />
+        <div className="skeleton h-6 w-3/4" />
+        <div className="skeleton h-4 w-1/2" />
+      </div>
     </Layout>
   )
 
   if (!event) return (
     <Layout>
       <div className="flex items-center justify-center min-h-[60vh] text-white/45">Event not found.</div>
+    </Layout>
+  )
+
+  if (meLoading) return (
+    <Layout heroBg={event.image_url}>
+      <div className="w-full max-w-96 mt-4 space-y-4">
+        <div className="skeleton h-24 w-full rounded-3xl" />
+        <div className="skeleton h-12 w-full rounded-xl" />
+        <div className="skeleton h-12 w-full rounded-xl" />
+        <div className="skeleton h-12 w-full rounded-xl" />
+        <div className="skeleton h-14 w-full rounded-xl" />
+        <div className="skeleton h-12 w-full rounded-xl" />
+      </div>
     </Layout>
   )
 
@@ -101,6 +118,7 @@ export default function BuyTicket() {
           setLoading(false)
           return
         }
+        if (!event) return
         const person = await createPerson({
           first_name: guestFirstName.trim(),
           last_name: guestLastName.trim(),
@@ -134,7 +152,7 @@ export default function BuyTicket() {
             <img src={event.image_url} alt={event.name} className="w-16 h-16 rounded-2xl object-cover flex-none" />
             <div className="flex flex-col gap-0.5">
               <p className="font-semibold text-sm">{event.name}</p>
-              <p className="text-xs text-white/45">Standard Ticket — {guestPrice.toLocaleString()} AMD</p>
+              <p className="text-xs text-white/45">Standard Ticket - {guestPrice.toLocaleString()} AMD</p>
             </div>
           </div>
 

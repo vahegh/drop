@@ -4,7 +4,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Drop Dead Disco design tokens — mirrors frame.py ui.colors() */
+/* Drop Dead Disco design tokens - mirrors frame.py ui.colors() */
 :root {
   --drop-bg: #24262b;
   --drop-card: #2a2e38;
@@ -18,7 +18,7 @@
   --drop-member: #ad46ff;
   --drop-muted: rgba(255, 255, 255, 0.45);
 
-  /* shadcn tokens — dark theme always */
+  /* shadcn tokens - dark theme always */
   --background: #24262b;
   --foreground: #f3f4f6;
   --card: #2a2e38;
@@ -87,7 +87,7 @@
   }
 }
 
-/* Background video — matches main.py bg_video_code */
+/* Background video - matches main.py bg_video_code */
 #bg-video {
   position: fixed;
   inset: 0;
@@ -100,7 +100,7 @@
   pointer-events: none;
 }
 
-/* Drop card — matches ui.card.default_classes('rounded-3xl') */
+/* Drop card - matches ui.card.default_classes('rounded-3xl') */
 .drop-card {
   background: var(--drop-card);
   border-radius: 1.5rem;
@@ -122,7 +122,7 @@
 .drop-input::placeholder { color: rgba(255,255,255,0.35); }
 .drop-input:focus { border-color: rgba(255,255,255,0.35); }
 
-/* Primary button — matches primary_button() */
+/* Primary button - matches primary_button() */
 .btn-primary {
   display: flex;
   align-items: center;
@@ -145,7 +145,7 @@
 .btn-primary:hover { opacity: 0.9; }
 .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
 
-/* Outline button — matches outline_button() */
+/* Outline button - matches outline_button() */
 .btn-outline {
   display: flex;
   align-items: center;
@@ -169,7 +169,25 @@
 .btn-outline:hover { border-color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.05); }
 .btn-outline:disabled { opacity: 0.45; cursor: not-allowed; }
 
-/* Event card image — matches .event-card-img */
+/* Shimmer skeleton */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.04) 25%,
+    rgba(255,255,255,0.09) 50%,
+    rgba(255,255,255,0.04) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+  border-radius: 0.5rem;
+}
+
+/* Event card image - matches .event-card-img */
 .event-card-img {
   object-fit: cover;
   border-radius: 1.5rem;

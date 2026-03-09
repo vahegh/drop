@@ -9,8 +9,8 @@ interface SectionProps {
 /**
  * Mirrors section() from components.py:
  *   ui.column().classes('gap-2 px-2 py-0 w-full items-center justify-start max-w-96')
- * Title uses section_title().classes('text-center') — always centered.
- * Subtitle uses section_subtitle() — also text-center.
+ * Title uses section_title().classes('text-center') - always centered.
+ * Subtitle uses section_subtitle() - also text-center.
  */
 export default function Section({ title, subtitle, sep, children, className = '' }: SectionProps) {
   return (

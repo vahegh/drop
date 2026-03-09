@@ -1,8 +1,8 @@
-# DROP Dead Disco — CLAUDE.md
+# DROP Dead Disco - CLAUDE.md
 
 ## Project Overview
 Full-stack event management and ticketing platform for a nightclub venue in Yerevan, Armenia.
-Production: https://dropdeadisco.com — deployed on Google Cloud Run.
+Production: https://dropdeadisco.com - deployed on Google Cloud Run.
 
 ## Tech Stack
 - **UI:** React + TypeScript (Vite 7, React Router v6, TanStack Query, shadcn/ui, Tailwind v4)
@@ -17,7 +17,7 @@ Production: https://dropdeadisco.com — deployed on Google Cloud Run.
 
 ## Project Structure
 ```
-main.py               # Entry point — FastAPI server, middleware, route registration, serves React build
+main.py               # Entry point - FastAPI server, middleware, route registration, serves React build
 db.py                 # Async PostgreSQL engine (pool 10+5, 3600s recycle)
 db_models.py          # SQLAlchemy ORM models
 api_models.py         # Pydantic request/response models
@@ -35,7 +35,7 @@ frontend/             # React + TypeScript frontend (Vite)
   src/types/          # TypeScript mirrors of api_models.py
 
 routes/               # FastAPI endpoints (auth, attendance, apple_pass_updates, event, telegram_webhook)
-routes/client/        # REST API for React frontend — all prefixed /api/client/
+routes/client/        # REST API for React frontend - all prefixed /api/client/
 services/             # Business logic (25+ modules)
 migrations/           # Alembic schema versions (50+)
 templates/            # Jinja2 HTML email templates
@@ -44,23 +44,23 @@ apple-pass-images/    # Apple Wallet pass assets
 ```
 
 ## Database Models
-- `Venue` — event locations
-- `Person` — users (status: pending/verified/rejected/member)
-- `Event` — events with pricing tiers (early_bird, general_admission, member)
-- `MemberPass` — one per person, links to Apple/Google pass URLs
-- `EventTicket` — one per (person, event), tracks attended_at
-- `Payment` — orders (BigInteger order_id, multi-provider)
-- `PaymentIntent` — async payment tracking
-- `RefreshToken` — JWT refresh tokens
-- `CardBinding` — stored card data for 1-click payments
-- `Drink` / `DrinkVoucher` / `DrinkPaymentIntent` — drink voucher system
-- `AppleDevices` / `AppleDeviceRegistrations` — Apple Wallet push tracking
+- `Venue` - event locations
+- `Person` - users (status: pending/verified/rejected/member)
+- `Event` - events with pricing tiers (early_bird, general_admission, member)
+- `MemberPass` - one per person, links to Apple/Google pass URLs
+- `EventTicket` - one per (person, event), tracks attended_at
+- `Payment` - orders (BigInteger order_id, multi-provider)
+- `PaymentIntent` - async payment tracking
+- `RefreshToken` - JWT refresh tokens
+- `CardBinding` - stored card data for 1-click payments
+- `Drink` / `DrinkVoucher` / `DrinkPaymentIntent` - drink voucher system
+- `AppleDevices` / `AppleDeviceRegistrations` - Apple Wallet push tracking
 
-All PKs are UUIDs (`gen_random_uuid()`). No hard deletes — status changes only.
+All PKs are UUIDs (`gen_random_uuid()`). No hard deletes - status changes only.
 
 ## Environment Variables
-- `db_conn_string` — PostgreSQL async connection string (required at startup)
-- `env` — set to `"local"` to enable GA4 debug mode and suppress Meta Pixel
+- `db_conn_string` - PostgreSQL async connection string (required at startup)
+- `env` - set to `"local"` to enable GA4 debug mode and suppress Meta Pixel
 
 ## Running Locally
 ```bash
@@ -76,7 +76,7 @@ In production, Python serves the built React app from `frontend/dist/`.
 
 ## Key Patterns
 - **Database access:** Always use `async with get_db() as db:` or the `@with_db` decorator
-- **Caching:** `storage_cache.py` CacheManager — check cache before querying DB for events/venues/persons
+- **Caching:** `storage_cache.py` CacheManager - check cache before querying DB for events/venues/persons
 - **Auth flow:** AuthMiddleware silently refreshes expired access tokens using refresh token cookie
 - **Payments:** Create a `Payment` record first, then a `PaymentIntent`, then redirect to provider
 - **REST API:** All client endpoints in `routes/client/`, prefixed `/api/client/`; auth via `verify_user_token(request)` from `decorators.py`
@@ -87,6 +87,6 @@ In production, Python serves the built React app from `frontend/dist/`.
 All event times use `Asia/Yerevan` timezone.
 
 ## Deployment
-- Docker image: multi-stage build — Node 22 builds React (`frontend/dist/`), then `python:3.13-slim` copies the dist and runs `python main.py` on port 8080
-- CI/CD: `cloudbuild.yaml` — Google Cloud Build with Telegram notifications on deploy
+- Docker image: multi-stage build - Node 22 builds React (`frontend/dist/`), then `python:3.13-slim` copies the dist and runs `python main.py` on port 8080
+- CI/CD: `cloudbuild.yaml` - Google Cloud Build with Telegram notifications on deploy
 - Secrets: injected via Cloud Build secret manager (not in source)

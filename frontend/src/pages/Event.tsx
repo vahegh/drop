@@ -32,7 +32,14 @@ export default function Event() {
 
   if (isLoading) return (
     <Layout showFooter={false}>
-      <div className="w-full max-w-96 rounded-2xl bg-white/5 animate-pulse mt-4" style={{ minHeight: 420 }} />
+      <div className="w-full max-w-96 mt-4 space-y-4">
+        <div className="skeleton w-full rounded-2xl" style={{ aspectRatio: '4/5', minHeight: 420 }} />
+        <div className="skeleton h-7 w-3/4" />
+        <div className="skeleton h-4 w-1/2" />
+        <div className="skeleton h-16 w-full rounded-xl" />
+        <div className="skeleton h-16 w-full rounded-xl" />
+        <div className="skeleton h-16 w-full rounded-xl" />
+      </div>
     </Layout>
   )
   if (error || !event) return (
@@ -49,9 +56,9 @@ export default function Event() {
 
   return (
     <Layout heroBg={event.image_url} showFooter={false}>
-      {/* Event image — matches event_card() aspect-4/5, name at top */}
+      {/* Event image - matches event_card() aspect-4/5, name at top */}
       <div className="w-full max-w-96 mt-4">
-        <div className="relative rounded-lg overflow-hidden w-full" style={{ aspectRatio: '4/5' }}>
+        <div className="relative rounded-xl overflow-hidden w-full" style={{ aspectRatio: '4/5' }}>
           <img
             src={event.image_url}
             alt={event.name}
@@ -89,7 +96,7 @@ export default function Event() {
         </Section>
       )}
 
-      {/* Description — rendered as markdown */}
+      {/* Description - rendered as markdown */}
       {event.description && (
         <Section sep>
           <p className="text-xs uppercase tracking-wider text-white/40 w-full mb-1">About this event</p>
@@ -126,7 +133,7 @@ export default function Event() {
             frameBorder={0}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
-            className="w-full max-w-96 rounded-2xl aspect-video"
+            className="w-full max-w-96 rounded-xl aspect-video"
           />
         </Section>
       )}
@@ -170,7 +177,7 @@ interface TicketCardProps {
 function TicketCard({ label, price, soldOut, selected }: TicketCardProps) {
   return (
     <div
-      className="w-full max-w-96 rounded-2xl px-4 py-3 flex justify-between items-center transition-all"
+      className="w-full max-w-96 rounded-xl px-4 py-3 flex justify-between items-center transition-all"
       style={{
         background: selected ? 'rgba(255,255,255,0.1)' : 'var(--drop-card)',
         border: selected ? '1px solid rgba(255,255,255,0.3)' : '1px solid rgba(255,255,255,0.05)',

@@ -1,42 +1,10 @@
 import { useEffect, useState, useRef } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
-import { useGoogleLogin } from '@react-oauth/google'
+import { useSearchParams } from 'react-router-dom'
 import { useMe } from '../hooks/useMe'
 import Layout from '../components/Layout'
 import Section from '../components/Section'
-import { googleAuth, sendMagicLink } from '../api/auth'
-
-function GoogleButton({ text, variant, redirectUrl }: { text: string; variant: 'primary' | 'outline'; redirectUrl: string }) {
-  const navigate = useNavigate()
-
-  const login = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      const result = await googleAuth(tokenResponse.access_token)
-      if (result.status === 'ok') {
-        window.location.href = redirectUrl
-      } else {
-        const pending = {
-          access_token: tokenResponse.access_token,
-          email: result.email,
-          first_name: result.first_name,
-          last_name: result.last_name,
-          avatar_url: result.avatar_url,
-        }
-        sessionStorage.setItem('drop_signup', JSON.stringify(pending))
-        navigate(`/signup?redirect_url=${encodeURIComponent(redirectUrl)}`)
-      }
-    },
-    onError: () => {},
-  })
-
-  const btnClass = variant === 'primary' ? 'btn-primary' : 'btn-outline'
-  return (
-    <button className={btnClass} style={{ gap: '8px' }} onClick={() => login()}>
-      <img src="/static/images/google.svg" alt="" style={{ width: '18px', height: '18px' }} />
-      {text}
-    </button>
-  )
-}
+import GoogleButton from '../components/GoogleButton'
+import { sendMagicLink } from '../api/auth'
 
 function MagicLinkDialog({ onClose }: { onClose: () => void }) {
   const [email, setEmail] = useState('')
@@ -78,7 +46,7 @@ function MagicLinkDialog({ onClose }: { onClose: () => void }) {
               placeholder="Verified email"
               value={email}
               onChange={(e) => { setEmail(e.target.value); setError('') }}
-              className="w-full max-w-96 h-10 rounded-lg px-3 text-sm outline outline-1 outline-white/20 bg-transparent focus:outline-accent"
+              className="w-full max-w-96 h-10 rounded-xl px-3 text-sm outline outline-1 outline-white/20 bg-transparent focus:outline-accent"
               style={{ fontFamily: 'Montserrat' }}
             />
             {error && <p className="text-xs" style={{ color: 'var(--drop-negative)' }}>{error}</p>}
@@ -160,7 +128,7 @@ export default function Login() {
         className="flex flex-col gap-4 w-full max-w-96 items-center justify-center rounded-3xl px-4 py-6"
         style={{ background: 'transparent' }}
       >
-        <img src="/static/images/logo_gray.png" alt="Drop Dead Disco" className="w-24 h-8 object-contain" />
+        <img src="/static/images/logo_gray.png" alt="Drop Dead Disco" className="w-24 h-12 object-contain" />
 
         <Section title="Sign up" subtitle="You must be verified to purchase tickets.">
           <GoogleButton text="Sign up with Google" variant="primary" redirectUrl={redirectUrl} />
