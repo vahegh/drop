@@ -138,10 +138,9 @@ export default function BuyTicket() {
             </div>
           </div>
 
-          <p className="text-sm text-white/45 w-full">
-            New here? Enter your details below to continue as a guest.
-          </p>
+        </Section>
 
+        <Section title="New here?" subtitle="Enter your details below to continue as a guest.">
           {guestStep === 'form' ? (
             <div className="drop-card p-5 flex flex-col gap-4 w-full">
               <p className="text-sm font-semibold">Your details</p>
