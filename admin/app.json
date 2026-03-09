@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "DROP Admin",
+    "slug": "drop-admin",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "drop-admin",
+    "userInterfaceStyle": "dark",
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow DROP Admin to access camera for QR scanning."
+        }
+      ]
+    ],
+    "ios": {
+      "bundleIdentifier": "com.dropdeadisco.admin",
+      "supportsTablet": false
+    },
+    "android": {
+      "package": "com.dropdeadisco.admin",
+      "adaptiveIcon": {
+        "backgroundColor": "#000000"
+      }
+    }
+  }
+}

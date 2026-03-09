@@ -34,7 +34,8 @@ def with_db(
 
 @with_db
 async def verify_user_token(db: AsyncSession, request: Request):
-    token = request.cookies.get("access_token")
+    token = request.cookies.get("access_token") or \
+            request.headers.get("authorization", "").removeprefix("Bearer ")
 
     if not token:
         raise HTTPException(401, "Not authenticated")

@@ -8,3 +8,5 @@ key.json
 credentials
 .unused
 .claude/
+.expo/
+**/node_modules/

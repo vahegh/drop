@@ -17,6 +17,10 @@ from routes.client import people as client_people
 from routes.client import drinks as client_drinks
 from routes.client import payments as client_payments
 from routes.client import tickets as client_tickets
+from routes.admin import auth as admin_auth
+from routes.admin import people as admin_people
+from routes.admin import events as admin_events
+from routes.admin import payments as admin_payments
 from dependencies import AuthMiddleware
 import logging
 
@@ -51,6 +55,10 @@ def main():
     app.include_router(client_drinks.router, prefix="/api/client")
     app.include_router(client_payments.router, prefix="/api/client")
     app.include_router(client_tickets.router, prefix="/api/client")
+    app.include_router(admin_auth.router, prefix="/api/admin")
+    app.include_router(admin_people.router, prefix="/api/admin")
+    app.include_router(admin_events.router, prefix="/api/admin")
+    app.include_router(admin_payments.router, prefix="/api/admin")
 
     if env == "local":
         from fastapi.middleware.cors import CORSMiddleware
