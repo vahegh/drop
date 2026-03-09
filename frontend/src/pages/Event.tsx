@@ -30,6 +30,7 @@ export default function Event() {
 
   const now = new Date()
   const eventPassed = new Date(event.ends_at) < now
+//   const eventPassed = false
   const earlyBirdActive = event.early_bird_date ? new Date(event.early_bird_date) > now : false
   const isMember = me?.status === 'member'
 
@@ -133,7 +134,7 @@ export default function Event() {
             </button>
           ) : (
             <a
-              href={`/buy-ticket?event_id=${event.id}`}
+              href={`/app/buy-ticket?event_id=${event.id}`}
               className="btn-primary h-16 text-base"
               style={{ maxWidth: '24rem' }}
             >
