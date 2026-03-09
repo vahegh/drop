@@ -13,10 +13,10 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/api': 'http://localhost:8080',
-      '/static': 'http://localhost:8080',
+        '/api': 'https://dropdeadisco.com',
+        '/static': 'https://dropdeadisco.com',
+    },  
     },
-  },
   test: {
     globals: true,
     environment: 'jsdom',

@@ -16,7 +16,6 @@ from api_models import PersonCreate, PersonUpdate
 from consts import (APP_BASE_URL, APPLICATION_SUBMITTED_TEMPLATE, APPROVED_TEMPLATE,
                     REJECTED_TEMPLATE, APPLICATION_SUBMITTED_SUBJECT,
                     STATUS_CHANGE_SUBJECT)
-from helpers import fbq_event
 from routes.attendance import get_attendance
 
 
@@ -81,7 +80,6 @@ async def create_person(db: AsyncSession, person: PersonCreate):
         )
         await send_email(email_request)
 
-    fbq_event("CompleteRegistration")
     await notify_application(new_person)
 
     return new_person

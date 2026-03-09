@@ -17,7 +17,6 @@ from services.mailing import EmailRequest, send_email
 from enums import PersonStatus
 from db_models import Person, RefreshToken
 import logging
-from helpers import gtag_config, is_cloud_run
 
 logger = logging.getLogger(__name__)
 
@@ -135,11 +134,5 @@ async def logout(db: AsyncSession, token: str = None, redirect_url='/'):
 
     await db.delete(stored)
     await db.commit()
-
-    gtag_params = {"user_id": None}
-    if is_cloud_run():
-        gtag_params['debug_mode'] = True
-
-    gtag_config(gtag_params)
 
     return response
