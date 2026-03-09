@@ -4,6 +4,7 @@ from typing import List
 import httpx
 from fastapi import APIRouter, HTTPException
 from services.event import get_all_events, get_next_event, get_event_info
+from consts import all_photos_url
 
 router = APIRouter(tags=["Client Events"], prefix="/events")
 
@@ -19,6 +20,14 @@ async def next_event():
     if not event:
         return None
     return event
+
+
+@router.get("/photos", response_model=List[str])
+async def all_photos():
+    async with httpx.AsyncClient() as client:
+        response = await client.get(all_photos_url, follow_redirects=True)
+        urls = re.findall(r'https://lh3\.googleusercontent\.com/pw/[A-Za-z0-9_-]+', response.text)
+        return list(set(urls))
 
 
 @router.get("/{id}")

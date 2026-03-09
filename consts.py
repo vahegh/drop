@@ -38,43 +38,7 @@ google_client_id = '759529195467-d4dt9f5do5iu4g4itndu2v0q9vpmip93.apps.googleuse
 google_wallet_img_url = 'https://storage.googleapis.com/dropdeadisco/images/add_to_google.svg'
 apple_wallet_img_url = 'https://storage.googleapis.com/dropdeadisco/images/add_to_apple.svg'
 
-logo_gray_path = os.path.relpath("/static/images/logo_gray.png")
-
-
-name_regex = r'^[a-zA-Z\s-]+$'
-email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]+$'
-gmail_regex = r'^[a-zA-Z0-9_.+-]+@gmail\.com$'
-insta_regex = r'^([A-Za-z0-9_](?:(?:[A-Za-z0-9_]|(?:\.(?!\.))){0,28}(?:[A-Za-z0-9_]))?)$'
-
-name_validation = {
-    'Field is required': lambda value: value,
-    'Name can only contain letters, spaces and hyphens': lambda value: re.match(name_regex, value)
-}
-
-email_validation = {
-    'Field is required': lambda value: value,
-    'Please enter a valid email address': lambda value: re.match(email_regex, value)
-}
-
-gmail_validation = {
-    'Field is required': lambda value: value,
-    'Please enter a valid Gmail address': lambda value: re.match(gmail_regex, value)
-}
-
-insta_validation = {
-    'Field is required': lambda value: value,
-    'Please enter a valid Instagram username': lambda value: re.match(insta_regex, value)
-}
-
-email_non_required = {
-    'Please enter a valid email address': lambda value: re.match(email_regex, value)
-}
-
-email_placeholder = "johndoe@gmail.com"
-instagram_placeholder = "johndoe123"
-
-support_email = "dropdeadisco@gmail.com"
-
-
 google_calendar_img_url = "https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg"
 calendar_base_url = "https://calendar.google.com/calendar/render?action=TEMPLATE"
+
+all_photos_url = "https://photos.google.com/share/AF1QipNb8__JbXtuax9DJm21Ca666tb2o4voA1u09nj0Z04jhyNjfdzcQ-1KTMqI7N9zNA?key=MG11Qm01N1JRWGxZUElGazdvcGlzOEw4VWVobUdR"
