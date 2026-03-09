@@ -137,8 +137,6 @@ steps:
       - --ingress=all
       - --execution-environment=gen1
       - --set-env-vars=TZ=Asia/Yerevan,app_base_url=https://dropdeadisco.com,app_base_url_no_proto=dropdeadisco.com
-      - --set-secrets=storage_secret=auth_secret:latest
-      - --set-secrets=maps_api_key=maps_api_key:latest
       - --set-secrets=db_conn_string=db-conn-string:latest
       - --set-secrets=telegram_bot_token=telegram_bot_token:latest
       - --set-secrets=telegram_chat_id=telegram_chat_id:latest
@@ -167,13 +165,11 @@ steps:
       - --set-secrets=smtp_sender_password=smtp_sender_password:latest
       - --set-secrets=ecrm_base_url=ecrm_base_url:latest
       - --set-secrets=ecrm_crn=ecrm_crn:latest
-      - --set-secrets=tin=tin:latest
       - --set-secrets=ecrm_cert_pem=ecrm_cert_pem:latest
       - --set-secrets=ecrm_key_pem=ecrm_key_pem:latest
       - --set-secrets=auth_secret=auth_secret:latest
       - --set-secrets=google_client_id=google_client_id:latest
       - --set-secrets=google_client_secret=google_client_secret:latest
-      - --set-secrets=google_drive_creds=google_drive_creds:latest
       - --set-secrets=admins=admins:latest
       - --labels=commit-sha=$COMMIT_SHA,managed-by=gcp-cloud-build-deploy-cloud-run
     id: 'deploy'
