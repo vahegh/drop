@@ -1,4 +1,6 @@
+import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { gtagConfig } from './lib/analytics'
 import Home from './pages/Home'
 import Event from './pages/Event'
 import BuyTicket from './pages/BuyTicket'
@@ -12,6 +14,10 @@ import Callback from './pages/Callback'
 import NotFound from './pages/NotFound'
 
 export default function App() {
+  useEffect(() => {
+    gtagConfig(import.meta.env.DEV ? { debug_mode: true } : {})
+  }, [])
+
   return (
     <BrowserRouter>
       <Routes>
