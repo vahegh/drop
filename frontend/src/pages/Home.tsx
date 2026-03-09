@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
-import { useNextEvent, useEvents } from '../hooks/useEvents'
-import { useMe } from '../hooks/useMe'
+import { useNextEvent, useEvents, useAllPhotos } from '../hooks/useEvents'
+import { useMe, usePeopleStats } from '../hooks/useMe'
 import { useTickets } from '../hooks/useTickets'
 import Layout from '../components/Layout'
 import Section from '../components/Section'
@@ -8,6 +8,7 @@ import { STATUS_COLORS } from '../components/Layout'
 import GoogleButton from '../components/GoogleButton'
 import MemberPassCard from '../components/MemberPassCard'
 import EventTicketCard from '../components/EventTicketCard'
+import AlbumCarousel from '../components/AlbumCarousel'
 
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
@@ -21,6 +22,8 @@ export default function Home() {
   const { data: nextEvent } = useNextEvent()
   const { data: events } = useEvents()
   const { data: tickets } = useTickets()
+  const { data: stats } = usePeopleStats()
+  const { data: allPhotos } = useAllPhotos()
 
   if (meLoading) return (
     <Layout showFooter>
@@ -57,9 +60,6 @@ export default function Home() {
         <Section className="pt-8">
           <div className="flex flex-col items-center gap-2 text-center w-full">
             <h1 className="text-3xl font-bold tracking-tight">Drop Dead Disco</h1>
-            {/* <p className="text-sm text-white/50 leading-relaxed">
-              ask around
-            </p> */}
           </div>
         </Section>
       )}
@@ -74,6 +74,14 @@ export default function Home() {
                 <span className="text-xs uppercase tracking-widest text-white/45">{me.status}</span>
               </div>
               <h1 className="text-2xl font-bold">{me.full_name}</h1>
+              <div className="flex items-center gap-3 mt-1">
+                {me.events_attended > 0 && (
+                  <span className="text-sm text-white/70">🔥 {me.events_attended}</span>
+                )}
+                {me.referral_count > 0 && (
+                  <span className="text-sm text-white/70">👥 {me.referral_count} referred</span>
+                )}
+              </div>
             </div>
             {me.avatar_url ? (
               <img src={me.avatar_url} alt={me.full_name} className="w-16 h-16 rounded-full object-cover" />
@@ -180,7 +188,30 @@ export default function Home() {
           Every guest has to pass <strong>verification</strong> before they're able to buy tickets and attend.{' '}
           <Link to="/about" className="underline underline-offset-2 text-white/55 hover:text-white/80">Read more</Link>
         </p>
+        {stats && (
+          <div className="flex gap-6 w-full mt-1">
+            {stats['member'] != null && (
+              <div className="flex flex-col gap-0.5">
+                <span className="text-xl font-bold">{stats['member']}</span>
+                <span className="text-xs text-white/40 uppercase tracking-widest">Members</span>
+              </div>
+            )}
+            {stats['verified'] != null && (
+              <div className="flex flex-col gap-0.5">
+                <span className="text-xl font-bold">{stats['verified']}</span>
+                <span className="text-xs text-white/40 uppercase tracking-widest">Verified</span>
+              </div>
+            )}
+          </div>
+        )}
       </Section>
+
+      {/* Photo carousel */}
+      {Array.isArray(allPhotos) && allPhotos.length > 0 && (
+        <Section>
+          <AlbumCarousel photos={allPhotos} />
+        </Section>
+      )}
 
       {/* Guest: sign up */}
       {!me && (
