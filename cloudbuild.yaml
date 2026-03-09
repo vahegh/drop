@@ -36,7 +36,7 @@ steps:
     entrypoint: 'bash'
     args:
       - '-c'
-      - 'docker pull europe-west4-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/drop/drop1:$_TAG || exit 0'
+      - 'docker pull europe-west4-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/drop/drop:$_TAG || exit 0'
     id: 'pull-cache'
     waitFor: ['notify-start']
 
