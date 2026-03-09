@@ -72,9 +72,17 @@ def main():
     if os.path.isdir(frontend_dist):
         app.mount('/assets', StaticFiles(directory=os.path.join(frontend_dist, 'assets')), name='assets')
 
+        index_path = os.path.join(frontend_dist, 'index.html')
+        with open(index_path, 'r', encoding='utf-8') as f:
+            index_html = f.read()
+        env_script = f'<script>window.__ENV__ = "{env or "production"}";</script>'
+        index_html = index_html.replace('</head>', f'{env_script}\n  </head>', 1)
+
+        from fastapi.responses import HTMLResponse
+
         @app.get('/{full_path:path}', include_in_schema=False)
         async def serve_react(full_path: str):
-            return FileResponse(os.path.join(frontend_dist, 'index.html'))
+            return HTMLResponse(index_html)
 
     uvicorn.run(app, host='0.0.0.0', port=8080)
 
