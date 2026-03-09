@@ -10,10 +10,17 @@ from routes.telegram_webhook import router as tg_webhook_router
 from routes.attendance import router as attendance_router
 from routes.apple_pass_updates import router as apple_pass_updates
 from routes.event import router as event_router
+from routes.client import auth as client_auth
+from routes.client import events as client_events
+from routes.client import venues as client_venues
+from routes.client import people as client_people
+from routes.client import drinks as client_drinks
+from routes.client import payments as client_payments
+from routes.client import tickets as client_tickets
 from dependencies import AuthMiddleware
 import logging
 
-logging.basicConfig(level=logging.INFO)
+# logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -132,6 +139,7 @@ src="https://www.facebook.com/tr?id=2205711949883411&ev=PageView&noscript=1"
 
 def main():
     from nicegui import ui, app
+    from fastapi.responses import FileResponse
 
     ui.add_head_html(head_html, shared=True)
     if env != "local":
@@ -159,12 +167,41 @@ def main():
     app.include_router(attendance_router)
     app.include_router(apple_pass_updates)
     app.include_router(event_router)
+    app.include_router(client_auth.router, prefix="/api/client")
+    app.include_router(client_events.router, prefix="/api/client")
+    app.include_router(client_venues.router, prefix="/api/client")
+    app.include_router(client_people.router, prefix="/api/client")
+    app.include_router(client_drinks.router, prefix="/api/client")
+    app.include_router(client_payments.router, prefix="/api/client")
+    app.include_router(client_tickets.router, prefix="/api/client")
+
+    if env == "local":
+        from fastapi.middleware.cors import CORSMiddleware
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["http://localhost:5173"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
+
     app.add_middleware(AuthMiddleware)
     app.add_static_files(url_path='/static',
                          local_directory=os.path.join(os.path.dirname(__file__), 'static'))
+
+    # Serve React frontend (built)
+    frontend_dist = os.path.join(os.path.dirname(__file__), 'frontend', 'dist')
+    if os.path.isdir(frontend_dist):
+        app.add_static_files(url_path='/app/assets',
+                             local_directory=os.path.join(frontend_dist, 'assets'))
+
+        @app.get('/app/{full_path:path}', include_in_schema=False)
+        async def serve_react(full_path: str):
+            return FileResponse(os.path.join(frontend_dist, 'index.html'))
     ui.add_body_html(bg_video_code, shared=True)
 
     ui.run(
+        host='0.0.0.0',
         favicon="static/images/favicon.png",
         title="Drop Dead Disco",
         viewport="width=device-width, initial-scale=1, maximum-scale=1",

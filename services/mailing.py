@@ -32,7 +32,7 @@ def create_email_message(email_request: EmailRequest):
     msg["From"] = SENDER_FROM
     msg["To"] = email_request.recipient_email
     if not email_request.transactional:
-        msg["List-Unsubscribe"] = f"<{APP_BASE_URL}/unsubscribe>, <mailto:{SENDER_EMAIL}?subject=unsubscribe>"
+        msg["List-Unsubscribe"] = f"<{APP_BASE_URL}/app/unsubscribe>, <mailto:{SENDER_EMAIL}?subject=unsubscribe>"
         msg["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click"
     msg.set_content(email_request.body, subtype='html')
     return msg
