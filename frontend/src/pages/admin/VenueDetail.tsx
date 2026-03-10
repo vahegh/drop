@@ -42,7 +42,6 @@ export default function AdminVenueDetail() {
       <div style={{ background: '#111', borderRadius: 12, border: '1px solid #1a1a1a', overflow: 'hidden', marginBottom: 20 }}>
         <InfoRow label="Name" value={venue.name} />
         <InfoRow label="Short Name" value={venue.short_name} />
-        <InfoRow label="Area" value={venue.area} />
         <InfoRow label="Address" value={venue.address} />
       </div>
 

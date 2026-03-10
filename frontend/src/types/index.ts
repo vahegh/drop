@@ -44,7 +44,6 @@ export interface VenueResponse {
   id: string
   name: string
   short_name: string
-  area: string
   address: string
   latitude: number
   longitude: number
@@ -142,6 +141,7 @@ export interface EventResponse {
   general_admission_price: number
   member_ticket_price: number
   max_capacity: number
+  area: string | null
   shared: boolean
   created_at: string
   tiers: TicketTierResponse[]

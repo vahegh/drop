@@ -8,7 +8,6 @@ from enums import PersonStatus, PaymentStatus, PaymentProvider
 class VenueCreate(BaseModel):
     name: str
     short_name: str
-    area: str
     address: str
     latitude: float
     longitude: float
@@ -19,7 +18,6 @@ class VenueCreate(BaseModel):
 class VenueUpdate(BaseModel):
     name: Optional[str] = None
     short_name: Optional[str] = None
-    area: Optional[str] = None
     address: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
@@ -31,7 +29,6 @@ class VenueResponse(BaseModel):
     id: UUID
     name: str
     short_name: str
-    area: str
     address: str
     latitude: float
     longitude: float
@@ -157,6 +154,7 @@ class EventCreate(BaseModel):
     general_admission_price: int
     member_ticket_price: int
     max_capacity: int
+    area: Optional[str] = None
     shared: bool
 
 
@@ -176,6 +174,7 @@ class EventResponse(BaseModel):
     general_admission_price: int
     member_ticket_price: int
     max_capacity: int
+    area: Optional[str] = None
     shared: bool
     created_at: datetime
     tiers: list['TicketTierResponse'] = []
@@ -199,6 +198,7 @@ class EventUpdate(BaseModel):
     general_admission_price: Optional[int] = None
     member_ticket_price: Optional[int] = None
     max_capacity: Optional[int] = None
+    area: Optional[str] = None
     shared: Optional[bool] = None
 
 

@@ -6,7 +6,7 @@ import { useAdminVenues } from '../../hooks/useAdmin'
 
 const EMPTY = {
   name: '', description: '', image_url: '', video_url: '', album_url: '', track_url: '',
-  starts_at: '', ends_at: '', early_bird_date: '', venue_id: '',
+  starts_at: '', ends_at: '', early_bird_date: '', venue_id: '', area: '',
   max_capacity: '', general_admission_price: '', early_bird_price: '', member_ticket_price: '', shared: 'false',
 }
 
@@ -203,6 +203,7 @@ export default function AdminEventForm() {
       ends_at: existing.ends_at ?? '',
       early_bird_date: existing.early_bird_date ?? '',
       venue_id: existing.venue_id ?? '',
+      area: existing.area ?? '',
       max_capacity: String(existing.max_capacity ?? ''),
       general_admission_price: String(existing.general_admission_price ?? ''),
       early_bird_price: String(existing.early_bird_price ?? ''),
@@ -226,6 +227,7 @@ export default function AdminEventForm() {
         starts_at: form.starts_at,
         ends_at: form.ends_at,
         venue_id: form.venue_id,
+        area: form.area || null,
         general_admission_price: parseInt(form.general_admission_price),
         member_ticket_price: parseInt(form.member_ticket_price),
         max_capacity: parseInt(form.max_capacity),
@@ -264,6 +266,7 @@ export default function AdminEventForm() {
         <DateTimeField label="Early Bird Cutoff (optional)" value={form.early_bird_date} onChange={v => set('early_bird_date', v)} />
 
       <SectionHeader title="Venue & Capacity" />
+      <Field label="Area hint (optional, e.g. Kentron)" value={form.area} onChange={v => set('area', v)} />
         <div style={{ marginBottom: 14 }}>
         <label style={{ display: 'block', color: '#888', fontSize: 12, marginBottom: 5 }}>Venue</label>
         <select

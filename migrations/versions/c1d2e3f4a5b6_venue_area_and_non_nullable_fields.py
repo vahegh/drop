@@ -1,4 +1,4 @@
-"""venue area field and non-nullable location fields
+"""venue non-nullable location fields and event area field
 
 Revision ID: c1d2e3f4a5b6
 Revises: b2f1a3c9d4e7
@@ -19,24 +19,20 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # Add area column as nullable first
-    op.add_column('venue', sa.Column('area', sa.String(), nullable=True))
-
-    # Set defaults on any rows with nulls before tightening constraints
-    op.execute("UPDATE venue SET area = '' WHERE area IS NULL")
+    # Make venue location fields non-nullable
     op.execute("UPDATE venue SET address = '' WHERE address IS NULL")
     op.execute("UPDATE venue SET latitude = 0 WHERE latitude IS NULL")
     op.execute("UPDATE venue SET longitude = 0 WHERE longitude IS NULL")
-
-    # Make all location fields non-nullable
-    op.alter_column('venue', 'area', nullable=False)
     op.alter_column('venue', 'address', nullable=False)
     op.alter_column('venue', 'latitude', nullable=False)
     op.alter_column('venue', 'longitude', nullable=False)
 
+    # Add area to event (nullable — existing events won't have it)
+    op.add_column('event', sa.Column('area', sa.String(), nullable=True))
+
 
 def downgrade() -> None:
+    op.drop_column('event', 'area')
     op.alter_column('venue', 'address', nullable=True)
     op.alter_column('venue', 'latitude', nullable=True)
     op.alter_column('venue', 'longitude', nullable=True)
-    op.drop_column('venue', 'area')

@@ -14,6 +14,7 @@ interface EventCardProps {
     image_url: string
     starts_at: string
     ends_at?: string
+    area?: string | null
   }
   linkTo?: boolean
   showEndsAt?: boolean
@@ -47,7 +48,9 @@ export default function EventCard({
             {showEndsAt && event.ends_at ? `–${fmtTime(event.ends_at)}` : ''}
           </p>
         )}
-        <p className={`text-white/35 mt-0.5 ${compact ? 'text-xs' : 'text-sm'}`}>Secret location · Yerevan</p>
+        <p className={`text-white/35 mt-0.5 ${compact ? 'text-xs' : 'text-sm'}`}>
+          Secret location{event.area ? ` · ${event.area}` : ''}
+        </p>
       </div>
     </>
   )
