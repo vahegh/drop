@@ -407,11 +407,19 @@ export default function BuyTicket() {
   const totalPrice = myPrice + additionalTotal
 
   async function handleSearchAttendee() {
-    if (!addEmail.trim()) return
+    const email = addEmail.trim()
+    if (!email) return
+    if (email === me.email) { setAddError("That's your own email - already included."); return }
+    if (additionalAttendees.some(a => a.kind === 'new' && a.email === email)) { setAddError('This person is already added.'); return }
+    setAddError(null)
     setAddSearching(true)
     setLookupResult(null)
     try {
-      const result = await checkEmail(addEmail.trim())
+      const result = await checkEmail(email)
+      if (result.exists) {
+        if (result.id === me.id) { setAddError("That's you - already included."); return }
+        if (additionalAttendees.some(a => a.kind === 'existing' && a.id === result.id)) { setAddError('This person is already added.'); return }
+      }
       setLookupResult(result)
       setAddStep(result.exists ? 'found' : 'create')
       if (!result.exists) {
@@ -428,9 +436,6 @@ export default function BuyTicket() {
 
   function handleAddExisting() {
     if (!lookupResult?.id || !lookupResult.full_name) return
-    if (lookupResult.id === me.id) { setAddError('That\'s you — already included.'); return }
-    if (additionalAttendees.some(a => a.kind === 'existing' && a.id === lookupResult.id)) { setAddError('This person is already added.'); return }
-    setAddError(null)
     setAdditionalAttendees(prev => [...prev, {
       kind: 'existing',
       id: lookupResult.id!,
@@ -443,9 +448,6 @@ export default function BuyTicket() {
   function handleAddNew() {
     if (!newFirst.trim() || !newLast.trim() || !addEmail.trim()) return
     const email = addEmail.trim()
-    if (email === me.email) { setAddError('That\'s your own email — already included.'); return }
-    if (additionalAttendees.some(a => a.kind === 'new' && a.email === email)) { setAddError('This person is already added.'); return }
-    setAddError(null)
     setAdditionalAttendees(prev => [...prev, {
       kind: 'new',
       email,
@@ -570,17 +572,21 @@ export default function BuyTicket() {
       {/* Add attendee section */}
       <Section title="Add another person">
         {addStep === 'idle' && (
-          <div className="flex gap-2 w-full">
-            <input
-              type="email"
-              value={addEmail}
-              onChange={e => setAddEmail(e.target.value)}
-              placeholder="friend@example.com"
-              className="flex-1 bg-white/8 rounded-xl px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-white/30 placeholder:text-white/20"
-            />
-            <button onClick={handleSearchAttendee} disabled={addSearching} className="btn-primary px-4 py-2 text-sm">
-              {addSearching ? '…' : 'Search'}
-            </button>
+          <div className="flex flex-col gap-2 w-full">
+            <div className="flex gap-2">
+              <input
+                type="email"
+                value={addEmail}
+                onChange={e => { setAddEmail(e.target.value); setAddError(null) }}
+                placeholder="friend@example.com"
+                className="flex-1 bg-white/8 rounded-xl px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-white/30 placeholder:text-white/20"
+                onKeyDown={e => { if (e.key === 'Enter') handleSearchAttendee() }}
+              />
+              <button onClick={handleSearchAttendee} disabled={addSearching} className="btn-primary px-4 py-2 text-sm">
+                {addSearching ? '…' : 'Search'}
+              </button>
+            </div>
+            {addError && <p className="text-xs" style={{ color: 'var(--drop-negative)' }}>{addError}</p>}
           </div>
         )}
 
@@ -595,7 +601,6 @@ export default function BuyTicket() {
                 {resolvePrice(tiers, lookupResult.status ?? undefined, flatFallback).toLocaleString()} AMD
               </span>
             </div>
-            {addError && <p className="text-xs" style={{ color: 'var(--drop-negative)' }}>{addError}</p>}
             <div className="flex gap-2">
               <button onClick={handleAddExisting} className="btn-primary flex-1 py-2 text-sm">Add</button>
               <button onClick={resetAddForm} className="text-sm text-white/45 hover:text-white/70 px-3">Cancel</button>
@@ -624,7 +629,6 @@ export default function BuyTicket() {
               <input type="text" value={newInstagram} onChange={e => setNewInstagram(e.target.value)} placeholder="@handle"
                 className="w-full bg-white/8 rounded-xl px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-white/30 placeholder:text-white/20" />
             </div>
-            {addError && <p className="text-xs" style={{ color: 'var(--drop-negative)' }}>{addError}</p>}
             <div className="flex gap-2">
               <button onClick={handleAddNew} className="btn-primary flex-1 py-2 text-sm">Add</button>
               <button onClick={resetAddForm} className="text-sm text-white/45 hover:text-white/70 px-3">Cancel</button>
