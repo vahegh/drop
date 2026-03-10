@@ -8,7 +8,7 @@ import Layout from '../components/Layout'
 import Section from '../components/Section'
 import GoogleButton from '../components/GoogleButton'
 import { gtagEvent } from '../lib/analytics'
-import type { PaymentProvider } from '../types'
+import type { PaymentProvider, TicketTierResponse, PersonStatus, CheckEmailResponse } from '../types'
 
 const PROVIDERS: { label: string; icon: string; value: PaymentProvider }[] = [
   { label: 'Card', icon: '/static/images/visa.svg', value: 'VPOS' },
@@ -16,6 +16,36 @@ const PROVIDERS: { label: string; icon: string; value: PaymentProvider }[] = [
   { label: 'Apple Pay', icon: '/static/images/applePay.svg', value: 'APPLEPAY' },
   { label: 'Google Pay', icon: '/static/images/google_pay.svg', value: 'GOOGLEPAY' },
 ]
+
+function resolveClientTier(tiers: TicketTierResponse[], status?: PersonStatus): TicketTierResponse | null {
+  const now = new Date()
+  for (const t of tiers) {
+    if (!t.is_active) continue
+    if (t.required_person_status && t.required_person_status !== status) continue
+    if (t.available_from && now < new Date(t.available_from)) continue
+    if (t.available_until && now >= new Date(t.available_until)) continue
+    return t
+  }
+  return null
+}
+
+function resolvePrice(tiers: TicketTierResponse[], status?: PersonStatus, fallback?: { member: number; earlyBird?: number | null; earlyBirdDate?: string | null; ga: number }): number {
+  if (tiers.length > 0) {
+    const tier = resolveClientTier(tiers, status)
+    return tier?.price ?? fallback?.ga ?? 0
+  }
+  // Flat-field fallback for stale cache
+  if (!fallback) return 0
+  const now = new Date()
+  const earlyBirdActive = fallback.earlyBirdDate ? new Date(fallback.earlyBirdDate) > now : false
+  if (status === 'member') return fallback.member
+  if (earlyBirdActive && fallback.earlyBird) return fallback.earlyBird
+  return fallback.ga
+}
+
+type AdditionalAttendee =
+  | { kind: 'existing'; id: string; full_name: string; status: PersonStatus }
+  | { kind: 'new'; email: string; first_name: string; last_name: string; instagram: string }
 
 export default function BuyTicket() {
   const [params] = useSearchParams()
@@ -37,14 +67,20 @@ export default function BuyTicket() {
   const [guestInstagram, setGuestInstagram] = useState('')
   const [guestFormError, setGuestFormError] = useState<string | null>(null)
 
+  // Multi-attendee state (logged-in only)
+  const [additionalAttendees, setAdditionalAttendees] = useState<AdditionalAttendee[]>([])
+  const [addEmail, setAddEmail] = useState('')
+  const [lookupResult, setLookupResult] = useState<CheckEmailResponse | null>(null)
+  const [addStep, setAddStep] = useState<'idle' | 'found' | 'create'>('idle')
+  const [addSearching, setAddSearching] = useState(false)
+  const [newFirst, setNewFirst] = useState('')
+  const [newLast, setNewLast] = useState('')
+  const [newInstagram, setNewInstagram] = useState('')
+
   useEffect(() => {
     if (!event || !me) return
-    const now = new Date()
-    const earlyBirdActive = event.early_bird_date ? new Date(event.early_bird_date) > now : false
-    const price =
-      me.status === 'member' ? event.member_ticket_price
-      : earlyBirdActive && event.early_bird_price ? event.early_bird_price
-      : event.general_admission_price
+    const fallback = { member: event.member_ticket_price, earlyBird: event.early_bird_price, earlyBirdDate: event.early_bird_date, ga: event.general_admission_price }
+    const price = resolvePrice(event.tiers ?? [], me.status, fallback)
     gtagEvent('begin_checkout', { currency: 'AMD', value: price, items: [{ item_id: event.id, price }] })
   }, [event?.id, me?.id])
 
@@ -83,12 +119,11 @@ export default function BuyTicket() {
     </Layout>
   )
 
+  const tiers = event.tiers ?? []
+  const flatFallback = { member: event.member_ticket_price, earlyBird: event.early_bird_price, earlyBirdDate: event.early_bird_date, ga: event.general_admission_price }
+
   if (!me) {
-    const guestPrice = (() => {
-      const now = new Date()
-      const earlyBirdActive = event.early_bird_date ? new Date(event.early_bird_date) > now : false
-      return earlyBirdActive && event.early_bird_price ? event.early_bird_price : event.general_admission_price
-    })()
+    const guestPrice = resolvePrice(tiers, 'pending', flatFallback)
 
     function validateGuestForm() {
       if (!guestFirstName.trim()) return 'First name is required.'
@@ -304,29 +339,97 @@ export default function BuyTicket() {
     )
   }
 
-  const now = new Date()
-  const earlyBirdActive = event.early_bird_date ? new Date(event.early_bird_date) > now : false
-  const price =
-    me.status === 'member'
-      ? event.member_ticket_price
-      : earlyBirdActive && event.early_bird_price
-      ? event.early_bird_price
-      : event.general_admission_price
+  // Logged-in flow
+  const myTier = resolveClientTier(tiers, me.status)
+  const myPrice = resolvePrice(tiers, me.status, flatFallback)
 
-  const ticketLabel =
-    me.status === 'member' ? 'Member Ticket' :
-    earlyBirdActive ? 'Early Bird Ticket' : 'Standard Ticket'
+  const ticketLabel = myTier?.name ?? (
+    me.status === 'member' ? 'Member Ticket' : 'Standard Ticket'
+  )
+
+  // Compute total including additional attendees
+  const additionalTotal = additionalAttendees.reduce((sum, a) => {
+    const status: PersonStatus = a.kind === 'existing' ? a.status : 'pending'
+    return sum + resolvePrice(tiers, status, flatFallback)
+  }, 0)
+  const totalPrice = myPrice + additionalTotal
+
+  async function handleSearchAttendee() {
+    if (!addEmail.trim()) return
+    setAddSearching(true)
+    setLookupResult(null)
+    try {
+      const result = await checkEmail(addEmail.trim())
+      setLookupResult(result)
+      setAddStep(result.exists ? 'found' : 'create')
+      if (!result.exists) {
+        setNewFirst('')
+        setNewLast('')
+        setNewInstagram('')
+      }
+    } catch {
+      // ignore
+    } finally {
+      setAddSearching(false)
+    }
+  }
+
+  function handleAddExisting() {
+    if (!lookupResult?.id || !lookupResult.full_name) return
+    setAdditionalAttendees(prev => [...prev, {
+      kind: 'existing',
+      id: lookupResult.id!,
+      full_name: lookupResult.full_name!,
+      status: lookupResult.status!,
+    }])
+    resetAddForm()
+  }
+
+  function handleAddNew() {
+    if (!newFirst.trim() || !newLast.trim() || !addEmail.trim()) return
+    setAdditionalAttendees(prev => [...prev, {
+      kind: 'new',
+      email: addEmail.trim(),
+      first_name: newFirst.trim(),
+      last_name: newLast.trim(),
+      instagram: newInstagram.replace(/^@/, '').trim(),
+    }])
+    resetAddForm()
+  }
+
+  function resetAddForm() {
+    setAddEmail('')
+    setLookupResult(null)
+    setAddStep('idle')
+    setNewFirst('')
+    setNewLast('')
+    setNewInstagram('')
+  }
 
   async function handlePay() {
     if (!me) return
-    gtagEvent('add_to_cart', { currency: 'AMD', value: price, items: [{ item_id: event!.id, price }] })
+    gtagEvent('add_to_cart', { currency: 'AMD', value: totalPrice, items: [{ item_id: event!.id, price: totalPrice }] })
     setLoading(true)
     setError(null)
     try {
+      const resolvedAttendees: { person_id: string }[] = [{ person_id: me.id }]
+      for (const a of additionalAttendees) {
+        if (a.kind === 'existing') {
+          resolvedAttendees.push({ person_id: a.id })
+        } else {
+          const created = await createPerson({
+            first_name: a.first_name,
+            last_name: a.last_name,
+            email: a.email,
+            instagram_handle: a.instagram || 'n/a',
+          })
+          resolvedAttendees.push({ person_id: created.id })
+        }
+      }
       const res = await initiatePayment({
         event_id: event!.id,
         provider,
-        attendees: [{ person_id: me.id }],
+        attendees: resolvedAttendees,
         save_card: saveCard,
       })
       window.location.href = res.redirect_url
@@ -360,14 +463,94 @@ export default function BuyTicket() {
         <div className="drop-card p-4 w-full flex flex-col gap-2">
           <div className="flex justify-between text-sm">
             <span className="text-white/70">1 × {ticketLabel}</span>
-            <span className="font-semibold">{price.toLocaleString()} AMD</span>
+            <span className="font-semibold">{myPrice.toLocaleString()} AMD</span>
           </div>
+          {additionalAttendees.map((a, i) => {
+            const status: PersonStatus = a.kind === 'existing' ? a.status : 'pending'
+            const price = resolvePrice(tiers, status, flatFallback)
+            const tier = resolveClientTier(tiers, status)
+            const label = tier?.name ?? 'Standard Ticket'
+            const name = a.kind === 'existing' ? a.full_name : `${a.first_name} ${a.last_name}`
+            return (
+              <div key={i} className="flex justify-between text-sm items-center">
+                <span className="text-white/70 flex items-center gap-2">
+                  1 × {label} ({name})
+                  <button onClick={() => setAdditionalAttendees(prev => prev.filter((_, j) => j !== i))} className="text-white/30 hover:text-white/70 text-xs">×</button>
+                </span>
+                <span className="font-semibold">{price.toLocaleString()} AMD</span>
+              </div>
+            )
+          })}
           <div className="h-px bg-white/10" />
           <div className="flex justify-between font-bold">
             <span>Total</span>
-            <span>{price.toLocaleString()} AMD</span>
+            <span>{totalPrice.toLocaleString()} AMD</span>
           </div>
         </div>
+      </Section>
+
+      {/* Add attendee section */}
+      <Section title="Add another person">
+        {addStep === 'idle' && (
+          <div className="flex gap-2 w-full">
+            <input
+              type="email"
+              value={addEmail}
+              onChange={e => setAddEmail(e.target.value)}
+              placeholder="friend@example.com"
+              className="flex-1 bg-white/8 rounded-xl px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-white/30 placeholder:text-white/20"
+            />
+            <button onClick={handleSearchAttendee} disabled={addSearching} className="btn-primary px-4 py-2 text-sm">
+              {addSearching ? '…' : 'Search'}
+            </button>
+          </div>
+        )}
+
+        {addStep === 'found' && lookupResult && (
+          <div className="drop-card p-4 w-full flex flex-col gap-3">
+            <div className="flex justify-between text-sm">
+              <div>
+                <p className="font-semibold">{lookupResult.full_name}</p>
+                <p className="text-xs text-white/45">{lookupResult.status}</p>
+              </div>
+              <span className="text-sm font-semibold">
+                {resolvePrice(tiers, lookupResult.status ?? undefined, flatFallback).toLocaleString()} AMD
+              </span>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={handleAddExisting} className="btn-primary flex-1 py-2 text-sm">Add</button>
+              <button onClick={resetAddForm} className="text-sm text-white/45 hover:text-white/70 px-3">Cancel</button>
+            </div>
+          </div>
+        )}
+
+        {addStep === 'create' && (
+          <div className="drop-card p-4 w-full flex flex-col gap-3">
+            <p className="text-sm font-semibold">Not found — enter their details</p>
+            <p className="text-xs text-white/45">{addEmail}</p>
+            <div className="flex gap-2">
+              <div className="flex flex-col gap-1 flex-1">
+                <label className="text-xs text-white/45">First name</label>
+                <input type="text" value={newFirst} onChange={e => setNewFirst(e.target.value)} placeholder="Alex"
+                  className="w-full bg-white/8 rounded-xl px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-white/30 placeholder:text-white/20" />
+              </div>
+              <div className="flex flex-col gap-1 flex-1">
+                <label className="text-xs text-white/45">Last name</label>
+                <input type="text" value={newLast} onChange={e => setNewLast(e.target.value)} placeholder="Smith"
+                  className="w-full bg-white/8 rounded-xl px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-white/30 placeholder:text-white/20" />
+              </div>
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs text-white/45">Instagram (optional)</label>
+              <input type="text" value={newInstagram} onChange={e => setNewInstagram(e.target.value)} placeholder="@handle"
+                className="w-full bg-white/8 rounded-xl px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-white/30 placeholder:text-white/20" />
+            </div>
+            <div className="flex gap-2">
+              <button onClick={handleAddNew} className="btn-primary flex-1 py-2 text-sm">Add</button>
+              <button onClick={resetAddForm} className="text-sm text-white/45 hover:text-white/70 px-3">Cancel</button>
+            </div>
+          </div>
+        )}
       </Section>
 
       {/* Payment method selector */}
@@ -419,7 +602,7 @@ export default function BuyTicket() {
           className="btn-primary h-14 text-base"
           style={{ maxWidth: '100%' }}
         >
-          {loading ? 'Processing…' : `Pay ${price.toLocaleString()} AMD`}
+          {loading ? 'Processing…' : `Pay ${totalPrice.toLocaleString()} AMD`}
         </button>
       </div>
     </Layout>

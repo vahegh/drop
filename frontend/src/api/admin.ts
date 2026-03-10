@@ -75,3 +75,15 @@ export const adminDeleteTicket = (id: string) =>
 
 export const adminDeletePayment = (orderId: number) =>
   adminClient.delete(`/payments/${orderId}`)
+
+export const adminGetTiers = (eventId: string) =>
+  adminClient.get(`/events/${eventId}/tiers`).then(r => r.data)
+
+export const adminCreateTier = (eventId: string, body: Record<string, unknown>) =>
+  adminClient.post(`/events/${eventId}/tiers`, body).then(r => r.data)
+
+export const adminUpdateTier = (eventId: string, tierId: string, body: Record<string, unknown>) =>
+  adminClient.patch(`/events/${eventId}/tiers/${tierId}`, body).then(r => r.data)
+
+export const adminDeleteTier = (eventId: string, tierId: string) =>
+  adminClient.delete(`/events/${eventId}/tiers/${tierId}`)

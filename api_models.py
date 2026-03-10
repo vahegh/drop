@@ -94,6 +94,51 @@ class MemberCardResponse(BaseModel):
         from_attributes = True
 
 
+class TicketTierCreate(BaseModel):
+    name: str
+    price: int
+    capacity: Optional[int] = None
+    available_from: Optional[datetime] = None
+    available_until: Optional[datetime] = None
+    required_person_status: Optional[PersonStatus] = None
+    sort_order: int = 0
+    is_active: bool = True
+    ecrm_good_code: Optional[str] = None
+    ecrm_good_name: Optional[str] = None
+
+
+class TicketTierUpdate(BaseModel):
+    name: Optional[str] = None
+    price: Optional[int] = None
+    capacity: Optional[int] = None
+    available_from: Optional[datetime] = None
+    available_until: Optional[datetime] = None
+    required_person_status: Optional[PersonStatus] = None
+    sort_order: Optional[int] = None
+    is_active: Optional[bool] = None
+    ecrm_good_code: Optional[str] = None
+    ecrm_good_name: Optional[str] = None
+
+
+class TicketTierResponse(BaseModel):
+    id: UUID
+    event_id: UUID
+    name: str
+    price: int
+    capacity: Optional[int]
+    available_from: Optional[datetime]
+    available_until: Optional[datetime]
+    required_person_status: Optional[PersonStatus]
+    sort_order: int
+    is_active: bool
+    ecrm_good_code: Optional[str]
+    ecrm_good_name: Optional[str]
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
 class EventCreate(BaseModel):
     name: str
     starts_at: datetime
@@ -130,6 +175,7 @@ class EventResponse(BaseModel):
     max_capacity: int
     shared: bool
     created_at: datetime
+    tiers: list['TicketTierResponse'] = []
 
     class Config:
         from_attributes = True

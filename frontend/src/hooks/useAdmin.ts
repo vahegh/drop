@@ -159,3 +159,31 @@ export function useAdminDeletePayment() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'person'] }),
   })
 }
+
+export function useAdminTiers(eventId: string) {
+  return useQuery({ queryKey: ['admin', 'tiers', eventId], queryFn: () => api.adminGetTiers(eventId), enabled: !!eventId })
+}
+
+export function useAdminCreateTier(eventId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: Record<string, unknown>) => api.adminCreateTier(eventId, body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'tiers', eventId] }),
+  })
+}
+
+export function useAdminUpdateTier(eventId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ tierId, body }: { tierId: string; body: Record<string, unknown> }) => api.adminUpdateTier(eventId, tierId, body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'tiers', eventId] }),
+  })
+}
+
+export function useAdminDeleteTier(eventId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (tierId: string) => api.adminDeleteTier(eventId, tierId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'tiers', eventId] }),
+  })
+}

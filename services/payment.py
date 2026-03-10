@@ -11,7 +11,7 @@ from consts import APP_BASE_URL_NO_PROTO
 from enums import PersonStatus, PaymentStatus, PaymentProvider
 from services.telegram import notify_payment_confirmed
 from services.myameria_payment import MYAMERIA_PAY_URL, myameria_merchant_id
-from db_models import Payment, Person, EventTicket, PaymentIntent, Event, MemberPass, DrinkVoucher
+from db_models import Payment, Person, EventTicket, PaymentIntent, TicketTier, Event, MemberPass, DrinkVoucher
 from services.event_ticket import add_ticket_to_db, create_event_ticket, send_event_ticket
 from services.myameria_payment import create_payment_myameria, get_payment_details_myameria, refund_payment_myameria
 from services.vpos_payment import init_payment_vpos, get_payment_details_vpos, VPOS_BASE_URL, cancel_payment_vpos
@@ -123,6 +123,9 @@ async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest, 
                                        .join(PaymentIntent, PaymentIntent.recipient_id == Person.id)
                                        .where(PaymentIntent.order_id == payment.order_id))).all()
 
+    # Pre-fetch payment intents with tier snapshots before they get deleted below
+    all_intents = (await db.scalars(select(PaymentIntent).where(PaymentIntent.order_id == payment.order_id))).all()
+
     match transaction.provider:
         case PaymentProvider.VPOS | PaymentProvider.APPLEPAY | PaymentProvider.GOOGLEPAY:
             try:
@@ -205,18 +208,11 @@ async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest, 
 
         recipient_names = []
         items = []
-        member_qty = 0
-        non_member_qty = 0
 
         if ticket_holders:
             for h in ticket_holders:
                 recipient_names.append(f"{h.first_name} {h.last_name}")
-                if h.status == PersonStatus.member:
-                    member_qty += 1
-                elif h.status == PersonStatus.verified:
-                    non_member_qty += 1
-                elif h.status == PersonStatus.pending:
-                    non_member_qty += 1
+                if h.status == PersonStatus.pending:
                     continue
 
                 event_ticket = EventTicket(
@@ -247,40 +243,55 @@ async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest, 
 
         if print_receipt:
             event = await db.get(Event, payment.event_id)
-            if event.early_bird_date < datetime.now(timezone.utc):
-                non_member_price = event.general_admission_price
-                non_member_item_code = "0001"
-                non_member_item_name = "General Admission Event Entry"
-            else:
-                non_member_price = event.early_bird_price
-                non_member_item_code = "0002"
-                non_member_item_name = "Early Bird Event Entry"
-
-            member_item_code = "0003"
-            member_item_name = "Member Event Entry"
             adg_code = "79.90"
 
-            if member_qty:
-                items.append(
-                    ECRMItem(
-                        quantity=member_qty,
-                        price=event.member_ticket_price,
-                        adgCode=adg_code,
-                        goodCode=member_item_code,
-                        goodName=member_item_name,
-                    )
-                )
+            # Group by tier snapshot; fall back to old logic for pre-migration intents (tier_id IS NULL)
+            # Use pre-fetched intents (collected before deletion in the ticket creation loop above)
+            tier_groups: dict[tuple, int] = {}
+            legacy_member_qty = 0
+            legacy_non_member_qty = 0
 
-            if non_member_qty:
-                items.append(
-                    ECRMItem(
-                        quantity=non_member_qty,
-                        price=non_member_price,
-                        adgCode=adg_code,
-                        goodCode=non_member_item_code,
-                        goodName=non_member_item_name,
+            for intent in all_intents:
+                if intent.tier_id is not None and intent.tier_price is not None:
+                    tier_obj = await db.get(TicketTier, intent.tier_id)
+                    key = (
+                        intent.tier_price,
+                        tier_obj.ecrm_good_code if tier_obj else "0001",
+                        tier_obj.ecrm_good_name if tier_obj else "General Admission Event Entry",
                     )
-                )
+                    tier_groups[key] = tier_groups.get(key, 0) + 1
+                else:
+                    # Legacy intent: fall back to person status at confirm time
+                    person_obj = await db.get(Person, intent.recipient_id)
+                    if person_obj and person_obj.status == PersonStatus.member:
+                        legacy_member_qty += 1
+                    else:
+                        legacy_non_member_qty += 1
+
+            for (price, code, name), qty in tier_groups.items():
+                items.append(ECRMItem(quantity=qty, price=price, adgCode=adg_code, goodCode=code, goodName=name))
+
+            # Legacy fallback items
+            if legacy_member_qty:
+                if event.early_bird_date and event.early_bird_date < datetime.now(timezone.utc):
+                    non_member_price = event.general_admission_price
+                    non_member_item_code = "0001"
+                    non_member_item_name = "General Admission Event Entry"
+                else:
+                    non_member_price = event.early_bird_price or event.general_admission_price
+                    non_member_item_code = "0002"
+                    non_member_item_name = "Early Bird Event Entry"
+                items.append(ECRMItem(quantity=legacy_member_qty, price=event.member_ticket_price, adgCode=adg_code, goodCode="0003", goodName="Member Event Entry"))
+            if legacy_non_member_qty:
+                if event.early_bird_date and event.early_bird_date < datetime.now(timezone.utc):
+                    non_member_price = event.general_admission_price
+                    non_member_item_code = "0001"
+                    non_member_item_name = "General Admission Event Entry"
+                else:
+                    non_member_price = event.early_bird_price or event.general_admission_price
+                    non_member_item_code = "0002"
+                    non_member_item_name = "Early Bird Event Entry"
+                items.append(ECRMItem(quantity=legacy_non_member_qty, price=non_member_price, adgCode=adg_code, goodCode=non_member_item_code, goodName=non_member_item_name))
 
             print_req = ECRMPrintRequest(crn=ecrm_crn, cardAmount=payment.amount, items=items)
 

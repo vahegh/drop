@@ -37,8 +37,13 @@ async def person_stats():
 async def check_email(email: str):
     person = await get_person_by_email(email)
     if not person:
-        return {"exists": False, "status": None}
-    return {"exists": True, "status": person.status}
+        return {"exists": False, "status": None, "id": None, "full_name": None}
+    return {
+        "exists": True,
+        "status": person.status,
+        "id": str(person.id),
+        "full_name": f"{person.first_name} {person.last_name}",
+    }
 
 
 @router.post("/check-instagram")

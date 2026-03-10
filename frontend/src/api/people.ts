@@ -1,5 +1,5 @@
 import client from './client'
-import type { PersonCreate, PersonUpdate, PersonResponseFull, PersonStats } from '../types'
+import type { PersonCreate, PersonUpdate, PersonResponseFull, PersonStats, CheckEmailResponse } from '../types'
 
 export async function createPerson(data: PersonCreate): Promise<PersonResponseFull> {
   const res = await client.post<PersonResponseFull>('/people', data)
@@ -11,8 +11,8 @@ export async function getPersonStats(): Promise<PersonStats> {
   return res.data
 }
 
-export async function checkEmail(email: string): Promise<{ exists: boolean; status: string | null }> {
-  const res = await client.get('/people/check-email', { params: { email } })
+export async function checkEmail(email: string): Promise<CheckEmailResponse> {
+  const res = await client.get<CheckEmailResponse>('/people/check-email', { params: { email } })
   return res.data
 }
 

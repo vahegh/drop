@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import timezone
 from uuid import UUID
 from typing import Optional
 from fastapi import APIRouter, Request, HTTPException
@@ -12,6 +12,7 @@ from services.payment_intent import create_payment_intent
 from services.drink_payment_intent import create_drink_payment_intent
 from services.person import get_person
 from services.event import get_event_info
+from services.ticket_tier import get_tiers_for_event, resolve_tier_for_person
 from services.card_binding import get_card_binding_by_person_id, update_card_binding
 from services.vpos_payment import make_binding_payment_vpos, deactivate_binding_vpos, init_payment_vpos, VPOS_BASE_URL
 
@@ -49,18 +50,31 @@ async def initiate_payment(body: InitiatePaymentRequest, request: Request):
     if not event:
         raise HTTPException(404, "Event not found")
 
-    # Calculate total amount
+    # Resolve tiers for this event
+    tiers = await get_tiers_for_event(body.event_id)
+
+    # Calculate total amount, resolving tier per attendee
     total = 0.0
-    resolved_attendees = []
+    resolved_attendees = []  # list of (person, tier)
     for item in body.attendees:
         p = await get_person(item.person_id)
-        resolved_attendees.append(p)
-        if p.status == PersonStatus.member:
-            total += event.member_ticket_price
-        elif event.early_bird_date and datetime.now(timezone.utc) < event.early_bird_date and event.early_bird_price:
-            total += event.early_bird_price
+        if tiers:
+            tier = resolve_tier_for_person(tiers, p.status)
+            if not tier:
+                raise HTTPException(422, f"No applicable ticket tier for attendee {p.id}")
         else:
-            total += event.general_admission_price
+            # Fallback: no tiers defined yet (stale state), use flat event pricing
+            tier = None
+            from datetime import datetime as _dt
+            if p.status == PersonStatus.member:
+                total += event.member_ticket_price
+            elif event.early_bird_date and _dt.now(timezone.utc) < event.early_bird_date and event.early_bird_price:
+                total += event.early_bird_price
+            else:
+                total += event.general_admission_price
+        if tier:
+            total += tier.price
+        resolved_attendees.append((p, tier))
 
     # Add drinks
     if body.drink_ids:
@@ -70,7 +84,7 @@ async def initiate_payment(body: InitiatePaymentRequest, request: Request):
             if drink:
                 total += drink.price
 
-    payer_id = person.id if person else resolved_attendees[0].id
+    payer_id = person.id if person else resolved_attendees[0][0].id
 
     # Persist payment first to get autoincrement order_id
     new_payment = await create_payment(Payment(
@@ -80,9 +94,14 @@ async def initiate_payment(body: InitiatePaymentRequest, request: Request):
         provider=body.provider,
     ))
 
-    for attendee in resolved_attendees:
+    for attendee, tier in resolved_attendees:
         await create_payment_intent(
-            PaymentIntent(order_id=new_payment.order_id, recipient_id=attendee.id)
+            PaymentIntent(
+                order_id=new_payment.order_id,
+                recipient_id=attendee.id,
+                tier_id=tier.id if tier else None,
+                tier_price=tier.price if tier else None,
+            )
         )
 
     for drink_id in body.drink_ids:

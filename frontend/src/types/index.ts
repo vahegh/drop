@@ -1,6 +1,42 @@
 // Mirrors api_models.py Pydantic models
 
 export type PersonStatus = 'pending' | 'verified' | 'rejected' | 'member'
+
+export interface TicketTierResponse {
+  id: string
+  event_id: string
+  name: string
+  price: number
+  capacity: number | null
+  available_from: string | null
+  available_until: string | null
+  required_person_status: PersonStatus | null
+  sort_order: number
+  is_active: boolean
+  ecrm_good_code: string | null
+  ecrm_good_name: string | null
+  created_at: string
+}
+
+export interface TicketTierCreate {
+  name: string
+  price: number
+  capacity?: number
+  available_from?: string
+  available_until?: string
+  required_person_status?: PersonStatus
+  sort_order?: number
+  is_active?: boolean
+  ecrm_good_code?: string
+  ecrm_good_name?: string
+}
+
+export interface CheckEmailResponse {
+  exists: boolean
+  status: PersonStatus | null
+  id: string | null
+  full_name: string | null
+}
 export type PaymentStatus = 'CREATED' | 'PENDING' | 'CONFIRMED' | 'REJECTED' | 'REFUNDED'
 export type PaymentProvider = 'VPOS' | 'MYAMERIA' | 'APPLEPAY' | 'GOOGLEPAY' | 'BINDING'
 
@@ -107,6 +143,7 @@ export interface EventResponse {
   max_capacity: number
   shared: boolean
   created_at: string
+  tiers: TicketTierResponse[]
 }
 
 export interface PersonCreate {

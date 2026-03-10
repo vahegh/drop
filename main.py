@@ -24,6 +24,7 @@ from routes.admin import payments as admin_payments
 from routes.admin import venues as admin_venues
 from routes.admin import drinks as admin_drinks
 from routes.admin import tickets as admin_tickets
+from routes.admin import tiers as admin_tiers
 from fastapi import Depends
 from decorators import verify_admin_token
 from dependencies import AuthMiddleware
@@ -67,6 +68,7 @@ def main():
     app.include_router(admin_venues.router, prefix="/api/admin", dependencies=[Depends(verify_admin_token)])
     app.include_router(admin_drinks.router, prefix="/api/admin", dependencies=[Depends(verify_admin_token)])
     app.include_router(admin_tickets.router, prefix="/api/admin", dependencies=[Depends(verify_admin_token)])
+    app.include_router(admin_tiers.router, prefix="/api/admin", dependencies=[Depends(verify_admin_token)])
 
     if env == "local":
         from fastapi.middleware.cors import CORSMiddleware

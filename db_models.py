@@ -1,7 +1,7 @@
 from datetime import datetime
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Integer, String, ForeignKey, UniqueConstraint, Sequence, text, Boolean, DateTime, Enum, Float, BigInteger
 from enums import PersonStatus, PaymentStatus, PaymentProvider
@@ -59,6 +59,24 @@ class Event(Base):
     member_ticket_price: Mapped[int] = mapped_column(Integer)
     max_capacity: Mapped[int] = mapped_column(Integer)
     shared: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    tiers: Mapped[list['TicketTier']] = relationship('TicketTier', order_by='TicketTier.sort_order', lazy='selectin')
+
+
+class TicketTier(Base):
+    __tablename__ = 'ticket_tier'
+    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"))
+    event_id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), ForeignKey('event.id'))
+    name: Mapped[str] = mapped_column(String(100))
+    price: Mapped[int] = mapped_column(Integer)
+    capacity: Mapped[int] = mapped_column(Integer, nullable=True)
+    available_from: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
+    available_until: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
+    required_person_status: Mapped[PersonStatus] = mapped_column(Enum(PersonStatus), nullable=True)
+    sort_order: Mapped[int] = mapped_column(Integer, default=0)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    ecrm_good_code: Mapped[str] = mapped_column(String(10), nullable=True)
+    ecrm_good_name: Mapped[str] = mapped_column(String(200), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
@@ -132,6 +150,8 @@ class PaymentIntent(Base):
                                      server_default=text("gen_random_uuid()"))
     order_id: Mapped[int] = mapped_column(BigInteger, ForeignKey('payment.order_id'))
     recipient_id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), ForeignKey('person.id'))
+    tier_id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), ForeignKey('ticket_tier.id'), nullable=True)
+    tier_price: Mapped[int] = mapped_column(Integer, nullable=True)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True),
                                                  server_default=func.now(),
                                                  onupdate=func.now())
