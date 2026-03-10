@@ -409,7 +409,7 @@ export default function BuyTicket() {
   async function handleSearchAttendee() {
     const email = addEmail.trim()
     if (!email) return
-    if (email === me.email) { setAddError("That's your own email - already included."); return }
+    if (me && email === me.email) { setAddError("That's your own email - already included."); return }
     if (additionalAttendees.some(a => a.kind === 'new' && a.email === email)) { setAddError('This person is already added.'); return }
     setAddError(null)
     setAddSearching(true)
@@ -417,7 +417,7 @@ export default function BuyTicket() {
     try {
       const result = await checkEmail(email)
       if (result.exists) {
-        if (result.id === me.id) { setAddError("That's you - already included."); return }
+        if (me && result.id === me.id) { setAddError("That's you - already included."); return }
         if (additionalAttendees.some(a => a.kind === 'existing' && a.id === result.id)) { setAddError('This person is already added.'); return }
       }
       setLookupResult(result)
