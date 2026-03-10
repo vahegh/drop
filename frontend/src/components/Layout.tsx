@@ -120,7 +120,7 @@ export default function Layout({ children, heroBg, showFooter = true }: LayoutPr
           </div>
         ) : (
           <Link to={loginUrl(location.pathname + location.search)} className="btn-outline" style={{ height: '32px', padding: '0 16px', fontSize: '0.8rem', width: 'auto' }}>
-            Sign in
+            Log in
           </Link>
         )}
       </nav>

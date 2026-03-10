@@ -15,9 +15,10 @@ class Venue(Base):
                                      server_default=text("gen_random_uuid()"))
     name: Mapped[str] = mapped_column(String)
     short_name: Mapped[str] = mapped_column(String)
-    address: Mapped[str] = mapped_column(String, nullable=True)
-    latitude: Mapped[float] = mapped_column(Float, nullable=True)
-    longitude: Mapped[float] = mapped_column(Float, nullable=True)
+    area: Mapped[str] = mapped_column(String)
+    address: Mapped[str] = mapped_column(String)
+    latitude: Mapped[float] = mapped_column(Float)
+    longitude: Mapped[float] = mapped_column(Float)
     google_maps_link: Mapped[str] = mapped_column(String)
     yandex_maps_link: Mapped[str] = mapped_column(String)
 

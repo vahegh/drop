@@ -6,14 +6,8 @@ import { useMe } from '../hooks/useMe'
 import Layout from '../components/Layout'
 import Section from '../components/Section'
 import AlbumCarousel from '../components/AlbumCarousel'
+import EventCard from '../components/EventCard'
 import { gtagEvent } from '../lib/analytics'
-
-function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
-}
-function fmtTime(iso: string) {
-  return new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
-}
 
 export default function Event() {
   const { id } = useParams<{ id: string }>()
@@ -58,29 +52,13 @@ export default function Event() {
 
   return (
     <Layout heroBg={event.image_url} showFooter={false}>
-      {/* Event image - matches event_card() aspect-4/5, name at top */}
-      <div className="w-full max-w-96 mt-4">
-        <div className="relative rounded-xl overflow-hidden w-full" style={{ aspectRatio: '4/5' }}>
-          <img
-            src={event.image_url}
-            alt={event.name}
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-          <div className="absolute inset-x-0 top-0 pt-5 px-5 flex flex-col items-center">
-            <h1
-              className="text-white font-bold text-2xl text-center leading-tight"
-              style={{ textShadow: '0 2px 12px rgba(0,0,0,0.9)' }}
-            >
-              {event.name}
-            </h1>
-            {!eventPassed && (
-              <p className="text-white/70 text-sm mt-1 text-center" style={{ textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}>
-                {fmtDate(event.starts_at)} · {fmtTime(event.starts_at)}–{fmtTime(event.ends_at)}
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
+      {/* Event image */}
+      <EventCard
+        event={event}
+        linkTo={false}
+        showEndsAt
+        className="w-full max-w-96 mt-4"
+      />
 
       {/* Spotify track */}
       {event.track_url && (

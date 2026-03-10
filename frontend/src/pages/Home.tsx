@@ -9,13 +9,7 @@ import GoogleButton from '../components/GoogleButton'
 import MemberPassCard from '../components/MemberPassCard'
 import EventTicketCard from '../components/EventTicketCard'
 import AlbumCarousel from '../components/AlbumCarousel'
-
-function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
-}
-function fmtTime(iso: string) {
-  return new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
-}
+import EventCard from '../components/EventCard'
 
 export default function Home() {
   const { data: me, isLoading: meLoading } = useMe()
@@ -153,26 +147,7 @@ export default function Home() {
       {/* Next event card */}
       {nextEvent && (
         <Section>
-          <Link to={`/event/${nextEvent.id}`} className="w-full max-w-96 block">
-            <div className="relative w-full overflow-hidden rounded-xl group cursor-pointer" style={{ aspectRatio: '4/5' }}>
-              <img
-                src={nextEvent.image_url}
-                alt={nextEvent.name}
-                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute inset-x-0 top-0 flex flex-col items-center pt-5 px-4">
-                <h2
-                  className="text-white font-bold text-2xl text-center leading-tight"
-                  style={{ textShadow: '0 2px 12px rgba(0,0,0,0.9)' }}
-                >
-                  {nextEvent.name}
-                </h2>
-                <p className="text-white/70 text-sm mt-1 text-center" style={{ textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}>
-                  {fmtDate(nextEvent.starts_at)} · {fmtTime(nextEvent.starts_at)}
-                </p>
-              </div>
-            </div>
-          </Link>
+          <EventCard event={nextEvent} className="w-full max-w-96" />
           {(!me || (me.status !== 'verified' && me.status !== 'member')) && (
             <a href={`/buy-ticket?event_id=${nextEvent.id}`} className="btn-primary">
               🎟️ Buy your ticket
@@ -226,25 +201,9 @@ export default function Home() {
       {/* Past events grid */}
       {pastEvents.length > 0 && (
         <Section title="Previous events" subtitle="Photos and videos from past events" sep>
-          <div className="grid grid-cols-2 gap-3 w-full max-w-96">
+          <div className="flex flex-col divide-y divide-white/10 w-full max-w-96">
             {pastEvents.map((event) => (
-              <Link key={event.id} to={`/event/${event.id}`} className="block">
-                <div className="relative rounded-xl overflow-hidden group" style={{ aspectRatio: '4/5' }}>
-                  <img
-                    src={event.image_url}
-                    alt={event.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-x-0 top-0 p-3 flex justify-center">
-                    <p
-                      className="text-white font-bold text-sm text-center leading-tight"
-                      style={{ textShadow: '0 1px 6px rgba(0,0,0,0.9)' }}
-                    >
-                      {event.name}
-                    </p>
-                  </div>
-                </div>
-              </Link>
+              <EventCard key={event.id} event={event} className="py-6" />
             ))}
           </div>
         </Section>

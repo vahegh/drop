@@ -8,7 +8,8 @@ from enums import PersonStatus, PaymentStatus, PaymentProvider
 class VenueCreate(BaseModel):
     name: str
     short_name: str
-    address: Optional[str] = None
+    area: str
+    address: str
     latitude: float
     longitude: float
     google_maps_link: str
@@ -18,6 +19,7 @@ class VenueCreate(BaseModel):
 class VenueUpdate(BaseModel):
     name: Optional[str] = None
     short_name: Optional[str] = None
+    area: Optional[str] = None
     address: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
@@ -29,7 +31,8 @@ class VenueResponse(BaseModel):
     id: UUID
     name: str
     short_name: str
-    address: Optional[str]
+    area: str
+    address: str
     latitude: float
     longitude: float
     google_maps_link: str
