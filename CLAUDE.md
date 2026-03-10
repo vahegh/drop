@@ -74,6 +74,9 @@ cd frontend && npm run dev
 ```
 In production, Python serves the built React app from `frontend/dist/`.
 
+## Workflow
+- **After every code change, stage and commit it immediately.** No exceptions.
+
 ## Key Patterns
 - **Database access:** Always use `async with get_db() as db:` or the `@with_db` decorator
 - **Caching:** `storage_cache.py` CacheManager - check cache before querying DB for events/venues/persons
