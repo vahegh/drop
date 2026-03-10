@@ -70,7 +70,11 @@ export default function AdminPersonDetail() {
 
   async function handleRefundPayment(orderId: number) {
     if (!window.confirm(`Refund payment #${orderId}?`)) return
-    await refundPayment(orderId)
+    try {
+      await refundPayment(orderId)
+    } catch (e: any) {
+      alert(`Refund failed: ${e?.response?.data?.detail ?? e?.message ?? 'Unknown error'}`)
+    }
   }
 
   if (isLoading || !person) {
