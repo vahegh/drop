@@ -37,6 +37,7 @@ export default function AdminEventDetail() {
           <button onClick={handleDelete} disabled={deleting} style={{ background: 'none', border: 'none', color: '#7a1010', fontSize: 13, cursor: 'pointer', fontWeight: 600 }}>
             {deleting ? 'Deleting…' : 'Delete'}
           </button>
+          <Link to={`/event/${id}`} style={{ color: '#888', fontSize: 13, fontWeight: 600, textDecoration: 'none', background: '#111', border: '1px solid #333', padding: '6px 14px', borderRadius: 8 }}>View</Link>
           <Link to={`/admin/events/${id}/edit`} style={{ color: '#fff', fontSize: 13, fontWeight: 600, textDecoration: 'none', background: '#111', border: '1px solid #333', padding: '6px 14px', borderRadius: 8 }}>Edit</Link>
         </div>
       </div>
