@@ -27,7 +27,7 @@ async def get_all_events(db: AsyncSession):
 
 @with_db
 async def get_next_event(db: AsyncSession):
-    event = await db.scalar(select(Event).where(Event.ends_at >= datetime.now(timezone.utc)).limit(1))
+    event = await db.scalar(select(Event).where(Event.ends_at >= datetime.now(timezone.utc)).where(Event.shared == True).limit(1))
     return event
 
 
