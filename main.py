@@ -33,11 +33,12 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+logger.setLevel(logging.WARNING)
 logging.getLogger('socketio').setLevel(logging.ERROR)
 logging.getLogger('engineio').setLevel(logging.ERROR)
 logging.getLogger('werkzeug').setLevel(logging.ERROR)
 logging.getLogger('httpx').setLevel(logging.WARNING)
-
+logging.getLogger('uvicorn').setLevel(logging.WARNING)
 
 env = os.getenv('env')
 
@@ -64,13 +65,20 @@ def main():
     app.include_router(client_payments.router, prefix="/api/client")
     app.include_router(client_tickets.router, prefix="/api/client")
     app.include_router(admin_auth.router, prefix="/api/admin")
-    app.include_router(admin_people.router, prefix="/api/admin", dependencies=[Depends(verify_admin_token)])
-    app.include_router(admin_events.router, prefix="/api/admin", dependencies=[Depends(verify_admin_token)])
-    app.include_router(admin_payments.router, prefix="/api/admin", dependencies=[Depends(verify_admin_token)])
-    app.include_router(admin_venues.router, prefix="/api/admin", dependencies=[Depends(verify_admin_token)])
-    app.include_router(admin_drinks.router, prefix="/api/admin", dependencies=[Depends(verify_admin_token)])
-    app.include_router(admin_tickets.router, prefix="/api/admin", dependencies=[Depends(verify_admin_token)])
-    app.include_router(admin_tiers.router, prefix="/api/admin", dependencies=[Depends(verify_admin_token)])
+    app.include_router(admin_people.router, prefix="/api/admin",
+                       dependencies=[Depends(verify_admin_token)])
+    app.include_router(admin_events.router, prefix="/api/admin",
+                       dependencies=[Depends(verify_admin_token)])
+    app.include_router(admin_payments.router, prefix="/api/admin",
+                       dependencies=[Depends(verify_admin_token)])
+    app.include_router(admin_venues.router, prefix="/api/admin",
+                       dependencies=[Depends(verify_admin_token)])
+    app.include_router(admin_drinks.router, prefix="/api/admin",
+                       dependencies=[Depends(verify_admin_token)])
+    app.include_router(admin_tickets.router, prefix="/api/admin",
+                       dependencies=[Depends(verify_admin_token)])
+    app.include_router(admin_tiers.router, prefix="/api/admin",
+                       dependencies=[Depends(verify_admin_token)])
 
     if env == "local":
         from fastapi.middleware.cors import CORSMiddleware
@@ -104,7 +112,7 @@ def main():
         async def serve_react(full_path: str):
             return HTMLResponse(index_html)
 
-    uvicorn.run(app, host='0.0.0.0', port=8080)
+    uvicorn.run(app, host='0.0.0.0', port=8080, access_log=False)
 
 
 if __name__ == "__main__":
