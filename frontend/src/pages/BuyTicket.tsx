@@ -58,14 +58,17 @@ export default function BuyTicket() {
   const [saveCard, setSaveCard] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [dismissTicketNotice, setDismissTicketNotice] = useState(false)
 
   // Guest checkout state
-  const [guestStep, setGuestStep] = useState<'form' | 'confirm'>('form')
+  const [guestStep, setGuestStep] = useState<'email' | 'details' | 'confirm'>('email')
   const [guestFirstName, setGuestFirstName] = useState('')
   const [guestLastName, setGuestLastName] = useState('')
   const [guestEmail, setGuestEmail] = useState('')
   const [guestInstagram, setGuestInstagram] = useState('')
   const [guestFormError, setGuestFormError] = useState<string | null>(null)
+  const [guestEmailChecking, setGuestEmailChecking] = useState(false)
+  const [guestLoginHint, setGuestLoginHint] = useState<string | null>(null)
 
   // Multi-attendee state (logged-in only)
   const [additionalAttendees, setAdditionalAttendees] = useState<AdditionalAttendee[]>([])
@@ -125,17 +128,41 @@ export default function BuyTicket() {
   if (!me) {
     const guestPrice = resolvePrice(tiers, 'pending', flatFallback)
 
-    function validateGuestForm() {
+    async function handleGuestEmailContinue() {
+      if (!guestEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)) {
+        setGuestFormError('A valid email is required.')
+        return
+      }
+      setGuestFormError(null)
+      setGuestEmailChecking(true)
+      try {
+        const result = await checkEmail(guestEmail.trim())
+        if (result.exists) {
+          if (result.status === 'rejected') {
+            setGuestFormError('This account has been rejected. Please contact us for help.')
+          } else {
+            setGuestLoginHint(guestEmail.trim())
+          }
+        } else {
+          setGuestStep('details')
+        }
+      } catch {
+        setGuestFormError('Something went wrong. Please try again.')
+      } finally {
+        setGuestEmailChecking(false)
+      }
+    }
+
+    function validateGuestDetails() {
       if (!guestFirstName.trim()) return 'First name is required.'
       if (!guestLastName.trim()) return 'Last name is required.'
-      if (!guestEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)) return 'A valid email is required.'
       const ig = guestInstagram.replace(/^@/, '').trim()
       if (!ig) return 'Instagram handle is required.'
       return null
     }
 
     function handleGuestContinue() {
-      const err = validateGuestForm()
+      const err = validateGuestDetails()
       if (err) { setGuestFormError(err); return }
       setGuestFormError(null)
       setGuestStep('confirm')
@@ -146,12 +173,6 @@ export default function BuyTicket() {
       setError(null)
       try {
         const ig = guestInstagram.replace(/^@/, '').trim()
-        const { exists } = await checkEmail(guestEmail)
-        if (exists) {
-          setError('This email is already registered. Please sign in with Google to continue.')
-          setLoading(false)
-          return
-        }
         if (!event) return
         const person = await createPerson({
           first_name: guestFirstName.trim(),
@@ -193,9 +214,50 @@ export default function BuyTicket() {
         </Section>
 
         <Section title="New here?" subtitle="Enter your details below to continue as a guest.">
-          {guestStep === 'form' ? (
+          {guestStep === 'email' && (
             <div className="drop-card p-5 flex flex-col gap-4 w-full">
-              <p className="text-sm font-semibold">Your details</p>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-white/45">Email</label>
+                <input
+                  type="email"
+                  value={guestEmail}
+                  onChange={e => { setGuestEmail(e.target.value); setGuestLoginHint(null); setGuestFormError(null) }}
+                  placeholder="you@example.com"
+                  className="bg-white/8 rounded-xl px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-white/30 placeholder:text-white/20"
+                  onKeyDown={e => { if (e.key === 'Enter') handleGuestEmailContinue() }}
+                />
+              </div>
+              {guestFormError && (
+                <p className="text-xs" style={{ color: 'var(--drop-negative)' }}>{guestFormError}</p>
+              )}
+              {guestLoginHint ? (
+                <div className="flex flex-col gap-3">
+                  <p className="text-sm text-white/70">
+                    This email is already registered. Sign in to continue.
+                  </p>
+                  <GoogleButton
+                    text="Continue with Google"
+                    variant="primary"
+                    loginHint={guestLoginHint}
+                    redirectUrl={`/buy-ticket?event_id=${eventId}`}
+                  />
+                </div>
+              ) : (
+                <button onClick={handleGuestEmailContinue} disabled={guestEmailChecking} className="btn-primary h-11 text-sm mt-1">
+                  {guestEmailChecking ? 'Checking…' : 'Continue'}
+                </button>
+              )}
+            </div>
+          )}
+
+          {guestStep === 'details' && (
+            <div className="drop-card p-5 flex flex-col gap-4 w-full">
+              <div className="flex items-center gap-2">
+                <button onClick={() => { setGuestStep('email'); setGuestFormError(null) }} className="text-xs text-white/45 hover:text-white/80">
+                  ← Edit email
+                </button>
+                <p className="text-xs text-white/45">{guestEmail.trim()}</p>
+              </div>
               <div className="flex gap-3">
                 <div className="flex flex-col gap-1 flex-1 min-w-0">
                   <label className="text-xs text-white/45">First name</label>
@@ -219,16 +281,6 @@ export default function BuyTicket() {
                 </div>
               </div>
               <div className="flex flex-col gap-1">
-                <label className="text-xs text-white/45">Email</label>
-                <input
-                  type="email"
-                  value={guestEmail}
-                  onChange={e => setGuestEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  className="bg-white/8 rounded-xl px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-white/30 placeholder:text-white/20"
-                />
-              </div>
-              <div className="flex flex-col gap-1">
                 <label className="text-xs text-white/45">Instagram</label>
                 <input
                   type="text"
@@ -245,10 +297,12 @@ export default function BuyTicket() {
                 Continue
               </button>
             </div>
-          ) : (
+          )}
+
+          {guestStep === 'confirm' && (
             <div className="drop-card p-5 flex flex-col gap-4 w-full">
               <div className="flex items-center gap-2">
-                <button onClick={() => setGuestStep('form')} className="text-xs text-white/45 hover:text-white/80">
+                <button onClick={() => setGuestStep('details')} className="text-xs text-white/45 hover:text-white/80">
                   ← Edit
                 </button>
                 <p className="text-sm font-semibold">Confirm your details</p>
@@ -346,6 +400,8 @@ export default function BuyTicket() {
   const ticketLabel = myTier?.name ?? (
     me.status === 'member' ? 'Member Ticket' : 'Standard Ticket'
   )
+
+  const alreadyHasTicket = me.event_tickets.some(t => t.event_id === eventId)
 
   // Compute total including additional attendees
   const additionalTotal = additionalAttendees.reduce((sum, a) => {
@@ -458,6 +514,24 @@ export default function BuyTicket() {
             <p className="text-xs text-white/45">{me.full_name}</p>
           </div>
         </div>
+
+        {/* Already has ticket notice */}
+        {alreadyHasTicket && !dismissTicketNotice && (
+          <div className="drop-card p-4 w-full flex flex-col gap-3 border border-white/20">
+            <p className="text-sm font-semibold">You already have a ticket for this event</p>
+            <div className="flex gap-2">
+              <Link to="/profile" className="btn-primary flex-1 py-2 text-sm text-center">
+                View Ticket
+              </Link>
+              <button
+                onClick={() => setDismissTicketNotice(true)}
+                className="text-sm text-white/45 hover:text-white/70 px-3"
+              >
+                Buy for others
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Price summary */}
         <div className="drop-card p-4 w-full flex flex-col gap-2">

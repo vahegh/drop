@@ -7,17 +7,19 @@ interface Props {
   text: string
   variant: 'primary' | 'outline'
   redirectUrl?: string
+  loginHint?: string
   style?: React.CSSProperties
   className?: string
   wrapperStyle?: React.CSSProperties
 }
 
-export default function GoogleButton({ text, variant, redirectUrl = '/', style, className, wrapperStyle }: Props) {
+export default function GoogleButton({ text, variant, redirectUrl = '/', loginHint, style, className, wrapperStyle }: Props) {
   const navigate = useNavigate()
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
   const login = useGoogleLogin({
+    hint: loginHint,
     onSuccess: async (tokenResponse) => {
       setError(null)
       setLoading(true)
