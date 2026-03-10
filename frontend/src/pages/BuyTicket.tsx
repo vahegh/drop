@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react'
-import { useSearchParams, Link, useNavigate } from 'react-router-dom'
-import { useGoogleLogin } from '@react-oauth/google'
+import { useSearchParams, Link } from 'react-router-dom'
 import { useEvent } from '../hooks/useEvents'
 import { useMe } from '../hooks/useMe'
 import { initiatePayment } from '../api/payments'
 import { createPerson, checkEmail } from '../api/people'
-import { googleAuth } from '../api/auth'
 import Layout from '../components/Layout'
 import Section from '../components/Section'
 import GoogleButton from '../components/GoogleButton'
@@ -52,7 +50,6 @@ type AdditionalAttendee =
 export default function BuyTicket() {
   const [params] = useSearchParams()
   const eventId = params.get('event_id') ?? ''
-  const navigate = useNavigate()
 
   const { data: event, isLoading: eventLoading } = useEvent(eventId)
   const { data: me, isLoading: meLoading } = useMe()
@@ -72,38 +69,6 @@ export default function BuyTicket() {
   const [guestFormError, setGuestFormError] = useState<string | null>(null)
   const [guestEmailChecking, setGuestEmailChecking] = useState(false)
   const [guestLoginHint, setGuestLoginHint] = useState<string | null>(null)
-
-  const redirectUrl = `/buy-ticket?event_id=${eventId}`
-  const triggerGoogleLogin = useGoogleLogin({
-    hint: guestLoginHint ?? undefined,
-    onSuccess: async (tokenResponse) => {
-      setGuestFormError(null)
-      try {
-        const result = await googleAuth(tokenResponse.access_token)
-        if (result.status === 'ok') {
-          window.location.href = redirectUrl
-        } else {
-          const pending = {
-            access_token: tokenResponse.access_token,
-            email: result.email,
-            first_name: result.first_name,
-            last_name: result.last_name,
-            avatar_url: result.avatar_url,
-          }
-          sessionStorage.setItem('drop_signup', JSON.stringify(pending))
-          navigate(`/signup?redirect_url=${encodeURIComponent(redirectUrl)}`)
-        }
-      } catch (err: any) {
-        setGuestFormError(err?.response?.status === 403 ? 'Your account has been rejected.' : 'Sign in failed. Please try again.')
-        setGuestLoginHint(null)
-      }
-    },
-    onError: () => { setGuestFormError('Google sign in failed.'); setGuestLoginHint(null) },
-  })
-
-  useEffect(() => {
-    if (guestLoginHint) triggerGoogleLogin()
-  }, [guestLoginHint])
 
   // Multi-attendee state (logged-in only)
   const [additionalAttendees, setAdditionalAttendees] = useState<AdditionalAttendee[]>([])
@@ -265,9 +230,18 @@ export default function BuyTicket() {
               {guestFormError && (
                 <p className="text-xs" style={{ color: 'var(--drop-negative)' }}>{guestFormError}</p>
               )}
-              <button onClick={handleGuestEmailContinue} disabled={guestEmailChecking || !!guestLoginHint} className="btn-primary h-11 text-sm mt-1">
-                {guestEmailChecking || guestLoginHint ? 'Signing in…' : 'Continue'}
-              </button>
+              {guestLoginHint ? (
+                <GoogleButton
+                  text="Continue with Google"
+                  variant="primary"
+                  loginHint={guestLoginHint}
+                  redirectUrl={`/buy-ticket?event_id=${eventId}`}
+                />
+              ) : (
+                <button onClick={handleGuestEmailContinue} disabled={guestEmailChecking} className="btn-primary h-11 text-sm mt-1">
+                  {guestEmailChecking ? 'Checking…' : 'Continue'}
+                </button>
+              )}
             </div>
           )}
 
