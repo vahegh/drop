@@ -427,6 +427,8 @@ export default function BuyTicket() {
 
   function handleAddExisting() {
     if (!lookupResult?.id || !lookupResult.full_name) return
+    if (lookupResult.id === me.id) return
+    if (additionalAttendees.some(a => a.kind === 'existing' && a.id === lookupResult.id)) return
     setAdditionalAttendees(prev => [...prev, {
       kind: 'existing',
       id: lookupResult.id!,
@@ -438,9 +440,12 @@ export default function BuyTicket() {
 
   function handleAddNew() {
     if (!newFirst.trim() || !newLast.trim() || !addEmail.trim()) return
+    const email = addEmail.trim()
+    if (email === me.email) return
+    if (additionalAttendees.some(a => a.kind === 'new' && a.email === email)) return
     setAdditionalAttendees(prev => [...prev, {
       kind: 'new',
-      email: addEmail.trim(),
+      email,
       first_name: newFirst.trim(),
       last_name: newLast.trim(),
       instagram: newInstagram.replace(/^@/, '').trim(),
