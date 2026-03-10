@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useAdminEvent, useAdminCreateEvent, useAdminUpdateEvent, useAdminTiers, useAdminCreateTier, useAdminUpdateTier, useAdminDeleteTier } from '../../hooks/useAdmin'
 import type { TicketTierResponse } from '../../types'
+import { useAdminVenues } from '../../hooks/useAdmin'
 
 const EMPTY = {
   name: '', description: '', image_url: '', video_url: '', album_url: '', track_url: '',
@@ -15,6 +16,19 @@ const EMPTY_TIER = {
   ecrm_good_code: '', ecrm_good_name: '',
 }
 
+// UTC ISO from DB → local time for the input (uses local time getters)
+const toLocal = (iso: string) => {
+  if (!iso) return ''
+  const d = new Date(iso)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
+// Local input value → UTC ISO string for the DB (e.g. "2025-06-01T18:00:00.000Z")
+const fromLocal = (local: string) => {
+  if (!local) return ''
+  return new Date(local).toISOString()
+}
 type FormKey = keyof typeof EMPTY
 
 function Field({ label, value, onChange, placeholder, type = 'text' }: {
@@ -34,6 +48,26 @@ function Field({ label, value, onChange, placeholder, type = 'text' }: {
   )
 }
 
+function DateTimeField({ label, value, onChange }: {
+  label: string; value: string; onChange: (v: string) => void
+}) {
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <label style={{ display: 'block', color: '#888', fontSize: 12, marginBottom: 5 }}>{label}</label>
+      <input
+        type="datetime-local"
+        value={toLocal(value)}
+        onChange={e => onChange(fromLocal(e.target.value))}
+        style={{
+          width: '100%', background: '#111', color: '#fff',
+          border: '1px solid #1a1a1a', borderRadius: 8,
+          padding: '10px 12px', fontSize: 14, boxSizing: 'border-box',
+          outline: 'none', colorScheme: 'dark'  // ← makes the picker UI dark
+        }}
+      />
+    </div>
+  )
+}
 function SectionHeader({ title }: { title: string }) {
   return <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, color: '#555', marginTop: 24, marginBottom: 12 }}>{title}</div>
 }
@@ -149,6 +183,7 @@ export default function AdminEventForm() {
   const navigate = useNavigate()
   const { data: existing } = useAdminEvent(id ?? '')
   const { data: tiers } = useAdminTiers(id ?? '')
+  const { data: venues } = useAdminVenues()
   const { mutateAsync: create, isPending: creating } = useAdminCreateEvent()
   const { mutateAsync: update, isPending: updating } = useAdminUpdateEvent()
   const [form, setForm] = useState(EMPTY)
@@ -181,20 +216,23 @@ export default function AdminEventForm() {
   async function submit() {
     setError('')
     try {
-      const body: Record<string, unknown> = {
-        name: form.name, description: form.description, image_url: form.image_url,
-        starts_at: form.starts_at, ends_at: form.ends_at, venue_id: form.venue_id,
+        const body: Record<string, unknown> = {
+        name: form.name,
+        description: form.description,
+        image_url: form.image_url,
+        video_url: form.video_url || null,       // ← always send, null if empty
+        album_url: form.album_url || null,       // ← always send, null if empty
+        track_url: form.track_url || null,       // ← always send, null if empty
+        starts_at: form.starts_at,
+        ends_at: form.ends_at,
+        venue_id: form.venue_id,
         general_admission_price: parseInt(form.general_admission_price),
         member_ticket_price: parseInt(form.member_ticket_price),
         max_capacity: parseInt(form.max_capacity),
         shared: form.shared === 'true',
+        early_bird_date: form.early_bird_date || null,
+        early_bird_price: form.early_bird_price ? parseInt(form.early_bird_price) : null,
       }
-      if (form.video_url) body.video_url = form.video_url
-      if (form.album_url) body.album_url = form.album_url
-      if (form.track_url) body.track_url = form.track_url
-      if (form.early_bird_date) body.early_bird_date = form.early_bird_date
-      if (form.early_bird_price) body.early_bird_price = parseInt(form.early_bird_price)
-
       if (isEdit) await update({ id: id!, body })
       else await create(body)
       navigate(isEdit ? `/admin/events/${id}` : '/admin/events')
@@ -221,12 +259,24 @@ export default function AdminEventForm() {
       <Field label="Track URL (optional)" value={form.track_url} onChange={v => set('track_url', v)} />
 
       <SectionHeader title="Dates (ISO format)" />
-      <Field label="Starts at" value={form.starts_at} onChange={v => set('starts_at', v)} placeholder="2025-06-01T22:00:00" />
-      <Field label="Ends at" value={form.ends_at} onChange={v => set('ends_at', v)} placeholder="2025-06-02T06:00:00" />
-      <Field label="Early Bird Cutoff (optional)" value={form.early_bird_date} onChange={v => set('early_bird_date', v)} placeholder="2025-05-25T00:00:00" />
+        <DateTimeField label="Starts at" value={form.starts_at} onChange={v => set('starts_at', v)} />
+        <DateTimeField label="Ends at" value={form.ends_at} onChange={v => set('ends_at', v)} />
+        <DateTimeField label="Early Bird Cutoff (optional)" value={form.early_bird_date} onChange={v => set('early_bird_date', v)} />
 
       <SectionHeader title="Venue & Capacity" />
-      <Field label="Venue ID (UUID)" value={form.venue_id} onChange={v => set('venue_id', v)} />
+        <div style={{ marginBottom: 14 }}>
+        <label style={{ display: 'block', color: '#888', fontSize: 12, marginBottom: 5 }}>Venue</label>
+        <select
+            value={form.venue_id}
+            onChange={e => set('venue_id', e.target.value)}
+            style={{ width: '100%', background: '#111', color: '#fff', border: '1px solid #1a1a1a', borderRadius: 8, padding: '10px 12px', fontSize: 14 }}
+        >
+            <option value="">Select a venue...</option>
+            {(venues ?? []).map((v: { id: string; name: string }) => (
+            <option key={v.id} value={v.id}>{v.name}</option>
+            ))}
+        </select>
+        </div>
       <Field label="Max Capacity" value={form.max_capacity} onChange={v => set('max_capacity', v)} type="number" />
 
       <SectionHeader title="Pricing (AMD) — Legacy flat fields" />
