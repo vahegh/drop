@@ -175,7 +175,7 @@ export default function AdminPersonDetail() {
                       color: p.status === 'CONFIRMED' ? '#4caf50' : p.status === 'REFUNDED' ? '#ffa726' : p.status === 'REJECTED' ? '#f44' : '#888',
                     }}>{p.status}</span>
                   </div>
-                  <button onClick={() => handleDeletePayment(p.order_id)} style={{ background: 'none', border: 'none', color: '#555', fontSize: 16, cursor: 'pointer', padding: '4px 6px', lineHeight: 1 }} title="Delete payment">×</button>
+                  {p.status === 'CREATED' && <button onClick={() => handleDeletePayment(p.order_id)} style={{ background: 'none', border: 'none', color: '#555', fontSize: 16, cursor: 'pointer', padding: '4px 6px', lineHeight: 1 }} title="Delete payment">×</button>}
                 </div>
               </div>
             ))}
