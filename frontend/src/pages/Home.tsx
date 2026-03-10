@@ -54,9 +54,8 @@ export default function Home() {
         <Section className="pt-6 pb-2">
           <div className="flex flex-col items-center gap-3 text-center w-full">
             <h1 className="text-4xl font-bold tracking-tight">Drop Dead Disco</h1>
-            <p className="text-sm text-white/55 leading-relaxed max-w-64">
-              Underground dance parties in secret locations.<br />
-              <span className="text-white/75">You have to earn your way in.</span>
+            <p className="text-sm text-white/55 leading-relaxed max-w-80">
+              Dance parties in secret locations in and around Yerevan. Verification required.
             </p>
           </div>
         </Section>
@@ -66,27 +65,6 @@ export default function Home() {
       {!me && Array.isArray(allPhotos) && allPhotos.length > 0 && (
         <Section>
           <AlbumCarousel photos={allPhotos} />
-        </Section>
-      )}
-
-      {/* Guest: value props */}
-      {!me && (
-        <Section sep>
-          <div className="drop-card p-5 flex flex-col gap-4 w-full">
-            {[
-              { icon: '📍', title: 'Secret locations', desc: 'Revealed 24h before doors open' },
-              { icon: '✅', title: 'Verified crowd', desc: 'Every guest is reviewed before entry' },
-              { icon: '🎵', title: 'Underground music', desc: "Sets you won't hear anywhere else" },
-            ].map(({ icon, title, desc }) => (
-              <div key={title} className="flex items-start gap-3">
-                <span className="text-xl mt-0.5">{icon}</span>
-                <div>
-                  <p className="text-sm font-semibold">{title}</p>
-                  <p className="text-xs text-white/50">{desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
         </Section>
       )}
 
@@ -117,7 +95,7 @@ export default function Home() {
 
       {/* Guest: sign up CTA */}
       {!me && (
-        <Section title="Wanna join the fun?" subtitle="Sign up to get verified">
+        <Section title="Apply for access" subtitle="Sign up to get verified">
           <div className="flex gap-2 w-full max-w-96">
             <GoogleButton text="Sign up" variant="primary" redirectUrl="/" className="flex-1" style={{ maxWidth: 'none' }} />
             <GoogleButton text="Log in" variant="outline" redirectUrl="/" className="flex-1" style={{ maxWidth: 'none' }} />
