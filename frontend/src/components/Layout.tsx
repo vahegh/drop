@@ -1,6 +1,7 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useMe } from '../hooks/useMe'
 import { logout } from '../api/auth'
+import { loginUrl } from '../lib/loginUrl'
 import { useState } from 'react'
 
 export const STATUS_COLORS: Record<string, string> = {
@@ -19,6 +20,7 @@ interface LayoutProps {
 
 export default function Layout({ children, heroBg, showFooter = true }: LayoutProps) {
   const { data: me, isLoading: meLoading } = useMe()
+  const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
 
@@ -117,7 +119,7 @@ export default function Layout({ children, heroBg, showFooter = true }: LayoutPr
             )}
           </div>
         ) : (
-          <Link to="/login" className="btn-outline" style={{ height: '32px', padding: '0 16px', fontSize: '0.8rem', width: 'auto' }}>
+          <Link to={loginUrl(location.pathname + location.search)} className="btn-outline" style={{ height: '32px', padding: '0 16px', fontSize: '0.8rem', width: 'auto' }}>
             Sign in
           </Link>
         )}
