@@ -176,6 +176,7 @@ export interface PaymentConfirmRequest {
   order_id: number
   provider: PaymentProvider
   payment_id?: string
+  opaque?: string
 }
 
 export interface PaymentConfirmResponse {

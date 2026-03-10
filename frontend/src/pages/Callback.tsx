@@ -3,9 +3,12 @@ import { useSearchParams, useNavigate, useLocation } from 'react-router-dom'
 import { confirmPayment } from '../api/payments'
 import Layout from '../components/Layout'
 import type { PaymentProvider, PaymentConfirmResponse } from '../types'
+import { gtagEvent } from '../lib/analytics'
+
+declare function fbq(...args: unknown[]): void
 
 function providerFromPath(pathname: string): PaymentProvider {
-  if (pathname.includes('myameria')) return 'MYAMERIA'
+  if (pathname.includes('ameria')) return 'MYAMERIA'
   if (pathname.includes('binding')) return 'BINDING'
   return 'VPOS'
 }
@@ -19,8 +22,19 @@ export default function Callback() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const orderId = params.get('order_id') ?? params.get('transactionId')
-    const paymentId = params.get('payment_id') ?? params.get('paymentId') ?? undefined
+    // VPOS uses camelCase with capital ID (orderID, paymentID)
+    // MyAmeria uses transactionId / paymentId
+    // Binding payment uses order_id / payment_id
+    const orderId =
+      params.get('orderID') ??
+      params.get('order_id') ??
+      params.get('transactionId')
+    const paymentId =
+      params.get('paymentID') ??
+      params.get('payment_id') ??
+      params.get('paymentId') ??
+      undefined
+    const opaque = params.get('opaque') ?? undefined
 
     if (!orderId) {
       setError('Missing order ID.')
@@ -31,8 +45,22 @@ export default function Callback() {
       order_id: Number(orderId),
       provider: providerFromPath(location.pathname),
       payment_id: paymentId,
+      opaque,
     })
-      .then(setResult)
+      .then((res) => {
+        setResult(res)
+        if (res.status === 'CONFIRMED') {
+          gtagEvent('purchase', {
+            currency: 'AMD',
+            value: res.amount,
+            transaction_id: String(res.order_id),
+            items: [{ item_id: res.event_id, price: res.amount }],
+          })
+          if (typeof fbq === 'function') {
+            fbq('track', 'Purchase', { value: res.amount, currency: 'AMD' })
+          }
+        }
+      })
       .catch(() => setError('Payment confirmation failed.'))
   }, [])
 
@@ -77,6 +105,9 @@ export default function Callback() {
             <p className="text-sm text-white/55 mt-2">
               {result.num_tickets} ticket{result.num_tickets !== 1 ? 's' : ''} issued · {result.amount.toLocaleString()} AMD
             </p>
+          )}
+          {!success && result.description && (
+            <p className="text-sm text-white/45 mt-1">{result.description}</p>
           )}
         </div>
         <div className="flex flex-col gap-2 w-full">

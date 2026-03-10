@@ -472,6 +472,7 @@ class PaymentConfirmRequest(BaseModel):
     order_id: int
     provider: PaymentProvider
     payment_id: Optional[UUID] = None
+    opaque: Optional[str] = None
 
 
 class PaymentConfirmResponse(BaseModel):

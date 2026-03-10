@@ -10,7 +10,7 @@ from api_models import (VPOSInitPaymentRequest, VPOSPaymentDetailsResponse,
 from fastapi import HTTPException
 
 VPOS_BASE_URL = os.environ["vpos_base_url"]
-VPOS_CALLBACK_ENDPOINT = 'vpostransactionstate'
+VPOS_CALLBACK_ENDPOINT = 'callback/vpos'
 vpos_client_id = os.environ['vpos_client_id']
 vpos_username = os.environ['vpos_username']
 vpos_password = os.environ['vpos_password']

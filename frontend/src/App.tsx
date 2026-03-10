@@ -36,6 +36,8 @@ export default function App() {
         <Route path="/policy" element={<Policy />} />
         <Route path="/unsubscribe" element={<Unsubscribe />} />
         <Route path="/callback/*" element={<Callback />} />
+        <Route path="/ameriatransactionstate" element={<Callback />} />
+        <Route path="/bindingpayment" element={<Callback />} />
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Navigate to="/admin/people" replace />} />
           <Route path="people" element={<AdminPeople />} />

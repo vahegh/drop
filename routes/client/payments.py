@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from decorators import verify_user_token
 from enums import PaymentProvider, PersonStatus
 from api_models import PaymentConfirmRequest, CardBindingUpdate
+from consts import APP_BASE_URL
 from db_models import Payment, PaymentIntent, DrinkPaymentIntent
 from services.payment import create_payment, init_payment, confirm_payment
 from services.payment_intent import create_payment_intent
@@ -15,6 +16,9 @@ from services.event import get_event_info
 from services.ticket_tier import get_tiers_for_event, resolve_tier_for_person
 from services.card_binding import get_card_binding_by_person_id, update_card_binding
 from services.vpos_payment import make_binding_payment_vpos, deactivate_binding_vpos, init_payment_vpos, VPOS_BASE_URL
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["Client Payments"], prefix="/payments")
 
@@ -142,9 +146,14 @@ async def add_payment_method(request: Request):
         provider=PaymentProvider.VPOS,
     )
     saved = await create_payment(new_payment)
-    payment_id = await init_payment_vpos(saved.order_id, saved.amount, save_card=True)
+    payment_id = await init_payment_vpos(
+        saved.order_id, saved.amount, save_card=True,
+        back_url=f"{APP_BASE_URL}/cardbinding"
+    )
     redirect_url = f"{VPOS_BASE_URL}/Payments/Pay?id={payment_id}&lang=en&type=5"
     return {"redirect_url": redirect_url}
+
+
 
 
 @router.delete("/methods/{id}")

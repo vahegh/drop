@@ -14,11 +14,12 @@ from services.myameria_payment import MYAMERIA_PAY_URL, myameria_merchant_id
 from db_models import Payment, Person, EventTicket, PaymentIntent, TicketTier, Event, MemberPass, DrinkVoucher
 from services.event_ticket import add_ticket_to_db, create_event_ticket, send_event_ticket
 from services.myameria_payment import create_payment_myameria, get_payment_details_myameria, refund_payment_myameria
-from services.vpos_payment import init_payment_vpos, get_payment_details_vpos, VPOS_BASE_URL, cancel_payment_vpos
+from services.vpos_payment import init_payment_vpos, get_payment_details_vpos, get_card_binding_vpos, VPOS_BASE_URL, cancel_payment_vpos
+from services.card_binding import create_card_binding
 from services.drink_payment_intent import get_drink_payment_intents, delete_drink_payment_intents
 from services.drink_voucher import create_drink_voucher
 from services.payment_intent import delete_payment_intent
-from api_models import PaymentConfirmRequest, PaymentConfirmResponse, ECRMPrintRequest, ECRMItem, PaymentUpdate, MyAmeriaPaymentRefundRequest
+from api_models import PaymentConfirmRequest, PaymentConfirmResponse, ECRMPrintRequest, ECRMItem, PaymentUpdate, MyAmeriaPaymentRefundRequest, CardBindingCreate
 import logging
 
 ecrm_crn = os.environ['ecrm_crn']
@@ -144,6 +145,21 @@ async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest, 
                     amount=payment.amount,
                     num_tickets=len(ticket_holders)
                 )
+
+                if transaction.opaque and payment.status == PaymentStatus.CONFIRMED:
+                    try:
+                        card_binding_vpos = await get_card_binding_vpos(transaction.opaque)
+                        if card_binding_vpos:
+                            await create_card_binding(CardBindingCreate(
+                                id=transaction.opaque,
+                                person_id=payment.person_id,
+                                masked_card_number=card_binding_vpos.CardPan,
+                                card_expiry_date=card_binding_vpos.ExpDate,
+                                is_active=card_binding_vpos.IsAvtive
+                            ))
+                    except Exception as e:
+                        logger.warning(f"Unable to save card binding: {str(e)}")
+
             except Exception as e:
                 raise HTTPException(500, f"Unable to check vPOS payment status: {str(e)}")
 

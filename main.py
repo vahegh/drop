@@ -6,6 +6,7 @@ if os.path.exists('.env'):
 
 
 from routes.auth import router as auth_router
+from routes.callbacks import router as callbacks_router
 from routes.telegram_webhook import router as tg_webhook_router
 from routes.attendance import router as attendance_router
 from routes.apple_pass_updates import router as apple_pass_updates
@@ -50,6 +51,7 @@ def main():
     app = FastAPI(title="Drop Dead Disco", docs_url="/docs")
 
     app.include_router(auth_router)
+    app.include_router(callbacks_router)
     app.include_router(tg_webhook_router)
     app.include_router(attendance_router)
     app.include_router(apple_pass_updates)
