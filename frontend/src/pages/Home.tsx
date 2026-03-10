@@ -49,11 +49,78 @@ export default function Home() {
 
   return (
     <Layout showFooter>
-      {/* Guest welcome header */}
+      {/* Guest hero */}
       {!me && (
+        <Section className="pt-6 pb-2">
+          <div className="flex flex-col items-center gap-3 text-center w-full">
+            <h1 className="text-4xl font-bold tracking-tight">Drop Dead Disco</h1>
+            <p className="text-sm text-white/55 leading-relaxed max-w-64">
+              Underground dance parties in secret locations.<br />
+              <span className="text-white/75">You have to earn your way in.</span>
+            </p>
+          </div>
+        </Section>
+      )}
+
+      {/* Guest: photos right after hero */}
+      {!me && Array.isArray(allPhotos) && allPhotos.length > 0 && (
         <Section>
-          <div className="flex flex-col items-center gap-2 text-center w-full">
-            <h1 className="text-3xl font-bold tracking-tight">Drop Dead Disco</h1>
+          <AlbumCarousel photos={allPhotos} />
+        </Section>
+      )}
+
+      {/* Guest: value props */}
+      {!me && (
+        <Section sep>
+          <div className="drop-card p-5 flex flex-col gap-4 w-full">
+            {[
+              { icon: '📍', title: 'Secret locations', desc: 'Revealed 24h before doors open' },
+              { icon: '✅', title: 'Verified crowd', desc: 'Every guest is reviewed before entry' },
+              { icon: '🎵', title: 'Underground music', desc: "Sets you won't hear anywhere else" },
+            ].map(({ icon, title, desc }) => (
+              <div key={title} className="flex items-start gap-3">
+                <span className="text-xl mt-0.5">{icon}</span>
+                <div>
+                  <p className="text-sm font-semibold">{title}</p>
+                  <p className="text-xs text-white/50">{desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {/* Guest: stats */}
+      {!me && stats && (
+        <Section sep>
+          <div className="flex gap-8 w-full">
+            {stats['member'] != null && (
+              <div className="flex flex-col gap-0.5">
+                <span className="text-3xl font-bold">{stats['member']}</span>
+                <span className="text-xs text-white/40 uppercase tracking-widest">Members</span>
+              </div>
+            )}
+            {stats['verified'] != null && (
+              <div className="flex flex-col gap-0.5">
+                <span className="text-3xl font-bold">{stats['verified']}</span>
+                <span className="text-xs text-white/40 uppercase tracking-widest">Verified</span>
+              </div>
+            )}
+          </div>
+          <p className="text-xs text-white/40 leading-relaxed w-full mt-1">
+            Drop Dead Disco is a hand-picked community hosting dance parties in secret locations around Yerevan.
+            Every guest passes <strong className="text-white/60">verification</strong> before they can attend.{' '}
+            <Link to="/about" className="underline underline-offset-2 hover:text-white/60">Read more</Link>
+          </p>
+        </Section>
+      )}
+
+      {/* Guest: sign up CTA */}
+      {!me && (
+        <Section title="Wanna join the fun?" subtitle="Sign up to get verified">
+          <div className="flex gap-2 w-full max-w-96">
+            <GoogleButton text="Sign up" variant="primary" redirectUrl="/" className="flex-1" style={{ maxWidth: 'none' }} />
+            <GoogleButton text="Log in" variant="outline" redirectUrl="/" className="flex-1" style={{ maxWidth: 'none' }} />
           </div>
         </Section>
       )}
@@ -156,45 +223,37 @@ export default function Home() {
         </Section>
       )}
 
-      {/* Community blurb */}
-      <Section sep>
-        <p className="text-sm text-white/70 leading-relaxed w-full">
-          Drop Dead Disco is a hand-picked community hosting dance parties in secret locations around Yerevan.
-          Every guest has to pass <strong>verification</strong> before they're able to buy tickets and attend.{' '}
-          <Link to="/about" className="underline underline-offset-2 text-white/55 hover:text-white/80">Read more</Link>
-        </p>
-        {stats && (
-          <div className="flex gap-6 w-full mt-1">
-            {stats['member'] != null && (
-              <div className="flex flex-col gap-0.5">
-                <span className="text-xl font-bold">{stats['member']}</span>
-                <span className="text-xs text-white/40 uppercase tracking-widest">Members</span>
-              </div>
-            )}
-            {stats['verified'] != null && (
-              <div className="flex flex-col gap-0.5">
-                <span className="text-xl font-bold">{stats['verified']}</span>
-                <span className="text-xs text-white/40 uppercase tracking-widest">Verified</span>
-              </div>
-            )}
-          </div>
-        )}
-      </Section>
-
-      {/* Photo carousel */}
-      {Array.isArray(allPhotos) && allPhotos.length > 0 && (
-        <Section>
-          <AlbumCarousel photos={allPhotos} />
+      {/* Logged-in: community blurb */}
+      {me && (
+        <Section sep>
+          <p className="text-sm text-white/70 leading-relaxed w-full">
+            Drop Dead Disco is a hand-picked community hosting dance parties in secret locations around Yerevan.
+            Every guest has to pass <strong>verification</strong> before they're able to buy tickets and attend.{' '}
+            <Link to="/about" className="underline underline-offset-2 text-white/55 hover:text-white/80">Read more</Link>
+          </p>
+          {stats && (
+            <div className="flex gap-6 w-full mt-1">
+              {stats['member'] != null && (
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-xl font-bold">{stats['member']}</span>
+                  <span className="text-xs text-white/40 uppercase tracking-widest">Members</span>
+                </div>
+              )}
+              {stats['verified'] != null && (
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-xl font-bold">{stats['verified']}</span>
+                  <span className="text-xs text-white/40 uppercase tracking-widest">Verified</span>
+                </div>
+              )}
+            </div>
+          )}
         </Section>
       )}
 
-      {/* Guest: sign up */}
-      {!me && (
-        <Section title="Wanna join the fun?" subtitle="Sign up to get verified">
-          <div className="flex gap-2 w-full max-w-96">
-            <GoogleButton text="Sign up" variant="primary" redirectUrl="/" className="flex-1" style={{ maxWidth: 'none' }} />
-            <GoogleButton text="Log in" variant="outline" redirectUrl="/" className="flex-1" style={{ maxWidth: 'none' }} />
-          </div>
+      {/* Logged-in: photo carousel */}
+      {me && Array.isArray(allPhotos) && allPhotos.length > 0 && (
+        <Section>
+          <AlbumCarousel photos={allPhotos} />
         </Section>
       )}
 
