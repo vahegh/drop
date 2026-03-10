@@ -44,7 +44,8 @@ export interface VenueResponse {
   id: string
   name: string
   short_name: string
-  address: string | null
+  area: string
+  address: string
   latitude: number
   longitude: number
   google_maps_link: string

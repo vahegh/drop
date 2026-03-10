@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useAdminVenue, useAdminCreateVenue, useAdminUpdateVenue } from '../../hooks/useAdmin'
 
-const EMPTY = { name: '', short_name: '', address: '', latitude: '', longitude: '', google_maps_link: '', yandex_maps_link: '' }
+const EMPTY = { name: '', short_name: '', area: '', address: '', latitude: '', longitude: '', google_maps_link: '', yandex_maps_link: '' }
 type FormKey = keyof typeof EMPTY
 
 function Field({ label, value, onChange, placeholder, type = 'text' }: {
@@ -33,8 +33,8 @@ export default function AdminVenueForm() {
 
   useEffect(() => {
     if (existing) setForm({
-      name: existing.name ?? '', short_name: existing.short_name ?? '', address: existing.address ?? '',
-      latitude: String(existing.latitude ?? ''), longitude: String(existing.longitude ?? ''),
+      name: existing.name ?? '', short_name: existing.short_name ?? '', area: existing.area ?? '',
+      address: existing.address ?? '', latitude: String(existing.latitude ?? ''), longitude: String(existing.longitude ?? ''),
       google_maps_link: existing.google_maps_link ?? '', yandex_maps_link: existing.yandex_maps_link ?? '',
     })
   }, [existing])
@@ -46,12 +46,12 @@ export default function AdminVenueForm() {
     try {
       const body: Record<string, unknown> = {
         name: form.name, short_name: form.short_name,
+        area: form.area, address: form.address,
         latitude: parseFloat(form.latitude) || 0,
         longitude: parseFloat(form.longitude) || 0,
         google_maps_link: form.google_maps_link,
         yandex_maps_link: form.yandex_maps_link,
       }
-      if (form.address) body.address = form.address
       if (isEdit) await update({ id: id!, body })
       else await create(body)
       navigate(isEdit ? `/admin/venues/${id}` : '/admin/venues')
@@ -70,7 +70,8 @@ export default function AdminVenueForm() {
       <Section title="Details" />
       <Field label="Name" value={form.name} onChange={v => set('name', v)} />
       <Field label="Short Name" value={form.short_name} onChange={v => set('short_name', v)} />
-      <Field label="Address (optional)" value={form.address} onChange={v => set('address', v)} />
+      <Field label="Area" value={form.area} onChange={v => set('area', v)} placeholder="e.g. Kentron" />
+      <Field label="Address" value={form.address} onChange={v => set('address', v)} />
 
       <Section title="Coordinates" />
       <Field label="Latitude" value={form.latitude} onChange={v => set('latitude', v)} type="number" placeholder="40.1792" />
