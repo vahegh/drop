@@ -323,21 +323,15 @@ async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest, 
 async def refund_payment(payment: Payment):
     match payment.provider:
         case PaymentProvider.VPOS | PaymentProvider.APPLEPAY | PaymentProvider.GOOGLEPAY:
-            try:
-                await cancel_payment_vpos(payment.upstream_payment_id)
-            except Exception as e:
-                logger.error(f"Unable to cancel VPOS/ApplePay/GooglePay payment: {str(e)}")
+            await cancel_payment_vpos(payment.upstream_payment_id)
 
         case PaymentProvider.MYAMERIA:
-            try:
-                await refund_payment_myameria(
-                    MyAmeriaPaymentRefundRequest(transactionId=str(payment.order_id))
-                )
-            except Exception as e:
-                logger.error(f"Unable to refund MyAmeria payment: {str(e)}")
+            await refund_payment_myameria(
+                MyAmeriaPaymentRefundRequest(transactionId=str(payment.order_id))
+            )
 
         case _:
-            logger.error(f"Wrong payment provider: {payment.provider}")
+            raise ValueError(f"Unsupported payment provider for refund: {payment.provider}")
 
     payment = await update_payment(
         payment.order_id,
