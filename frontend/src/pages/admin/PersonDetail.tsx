@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { useAdminPerson, useAdminUpdatePersonStatus, useAdminDeletePerson, useAdminDeleteTicket, useAdminDeletePayment } from '../../hooks/useAdmin'
+import { useAdminPerson, useAdminUpdatePersonStatus, useAdminDeletePerson, useAdminDeleteTicket, useAdminDeletePayment, useAdminRefundPayment } from '../../hooks/useAdmin'
 
 const STATUS_BG: Record<string, string> = {
   pending: '#555', verified: '#1a6e3c', member: '#4a2fa0', rejected: '#7a1010',
@@ -44,6 +44,7 @@ export default function AdminPersonDetail() {
   const { mutateAsync: deletePerson, isPending: deletingPerson } = useAdminDeletePerson()
   const { mutateAsync: deleteTicket } = useAdminDeleteTicket()
   const { mutateAsync: deletePayment } = useAdminDeletePayment()
+  const { mutateAsync: refundPayment } = useAdminRefundPayment()
 
   function confirm(status: string) {
     if (window.confirm(`Set status to ${status}?`)) {
@@ -65,6 +66,11 @@ export default function AdminPersonDetail() {
   async function handleDeletePayment(orderId: number) {
     if (!window.confirm(`Delete payment #${orderId}?`)) return
     await deletePayment(orderId)
+  }
+
+  async function handleRefundPayment(orderId: number) {
+    if (!window.confirm(`Refund payment #${orderId}?`)) return
+    await refundPayment(orderId)
   }
 
   if (isLoading || !person) {
@@ -175,6 +181,7 @@ export default function AdminPersonDetail() {
                       color: p.status === 'CONFIRMED' ? '#4caf50' : p.status === 'REFUNDED' ? '#ffa726' : p.status === 'REJECTED' ? '#f44' : '#888',
                     }}>{p.status}</span>
                   </div>
+                  {p.status === 'CONFIRMED' && <button onClick={() => handleRefundPayment(p.order_id)} style={{ background: 'none', border: 'none', color: '#ffa726', fontSize: 11, fontWeight: 600, cursor: 'pointer', padding: '4px 6px', lineHeight: 1 }} title="Refund payment">Refund</button>}
                   {p.status === 'CREATED' && <button onClick={() => handleDeletePayment(p.order_id)} style={{ background: 'none', border: 'none', color: '#555', fontSize: 16, cursor: 'pointer', padding: '4px 6px', lineHeight: 1 }} title="Delete payment">×</button>}
                 </div>
               </div>

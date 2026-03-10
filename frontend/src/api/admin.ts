@@ -76,6 +76,9 @@ export const adminDeleteTicket = (id: string) =>
 export const adminDeletePayment = (orderId: number) =>
   adminClient.delete(`/payments/${orderId}`)
 
+export const adminRefundPayment = (orderId: number) =>
+  adminClient.post(`/payments/${orderId}/refund`).then(r => r.data)
+
 export const adminGetTiers = (eventId: string) =>
   adminClient.get(`/events/${eventId}/tiers`).then(r => r.data)
 

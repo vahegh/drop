@@ -160,6 +160,14 @@ export function useAdminDeletePayment() {
   })
 }
 
+export function useAdminRefundPayment() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (orderId: number) => api.adminRefundPayment(orderId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'person'] }),
+  })
+}
+
 export function useAdminTiers(eventId: string) {
   return useQuery({ queryKey: ['admin', 'tiers', eventId], queryFn: () => api.adminGetTiers(eventId), enabled: !!eventId })
 }
