@@ -1,16 +1,16 @@
+from fastapi import HTTPException
+from api_models import (VPOSInitPaymentRequest, VPOSPaymentDetailsResponse,
+                        VPOSPaymentDetailsRequest, VPOSBindingsRequest,
+                        VPOSBindingsResponse, VPOSDeactivateBindingRequest,
+                        VPOSMakeBindingPaymentRequest, VPOSMakeBindingPaymentResponse,
+                        VPOSCancelPaymentRequest, VPOSCancelPaymentResponse)
+from consts import APP_BASE_URL
 import os
 import logging
 import httpx
 from uuid import uuid4
 
 logger = logging.getLogger(__name__)
-from consts import APP_BASE_URL
-from api_models import (VPOSInitPaymentRequest, VPOSPaymentDetailsResponse,
-                        VPOSPaymentDetailsRequest, VPOSBindingsRequest,
-                        VPOSBindingsResponse, VPOSDeactivateBindingRequest,
-                        VPOSMakeBindingPaymentRequest, VPOSMakeBindingPaymentResponse,
-                        VPOSCancelPaymentRequest, VPOSCancelPaymentResponse)
-from fastapi import HTTPException
 
 VPOS_BASE_URL = os.environ["vpos_base_url"]
 VPOS_CALLBACK_ENDPOINT = 'callback/vpos'
@@ -132,6 +132,7 @@ async def cancel_payment_vpos(id):
         response.raise_for_status()
         response = VPOSCancelPaymentResponse(**response.json())
         if response.ResponseCode != "00":
-            logger.error(f"VPOS CancelPayment failed: code={response.ResponseCode} message={response.ResponseMessage} payment_id={id}")
+            logger.error(
+                f"VPOS CancelPayment failed: code={response.ResponseCode} message={response.ResponseMessage} payment_id={id}")
             raise HTTPException(400, response.ResponseMessage)
         return response
