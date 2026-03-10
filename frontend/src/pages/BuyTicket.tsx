@@ -76,6 +76,7 @@ export default function BuyTicket() {
   const [lookupResult, setLookupResult] = useState<CheckEmailResponse | null>(null)
   const [addStep, setAddStep] = useState<'idle' | 'found' | 'create'>('idle')
   const [addSearching, setAddSearching] = useState(false)
+  const [addError, setAddError] = useState<string | null>(null)
   const [newFirst, setNewFirst] = useState('')
   const [newLast, setNewLast] = useState('')
   const [newInstagram, setNewInstagram] = useState('')
@@ -427,8 +428,9 @@ export default function BuyTicket() {
 
   function handleAddExisting() {
     if (!lookupResult?.id || !lookupResult.full_name) return
-    if (lookupResult.id === me.id) return
-    if (additionalAttendees.some(a => a.kind === 'existing' && a.id === lookupResult.id)) return
+    if (lookupResult.id === me.id) { setAddError('That\'s you — already included.'); return }
+    if (additionalAttendees.some(a => a.kind === 'existing' && a.id === lookupResult.id)) { setAddError('This person is already added.'); return }
+    setAddError(null)
     setAdditionalAttendees(prev => [...prev, {
       kind: 'existing',
       id: lookupResult.id!,
@@ -441,8 +443,9 @@ export default function BuyTicket() {
   function handleAddNew() {
     if (!newFirst.trim() || !newLast.trim() || !addEmail.trim()) return
     const email = addEmail.trim()
-    if (email === me.email) return
-    if (additionalAttendees.some(a => a.kind === 'new' && a.email === email)) return
+    if (email === me.email) { setAddError('That\'s your own email — already included.'); return }
+    if (additionalAttendees.some(a => a.kind === 'new' && a.email === email)) { setAddError('This person is already added.'); return }
+    setAddError(null)
     setAdditionalAttendees(prev => [...prev, {
       kind: 'new',
       email,
@@ -460,6 +463,7 @@ export default function BuyTicket() {
     setNewFirst('')
     setNewLast('')
     setNewInstagram('')
+    setAddError(null)
   }
 
   async function handlePay() {
@@ -591,6 +595,7 @@ export default function BuyTicket() {
                 {resolvePrice(tiers, lookupResult.status ?? undefined, flatFallback).toLocaleString()} AMD
               </span>
             </div>
+            {addError && <p className="text-xs" style={{ color: 'var(--drop-negative)' }}>{addError}</p>}
             <div className="flex gap-2">
               <button onClick={handleAddExisting} className="btn-primary flex-1 py-2 text-sm">Add</button>
               <button onClick={resetAddForm} className="text-sm text-white/45 hover:text-white/70 px-3">Cancel</button>
@@ -619,6 +624,7 @@ export default function BuyTicket() {
               <input type="text" value={newInstagram} onChange={e => setNewInstagram(e.target.value)} placeholder="@handle"
                 className="w-full bg-white/8 rounded-xl px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-white/30 placeholder:text-white/20" />
             </div>
+            {addError && <p className="text-xs" style={{ color: 'var(--drop-negative)' }}>{addError}</p>}
             <div className="flex gap-2">
               <button onClick={handleAddNew} className="btn-primary flex-1 py-2 text-sm">Add</button>
               <button onClick={resetAddForm} className="text-sm text-white/45 hover:text-white/70 px-3">Cancel</button>
