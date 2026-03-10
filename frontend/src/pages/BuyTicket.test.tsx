@@ -81,7 +81,6 @@ describe('BuyTicket', () => {
     wrapper()
     expect(screen.getByText('Payment method')).toBeInTheDocument()
     expect(screen.getByText('Card')).toBeInTheDocument()
-    expect(screen.getByText('IDRAM')).toBeInTheDocument()
   })
 
   it('shows member ticket price for member user', () => {

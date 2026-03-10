@@ -13,7 +13,6 @@ import type { PaymentProvider } from '../types'
 const PROVIDERS: { label: string; icon: string; value: PaymentProvider }[] = [
   { label: 'Card', icon: '/static/images/visa.svg', value: 'VPOS' },
   { label: 'MyAmeria', icon: '/static/images/myameria.png', value: 'MYAMERIA' },
-  { label: 'IDRAM', icon: '/static/images/idram.png', value: 'IDRAM' },
   { label: 'Apple Pay', icon: '/static/images/applePay.svg', value: 'APPLEPAY' },
   { label: 'Google Pay', icon: '/static/images/google_pay.svg', value: 'GOOGLEPAY' },
 ]

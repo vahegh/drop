@@ -29,8 +29,6 @@ STATUS_CHANGE_SUBJECT = "Application Status Change"
 MEMBER_PASS_SUBJECT = "Your Membership Pass"
 EVENT_TICKET_SUBJECT = "Your Ticket For {event_name}"
 
-IDRAM_PAYMENT_URL = os.environ["idram_payment_url"]
-idram_merchant_id = os.environ["idram_merchant_id"]
 
 DROP_SPOTIFY_URL = 'https://open.spotify.com/playlist/49t6kUgW6nB7Kcv4d357qy?si=e5527a59df38401f'
 DROP_YOUTUBE_URL = 'https://www.youtube.com/@dropdeadisco'

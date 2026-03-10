@@ -148,7 +148,7 @@ export function useAdminDeleteTicket() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => api.adminDeleteTicket(id),
-    onSuccess: (_data, id, _ctx) => qc.invalidateQueries({ queryKey: ['admin', 'person'] }),
+    onSuccess: (_data, _id, _ctx) => qc.invalidateQueries({ queryKey: ['admin', 'person'] }),
   })
 }
 

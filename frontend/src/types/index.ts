@@ -2,7 +2,7 @@
 
 export type PersonStatus = 'pending' | 'verified' | 'rejected' | 'member'
 export type PaymentStatus = 'CREATED' | 'PENDING' | 'CONFIRMED' | 'REJECTED' | 'REFUNDED'
-export type PaymentProvider = 'VPOS' | 'MYAMERIA' | 'IDRAM' | 'APPLEPAY' | 'GOOGLEPAY' | 'BINDING'
+export type PaymentProvider = 'VPOS' | 'MYAMERIA' | 'APPLEPAY' | 'GOOGLEPAY' | 'BINDING'
 
 export interface VenueResponse {
   id: string

@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from decorators import with_db
 from services.ecrm import ecrm_print
 from services.member_pass import send_member_pass
-from consts import APP_BASE_URL_NO_PROTO, idram_merchant_id
+from consts import APP_BASE_URL_NO_PROTO
 from enums import PersonStatus, PaymentStatus, PaymentProvider
 from services.telegram import notify_payment_confirmed
 from services.myameria_payment import MYAMERIA_PAY_URL, myameria_merchant_id
@@ -100,10 +100,6 @@ async def init_payment(payment: Payment, save_card=False):
                 return url
             except Exception as e:
                 raise HTTPException(500, f"Unable to create MyAmeria payment: {str(e)}")
-
-        case PaymentProvider.IDRAM:
-            url = f"idramapp://payment?receiverName=Drop+Dead+Disco&receiverId={idram_merchant_id}&title={str(payment.order_id)}&amount={str(payment.amount)}"
-            return url
 
         case _:
             raise HTTPException(404, "Payment provider not found")
@@ -312,9 +308,6 @@ async def refund_payment(payment: Payment):
                 )
             except Exception as e:
                 logger.error(f"Unable to refund MyAmeria payment: {str(e)}")
-
-        case PaymentProvider.IDRAM:
-            logger.error("Idram selected for refund")
 
         case _:
             logger.error(f"Wrong payment provider: {payment.provider}")
