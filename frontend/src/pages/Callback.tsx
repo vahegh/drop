@@ -20,6 +20,7 @@ export default function Callback() {
 
   const [result, setResult] = useState<PaymentConfirmResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [alreadyProcessed, setAlreadyProcessed] = useState(false)
 
   useEffect(() => {
     // VPOS uses camelCase with capital ID (orderID, paymentID)
@@ -61,7 +62,13 @@ export default function Callback() {
           }
         }
       })
-      .catch(() => setError('Payment confirmation failed.'))
+      .catch((err) => {
+        if (err?.response?.status === 409) {
+          setAlreadyProcessed(true)
+        } else {
+          setError('Payment confirmation failed.')
+        }
+      })
   }, [])
 
   if (error) return (
@@ -73,6 +80,27 @@ export default function Callback() {
           <p className="text-sm text-white/45 mt-1">{error}</p>
         </div>
         <button onClick={() => navigate('/')} className="btn-outline">Go home</button>
+      </div>
+    </Layout>
+  )
+
+  if (alreadyProcessed) return (
+    <Layout>
+      <div className="flex flex-col items-center justify-center gap-6 min-h-[70vh] text-center w-full max-w-96">
+        <div
+          className="text-6xl font-bold w-24 h-24 rounded-full flex items-center justify-center"
+          style={{ background: 'rgba(0,201,81,0.15)', color: '#00c951' }}
+        >
+          ✓
+        </div>
+        <div>
+          <h1 className="text-xl font-bold">Payment already processed</h1>
+          <p className="text-sm text-white/55 mt-2">Your tickets have already been issued.</p>
+        </div>
+        <div className="flex flex-col gap-2 w-full">
+          <button onClick={() => navigate('/profile')} className="btn-primary">View tickets</button>
+          <button onClick={() => navigate('/')} className="btn-outline">Go home</button>
+        </div>
       </div>
     </Layout>
   )
