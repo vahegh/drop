@@ -1,7 +1,8 @@
 from uuid import UUID
 from fastapi import APIRouter
+from fastapi.responses import Response
 from api_models import VenueCreate, VenueUpdate
-from services.venue import get_all_venues, get_venue_info, create_venue, update_venue
+from services.venue import get_all_venues, get_venue_info, create_venue, update_venue, delete_venue
 
 router = APIRouter(tags=["Admin Venues"], prefix="/venues")
 
@@ -24,3 +25,9 @@ async def create_venue_endpoint(body: VenueCreate):
 @router.patch("/{id}")
 async def update_venue_endpoint(id: UUID, body: VenueUpdate):
     return await update_venue(id, body)
+
+
+@router.delete("/{id}", status_code=204)
+async def delete_venue_endpoint(id: UUID):
+    await delete_venue(id)
+    return Response(status_code=204)

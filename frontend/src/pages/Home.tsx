@@ -135,10 +135,10 @@ export default function Home() {
       )}
 
       {/* Member: Google Photos */}
-      {me?.status === 'member' && me.drive_folder_url && (
+      {me?.status === 'member' && me.album_url && (
         <Section title="You at Drop" subtitle="Your photos in full quality" sep>
           <a
-            href={`${me.drive_folder_url}?authuser=${me.email}`}
+            href={`${me.album_url}?authuser=${me.email}`}
             
             rel="noopener noreferrer"
             className="btn-outline"

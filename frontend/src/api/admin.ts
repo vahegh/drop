@@ -45,3 +45,33 @@ export const adminCreatePerson = (body: Record<string, unknown>) =>
 
 export const adminGetPayments = () =>
   adminClient.get('/payments').then(r => r.data)
+
+export const adminUpdatePerson = (id: string, body: Record<string, unknown>) =>
+  adminClient.patch(`/people/${id}`, body).then(r => r.data)
+
+export const adminGetDrinks = () =>
+  adminClient.get('/drinks').then(r => r.data)
+
+export const adminCreateDrink = (body: Record<string, unknown>) =>
+  adminClient.post('/drinks', body).then(r => r.data)
+
+export const adminUpdateDrink = (id: string, body: Record<string, unknown>) =>
+  adminClient.patch(`/drinks/${id}`, body).then(r => r.data)
+
+export const adminDeletePerson = (id: string) =>
+  adminClient.delete(`/people/${id}`)
+
+export const adminDeleteEvent = (id: string) =>
+  adminClient.delete(`/events/${id}`)
+
+export const adminDeleteVenue = (id: string) =>
+  adminClient.delete(`/venues/${id}`)
+
+export const adminDeleteDrink = (id: string) =>
+  adminClient.delete(`/drinks/${id}`)
+
+export const adminDeleteTicket = (id: string) =>
+  adminClient.delete(`/tickets/${id}`)
+
+export const adminDeletePayment = (orderId: number) =>
+  adminClient.delete(`/payments/${orderId}`)

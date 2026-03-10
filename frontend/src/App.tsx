@@ -19,7 +19,8 @@ import AdminEventForm from './pages/admin/EventForm'
 import AdminVenues from './pages/admin/Venues'
 import AdminVenueDetail from './pages/admin/VenueDetail'
 import AdminVenueForm from './pages/admin/VenueForm'
-import AdminPayments from './pages/admin/Payments'
+import AdminPersonForm from './pages/admin/PersonForm'
+import AdminDrinks from './pages/admin/Drinks'
 
 export default function App() {
   return (
@@ -39,6 +40,7 @@ export default function App() {
           <Route index element={<Navigate to="/admin/people" replace />} />
           <Route path="people" element={<AdminPeople />} />
           <Route path="people/:id" element={<AdminPersonDetail />} />
+          <Route path="people/:id/edit" element={<AdminPersonForm />} />
           <Route path="events" element={<AdminEvents />} />
           <Route path="events/create" element={<AdminEventForm />} />
           <Route path="events/:id" element={<AdminEventDetail />} />
@@ -47,7 +49,7 @@ export default function App() {
           <Route path="venues/create" element={<AdminVenueForm />} />
           <Route path="venues/:id" element={<AdminVenueDetail />} />
           <Route path="venues/:id/edit" element={<AdminVenueForm />} />
-          <Route path="payments" element={<AdminPayments />} />
+          <Route path="drinks" element={<AdminDrinks />} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>

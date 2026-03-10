@@ -47,6 +47,26 @@ export interface CardBindingResponse {
   updated_at: string | null
 }
 
+export interface PaymentResponse {
+  order_id: number
+  person_id: string
+  event_id: string | null
+  amount: number
+  provider: PaymentProvider
+  status: PaymentStatus
+  created_at: string
+  updated_at: string | null
+}
+
+export interface DrinkVoucherAdminResponse {
+  id: string
+  drink_id: string
+  drink_name: string
+  payment_order_id: number | null
+  created_at: string
+  used_at: string | null
+}
+
 export interface PersonResponseFull {
   id: string
   first_name: string
@@ -61,9 +81,12 @@ export interface PersonResponseFull {
   event_tickets: EventTicketResponse[]
   events_attended: number
   referral_count: number
-  drive_folder_url: string | null
+  album_url: string | null
   card_bindings: CardBindingResponse[]
   is_admin: boolean
+  referer_id: string | null
+  payments: PaymentResponse[]
+  drink_vouchers: DrinkVoucherAdminResponse[]
 }
 
 export interface EventResponse {

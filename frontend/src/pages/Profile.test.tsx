@@ -28,7 +28,7 @@ const mockMe = {
   events_attended: 3,
   event_tickets: [],
   member_pass: null,
-  drive_folder_url: null,
+  album_url: null,
 }
 
 function wrapper(ui: React.ReactElement) {

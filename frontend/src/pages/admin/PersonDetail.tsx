@@ -1,5 +1,5 @@
-import { useParams, Link } from 'react-router-dom'
-import { useAdminPerson, useAdminUpdatePersonStatus } from '../../hooks/useAdmin'
+import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useAdminPerson, useAdminUpdatePersonStatus, useAdminDeletePerson, useAdminDeleteTicket, useAdminDeletePayment } from '../../hooks/useAdmin'
 
 const STATUS_BG: Record<string, string> = {
   pending: '#555', verified: '#1a6e3c', member: '#4a2fa0', rejected: '#7a1010',
@@ -38,13 +38,33 @@ function fmt(iso?: string | null) {
 
 export default function AdminPersonDetail() {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const { data: person, isLoading } = useAdminPerson(id!)
   const { mutate: updateStatus, isPending } = useAdminUpdatePersonStatus()
+  const { mutateAsync: deletePerson, isPending: deletingPerson } = useAdminDeletePerson()
+  const { mutateAsync: deleteTicket } = useAdminDeleteTicket()
+  const { mutateAsync: deletePayment } = useAdminDeletePayment()
 
   function confirm(status: string) {
     if (window.confirm(`Set status to ${status}?`)) {
       updateStatus({ id: id!, status })
     }
+  }
+
+  async function handleDeletePerson() {
+    if (!window.confirm(`Permanently delete ${person?.full_name}? This cannot be undone.`)) return
+    await deletePerson(id!)
+    navigate('/admin/people')
+  }
+
+  async function handleDeleteTicket(ticketId: string) {
+    if (!window.confirm('Delete this ticket?')) return
+    await deleteTicket(ticketId)
+  }
+
+  async function handleDeletePayment(orderId: number) {
+    if (!window.confirm(`Delete payment #${orderId}?`)) return
+    await deletePayment(orderId)
   }
 
   if (isLoading || !person) {
@@ -54,10 +74,15 @@ export default function AdminPersonDetail() {
   const statusBg = STATUS_BG[person.status] ?? '#333'
   const tickets = person.event_tickets ?? []
   const bindings = person.card_bindings ?? []
+  const payments = person.payments ?? []
+  const drinkVouchers = person.drink_vouchers ?? []
 
   return (
     <div style={{ padding: 24, maxWidth: 600 }}>
-      <Link to="/admin/people" style={{ color: '#555', fontSize: 13, textDecoration: 'none', display: 'inline-block', marginBottom: 20 }}>← Back</Link>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+        <Link to="/admin/people" style={{ color: '#555', fontSize: 13, textDecoration: 'none' }}>← Back</Link>
+        <Link to={`/admin/people/${id}/edit`} style={{ color: '#5b8fff', fontSize: 13, textDecoration: 'none', fontWeight: 500 }}>Edit</Link>
+      </div>
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 28 }}>
@@ -106,11 +131,11 @@ export default function AdminPersonDetail() {
       )}
 
       {/* Drive */}
-      {person.drive_folder_url && (
+      {person.album_url && (
         <>
           <SectionTitle title="Drive" />
           <Card>
-            <InfoRow label="Folder" value="Open in Drive" href={person.drive_folder_url} />
+            <InfoRow label="Folder" value="Open in Drive" href={person.album_url} />
           </Card>
         </>
       )}
@@ -130,6 +155,34 @@ export default function AdminPersonDetail() {
         </>
       )}
 
+      {/* Payments */}
+      {payments.length > 0 && (
+        <>
+          <SectionTitle title={`Payments (${payments.length})`} />
+          <Card>
+            {payments.map((p: any) => (
+              <div key={p.order_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid #1a1a1a' }}>
+                <div>
+                  <div style={{ color: '#fff', fontSize: 13, fontWeight: 600, fontFamily: 'monospace' }}>#{p.order_id}</div>
+                  <div style={{ color: '#555', fontSize: 11, marginTop: 2 }}>{p.provider} · {fmt(p.created_at)}</div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ color: '#fff', fontSize: 13, fontWeight: 600 }}>{p.amount.toLocaleString()} AMD</div>
+                    <span style={{
+                      fontSize: 10, fontWeight: 600, padding: '2px 6px', borderRadius: 4, marginTop: 3, display: 'inline-block',
+                      background: p.status === 'CONFIRMED' ? '#1a3d28' : p.status === 'REFUNDED' ? '#3d2a00' : p.status === 'REJECTED' ? '#3d1010' : '#1a1a1a',
+                      color: p.status === 'CONFIRMED' ? '#4caf50' : p.status === 'REFUNDED' ? '#ffa726' : p.status === 'REJECTED' ? '#f44' : '#888',
+                    }}>{p.status}</span>
+                  </div>
+                  <button onClick={() => handleDeletePayment(p.order_id)} style={{ background: 'none', border: 'none', color: '#555', fontSize: 16, cursor: 'pointer', padding: '4px 6px', lineHeight: 1 }} title="Delete payment">×</button>
+                </div>
+              </div>
+            ))}
+          </Card>
+        </>
+      )}
+
       {/* Tickets */}
       {tickets.length > 0 && (
         <>
@@ -139,14 +192,44 @@ export default function AdminPersonDetail() {
               <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid #1a1a1a' }}>
                 <div>
                   <div style={{ color: '#fff', fontSize: 13, fontWeight: 600, fontFamily: 'monospace' }}>#{t.id.slice(0, 8)}</div>
-                  <div style={{ color: '#555', fontSize: 11, marginTop: 2 }}>{fmt(t.created_at)}</div>
+                  <div style={{ color: '#555', fontSize: 11, marginTop: 2 }}>
+                    {fmt(t.created_at)}
+                    {t.payment_order_id && <span style={{ color: '#444', marginLeft: 6 }}>· order #{t.payment_order_id}</span>}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{
+                    fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 6,
+                    background: t.attended_at ? '#1a3d28' : '#1a1a1a',
+                    color: t.attended_at ? '#4caf50' : '#555',
+                  }}>
+                    {t.attended_at ? 'attended' : 'not attended'}
+                  </span>
+                  <button onClick={() => handleDeleteTicket(t.id)} style={{ background: 'none', border: 'none', color: '#555', fontSize: 16, cursor: 'pointer', padding: '4px 6px', lineHeight: 1 }} title="Delete ticket">×</button>
+                </div>
+              </div>
+            ))}
+          </Card>
+        </>
+      )}
+
+      {/* Drink Vouchers */}
+      {drinkVouchers.length > 0 && (
+        <>
+          <SectionTitle title={`Drink Vouchers (${drinkVouchers.length})`} />
+          <Card>
+            {drinkVouchers.map((v: any) => (
+              <div key={v.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid #1a1a1a' }}>
+                <div>
+                  <div style={{ color: '#fff', fontSize: 13, fontWeight: 600 }}>{v.drink_name}</div>
+                  <div style={{ color: '#555', fontSize: 11, marginTop: 2 }}>{fmt(v.created_at)}</div>
                 </div>
                 <span style={{
                   fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 6,
-                  background: t.attended_at ? '#1a3d28' : '#1a1a1a',
-                  color: t.attended_at ? '#4caf50' : '#555',
+                  background: v.used_at ? '#1a3d28' : '#1a1a1a',
+                  color: v.used_at ? '#4caf50' : '#888',
                 }}>
-                  {t.attended_at ? 'attended' : 'not attended'}
+                  {v.used_at ? `used ${fmt(v.used_at)}` : 'unused'}
                 </span>
               </div>
             ))}
@@ -155,6 +238,12 @@ export default function AdminPersonDetail() {
       )}
 
       {/* Actions */}
+      <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+        <button onClick={handleDeletePerson} disabled={deletingPerson}
+          style={{ flex: 1, height: 48, background: '#1a0a0a', color: '#f44', border: '1px solid #3d1010', borderRadius: 10, fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
+          {deletingPerson ? 'Deleting…' : 'Delete Person'}
+        </button>
+      </div>
       <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
         {person.status !== 'verified' && (
           <button onClick={() => confirm('verified')} disabled={isPending}

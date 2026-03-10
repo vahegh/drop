@@ -43,7 +43,7 @@ async def user_info(db: AsyncSession, request: Request):
         event_tickets=event_tickets,
         events_attended=attendance,
         referral_count=referral_count,
-        drive_folder_url=person.drive_folder_url,
+        album_url=person.album_url,
         card_bindings=card_bindings,
         is_admin=person.email in admins,
     )

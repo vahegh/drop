@@ -114,12 +114,17 @@ export default function AdminPeople() {
           {(data ?? []).length === 0 ? (
             <div className="text-[#555] text-sm text-center py-10">No people found</div>
           ) : (
-            (data ?? []).map((person: any, i: number) => (
+            (() => {
+              const ORDER: Record<string, number> = { pending: 0, member: 1, verified: 2, rejected: 3 }
+              const sorted = [...(data ?? [])].sort((a: any, b: any) =>
+                (ORDER[a.status] ?? 9) - (ORDER[b.status] ?? 9)
+              )
+              return sorted.map((person: any, i: number) => (
               <Link
                 key={person.id}
                 to={`/admin/people/${person.id}`}
                 className="flex items-center justify-between px-4 py-3 no-underline hover:bg-[#161616] transition-colors"
-                style={{ borderBottom: i < data.length - 1 ? '1px solid #1a1a1a' : 'none' }}
+                style={{ borderBottom: i < sorted.length - 1 ? '1px solid #1a1a1a' : 'none' }}
               >
                 <span className="text-white text-[15px]">{person.first_name} {person.last_name}</span>
                 <span className="px-2.5 py-1 rounded-full text-[11px] font-medium text-white"
@@ -128,6 +133,7 @@ export default function AdminPeople() {
                 </span>
               </Link>
             ))
+            })()
           )}
         </div>
       )}

@@ -1,5 +1,5 @@
-import { useParams, Link } from 'react-router-dom'
-import { useAdminVenue } from '../../hooks/useAdmin'
+import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useAdminVenue, useAdminDeleteVenue } from '../../hooks/useAdmin'
 
 function InfoRow({ label, value }: { label: string; value?: string | number | null }) {
   if (value == null || value === '') return null
@@ -13,7 +13,15 @@ function InfoRow({ label, value }: { label: string; value?: string | number | nu
 
 export default function AdminVenueDetail() {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const { data: venue, isLoading } = useAdminVenue(id!)
+  const { mutateAsync: deleteVenue, isPending: deleting } = useAdminDeleteVenue()
+
+  async function handleDelete() {
+    if (!window.confirm(`Delete "${venue?.name}"? This cannot be undone.`)) return
+    await deleteVenue(id!)
+    navigate('/admin/venues')
+  }
 
   if (isLoading || !venue) return <div style={{ color: '#555', textAlign: 'center', padding: 40 }}>Loading...</div>
 
@@ -21,7 +29,12 @@ export default function AdminVenueDetail() {
     <div style={{ padding: 24, maxWidth: 600 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <Link to="/admin/venues" style={{ color: '#555', fontSize: 13, textDecoration: 'none' }}>← Back</Link>
-        <Link to={`/admin/venues/${id}/edit`} style={{ color: '#fff', fontSize: 13, fontWeight: 600, textDecoration: 'none', background: '#111', border: '1px solid #333', padding: '6px 14px', borderRadius: 8 }}>Edit</Link>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <button onClick={handleDelete} disabled={deleting} style={{ background: 'none', border: 'none', color: '#7a1010', fontSize: 13, cursor: 'pointer', fontWeight: 600 }}>
+            {deleting ? 'Deleting…' : 'Delete'}
+          </button>
+          <Link to={`/admin/venues/${id}/edit`} style={{ color: '#fff', fontSize: 13, fontWeight: 600, textDecoration: 'none', background: '#111', border: '1px solid #333', padding: '6px 14px', borderRadius: 8 }}>Edit</Link>
+        </div>
       </div>
 
       <h1 style={{ color: '#fff', fontSize: 20, fontWeight: 700, marginBottom: 24, marginTop: 0 }}>{venue.name}</h1>

@@ -234,10 +234,10 @@ export default function Profile() {
       )}
 
       {/* Google Drive photos */}
-      {me.drive_folder_url && (
+      {me.album_url && (
         <Section title="You at Drop" subtitle="Your photos from past events, in full quality." sep>
           <a
-            href={`${me.drive_folder_url}?authuser=${me.email}`}
+            href={`${me.album_url}?authuser=${me.email}`}
             
             rel="noopener noreferrer"
             className="btn-outline"

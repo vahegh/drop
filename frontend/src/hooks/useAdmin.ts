@@ -80,3 +80,82 @@ export function useAdminCreatePerson() {
 export function useAdminPayments() {
   return useQuery({ queryKey: ['admin', 'payments'], queryFn: api.adminGetPayments })
 }
+
+export function useAdminUpdatePerson() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, body }: { id: string; body: Record<string, unknown> }) => api.adminUpdatePerson(id, body),
+    onSuccess: (_data, { id }) => {
+      qc.invalidateQueries({ queryKey: ['admin', 'person', id] })
+      qc.invalidateQueries({ queryKey: ['admin', 'people'] })
+    },
+  })
+}
+
+export function useAdminDrinks() {
+  return useQuery({ queryKey: ['admin', 'drinks'], queryFn: api.adminGetDrinks })
+}
+
+export function useAdminCreateDrink() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: api.adminCreateDrink,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'drinks'] }),
+  })
+}
+
+export function useAdminUpdateDrink() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, body }: { id: string; body: Record<string, unknown> }) => api.adminUpdateDrink(id, body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'drinks'] }),
+  })
+}
+
+export function useAdminDeletePerson() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => api.adminDeletePerson(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'people'] }),
+  })
+}
+
+export function useAdminDeleteEvent() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => api.adminDeleteEvent(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'events'] }),
+  })
+}
+
+export function useAdminDeleteVenue() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => api.adminDeleteVenue(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'venues'] }),
+  })
+}
+
+export function useAdminDeleteDrink() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => api.adminDeleteDrink(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'drinks'] }),
+  })
+}
+
+export function useAdminDeleteTicket() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => api.adminDeleteTicket(id),
+    onSuccess: (_data, id, _ctx) => qc.invalidateQueries({ queryKey: ['admin', 'person'] }),
+  })
+}
+
+export function useAdminDeletePayment() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (orderId: number) => api.adminDeletePayment(orderId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'person'] }),
+  })
+}

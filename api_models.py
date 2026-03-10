@@ -57,7 +57,7 @@ class PersonUpdate(BaseModel):
     telegram_handle: Optional[str] = None
     status: Optional[PersonStatus] = None
     avatar_url: Optional[str] = None
-    drive_folder_url: Optional[str] = None
+    album_url: Optional[str] = None
     referer_id: Optional[UUID] = None
 
 
@@ -70,7 +70,7 @@ class PersonResponse(BaseModel):
     telegram_handle: Optional[str]
     status: PersonStatus
     avatar_url: Optional[str]
-    drive_folder_url: Optional[str]
+    album_url: Optional[str]
     referer_id: Optional[UUID]
 
     class Config:
@@ -210,6 +210,9 @@ class PaymentResponse(BaseModel):
     status: PaymentStatus
     created_at: datetime
     updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
 
 
 class PaymentUpdate(BaseModel):
@@ -519,9 +522,34 @@ class PersonResponseFull(BaseModel):
     event_tickets: list[EventTicketResponse] = []
     events_attended: int = 0
     referral_count: int = 0
-    drive_folder_url: Optional[str] = None
+    album_url: Optional[str] = None
     card_bindings: list[CardBindingResponse] = []
     is_admin: bool = False
+    referer_id: Optional[UUID] = None
+    payments: list[PaymentResponse] = []
+    drink_vouchers: list['DrinkVoucherAdminResponse'] = []
+
+
+class DrinkCreate(BaseModel):
+    name: str
+    price: int
+
+
+class DrinkUpdate(BaseModel):
+    name: Optional[str] = None
+    price: Optional[int] = None
+
+
+class DrinkVoucherAdminResponse(BaseModel):
+    id: UUID
+    drink_id: UUID
+    drink_name: str
+    payment_order_id: Optional[int] = None
+    created_at: datetime
+    used_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
 
 
 class DriveFolder(BaseModel):
