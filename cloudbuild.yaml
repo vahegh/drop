@@ -25,7 +25,7 @@ steps:
           "https://api.telegram.org/bot$${TELEGRAM_BOT_TOKEN}/sendMessage" \
           -H "Content-Type: application/json" \
           -d "{\"chat_id\":\"-4997958781\",\"parse_mode\":\"HTML\",
-               \"text\":\"🔨 <b>Drop — Build started</b>\n\n$BRANCH_NAME · <code>$${SHORT}</code>\n<i>$${MSG}</i>\"}")
+               \"text\":\"🔨 <b>Build started</b>\n$BRANCH_NAME · <code>$${SHORT}</code>\n<i>$${MSG}</i>\"}")
         MID=$(echo $${RESP} | grep -o '"message_id":[0-9]*' | grep -o '[0-9]*')
         if [ -z "$${MID}" ]; then
           echo "WARNING: could not extract message_id from Telegram response:"
@@ -58,7 +58,7 @@ steps:
           "https://api.telegram.org/bot$${TELEGRAM_BOT_TOKEN}/editMessageText" \
           -H "Content-Type: application/json" \
           -d "{\"chat_id\":\"-4997958781\",\"message_id\":$${MID},\"parse_mode\":\"HTML\",
-               \"text\":\"🔨 <b>Drop — Building image...</b>\n\n$BRANCH_NAME · <code>$${SHORT}</code>\n<i>$${MSG}</i>\"}"
+               \"text\":\"🔨 <b>Building image...</b>\n$BRANCH_NAME · <code>$${SHORT}</code>\n<i>$${MSG}</i>\"}"
     id: 'notify-building'
     secretEnv: ['TELEGRAM_BOT_TOKEN']
     waitFor: ['pull-cache']
@@ -94,7 +94,7 @@ steps:
           "https://api.telegram.org/bot$${TELEGRAM_BOT_TOKEN}/editMessageText" \
           -H "Content-Type: application/json" \
           -d "{\"chat_id\":\"-4997958781\",\"message_id\":$${MID},\"parse_mode\":\"HTML\",
-               \"text\":\"🔨 <b>Drop — Pushing image...</b>\n\n$BRANCH_NAME · <code>$${SHORT}</code>\n<i>$${MSG}</i>\"}"
+               \"text\":\"🔨 <b>Pushing image...</b>\n$BRANCH_NAME · <code>$${SHORT}</code>\n<i>$${MSG}</i>\"}"
     id: 'notify-pushing'
     secretEnv: ['TELEGRAM_BOT_TOKEN']
     waitFor: ['build']
@@ -121,7 +121,7 @@ steps:
           "https://api.telegram.org/bot$${TELEGRAM_BOT_TOKEN}/editMessageText" \
           -H "Content-Type: application/json" \
           -d "{\"chat_id\":\"-4997958781\",\"message_id\":$${MID},\"parse_mode\":\"HTML\",
-               \"text\":\"🔨 <b>Drop — Deploying to Cloud Run...</b>\n\n$BRANCH_NAME · <code>$${SHORT}</code>\n<i>$${MSG}</i>\"}"
+               \"text\":\"🔨 <b>Deploying to Cloud Run...</b>\n$BRANCH_NAME · <code>$${SHORT}</code>\n<i>$${MSG}</i>\"}"
     id: 'notify-deploying'
     secretEnv: ['TELEGRAM_BOT_TOKEN']
     waitFor: ['push']
@@ -203,7 +203,7 @@ steps:
           "https://api.telegram.org/bot$${TELEGRAM_BOT_TOKEN}/sendMessage" \
           -H "Content-Type: application/json" \
           -d "{\"chat_id\":\"-4997958781\",\"parse_mode\":\"HTML\",
-               \"text\":\"✅ <b>Drop is live</b>\n\n$BRANCH_NAME · <code>$${SHORT}</code>\n<i>$${MSG}</i>\n\n⏱ $${MINS}m $${SECS}s\"}"
+               \"text\":\"✅ <b>Deployed</b>\n$BRANCH_NAME · <code>$${SHORT}</code>\n<i>$${MSG}</i>\n\n⏱ $${MINS}m $${SECS}s\"}"
     id: 'notify-complete'
     secretEnv: ['TELEGRAM_BOT_TOKEN']
     waitFor: ['deploy']
