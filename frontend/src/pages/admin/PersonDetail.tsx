@@ -143,7 +143,7 @@ export default function AdminPersonDetail() {
       {/* Drive */}
       {person.album_url && (
         <>
-          <SectionTitle title="Drive" />
+          <SectionTitle title="Photo Album" />
           <Card>
             <InfoRow label="Album" value="Open in Google Photos" href={person.album_url} />
           </Card>
