@@ -22,7 +22,7 @@ function AlbumSkeleton() {
 }
 
 export default function Home() {
-  const { data: me } = useMe()
+  const { data: me, isLoading: meLoading } = useMe()
   const { data: nextEvent } = useNextEvent()
   const { data: events } = useEvents()
   const { data: tickets } = useTickets()
@@ -40,6 +40,11 @@ export default function Home() {
 
   return (
     <Layout showFooter>
+      {meLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-black/60">
+          <img src="/static/images/logo_white.png" alt="Drop Dead Disco" className="w-32 opacity-90" />
+        </div>
+      )}
       {/* Guest hero */}
       {!me && (
         <Section className="pt-6 pb-2">
