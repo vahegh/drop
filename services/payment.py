@@ -105,32 +105,11 @@ async def init_payment(payment: Payment, save_card=False):
             raise HTTPException(404, "Payment provider not found")
 
 
-@with_db
-async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest, print_receipt=True):
-    # Lock the row so concurrent confirm calls for the same order serialize
-    payment = await db.scalar(
-        select(Payment)
-        .where(Payment.order_id == transaction.order_id)
-        .with_for_update()
-    )
-    if not payment:
-        raise HTTPException(404, "Payment not found")
-
-    if payment.status == PaymentStatus.CONFIRMED:
-        raise HTTPException(409, f"This payment is already processed")
-
-    if payment.status is not PaymentStatus.CREATED:
-        raise HTTPException(400, f"Invalid payment status: {payment.status.value}")
-
-    logger.info(f"Attempting to confirm payment {payment.order_id}")
-
-    ticket_holders = (await db.scalars(select(Person)
-                                       .join(PaymentIntent, PaymentIntent.recipient_id == Person.id)
-                                       .where(PaymentIntent.order_id == payment.order_id))).all()
-
-    # Pre-fetch payment intents with tier snapshots before they get deleted below
-    all_intents = (await db.scalars(select(PaymentIntent).where(PaymentIntent.order_id == payment.order_id))).all()
-
+async def verify_provider_status(
+    transaction: PaymentConfirmRequest,
+    payment: Payment,
+    ticket_holders: list,
+) -> PaymentConfirmResponse:
     match transaction.provider:
         case PaymentProvider.VPOS | PaymentProvider.APPLEPAY | PaymentProvider.GOOGLEPAY:
             try:
@@ -164,12 +143,16 @@ async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest, 
                     except Exception as e:
                         logger.warning(f"Unable to save card binding: {str(e)}")
 
+                return confirm_response
+
+            except HTTPException:
+                raise
             except Exception as e:
                 raise HTTPException(500, f"Unable to check vPOS payment status: {str(e)}")
 
         case PaymentProvider.BINDING:
             if not transaction.payment_id:
-                confirm_response = PaymentConfirmResponse(
+                return PaymentConfirmResponse(
                     order_id=payment.order_id,
                     provider=transaction.provider,
                     status=payment.status,
@@ -178,28 +161,29 @@ async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest, 
                     amount=payment.amount,
                     num_tickets=len(ticket_holders)
                 )
-            else:
-                try:
-                    payment.upstream_payment_id = transaction.payment_id
 
-                    payment_details = await get_payment_details_vpos(transaction.payment_id)
-                    if payment_details.ResponseCode == "00":
-                        payment.status = PaymentStatus.CONFIRMED
+            try:
+                payment.upstream_payment_id = transaction.payment_id
+                payment_details = await get_payment_details_vpos(transaction.payment_id)
+                if payment_details.ResponseCode == "00":
+                    payment.status = PaymentStatus.CONFIRMED
 
-                    confirm_response = PaymentConfirmResponse(
-                        order_id=payment_details.OrderID,
-                        provider=transaction.provider,
-                        payment_id=transaction.payment_id,
-                        status=payment.status,
-                        description=payment_details.Description,
-                        person_id=payment.person_id,
-                        event_id=payment.event_id,
-                        amount=payment.amount,
-                        num_tickets=len(ticket_holders)
-                    )
+                return PaymentConfirmResponse(
+                    order_id=payment_details.OrderID,
+                    provider=transaction.provider,
+                    payment_id=transaction.payment_id,
+                    status=payment.status,
+                    description=payment_details.Description,
+                    person_id=payment.person_id,
+                    event_id=payment.event_id,
+                    amount=payment.amount,
+                    num_tickets=len(ticket_holders)
+                )
 
-                except Exception as e:
-                    raise HTTPException(500, f"Unable to check binding payment status: {str(e)}")
+            except HTTPException:
+                raise
+            except Exception as e:
+                raise HTTPException(500, f"Unable to check binding payment status: {str(e)}")
 
         case PaymentProvider.MYAMERIA:
             try:
@@ -209,7 +193,7 @@ async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest, 
                 if payment_details.isSuccessful:
                     payment.status = PaymentStatus.CONFIRMED
 
-                confirm_response = PaymentConfirmResponse(
+                return PaymentConfirmResponse(
                     order_id=payment_details.transactionId,
                     provider=transaction.provider,
                     payment_id=payment_details.paymentId,
@@ -220,82 +204,133 @@ async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest, 
                     num_tickets=len(ticket_holders)
                 )
 
+            except HTTPException:
+                raise
             except Exception as e:
                 raise HTTPException(500, f"Unable to check MyAmeria payment status: {str(e)}")
 
-    # Persist payment status before side effects — concurrent requests will now see CONFIRMED
+        case _:
+            raise HTTPException(400, f"Unsupported payment provider: {transaction.provider}")
+
+
+async def build_ecrm_items(db: AsyncSession, all_intents: list) -> list[ECRMItem]:
+    adg_code = "79.90"
+    tier_groups: dict[tuple, int] = {}
+
+    for intent in all_intents:
+        if intent.tier_id is not None and intent.tier_price is not None:
+            tier_obj = await db.get(TicketTier, intent.tier_id)
+            key = (
+                intent.tier_price,
+                tier_obj.ecrm_good_code if tier_obj else "0001",
+                tier_obj.ecrm_good_name if tier_obj else "General Admission Event Entry",
+            )
+            tier_groups[key] = tier_groups.get(key, 0) + 1
+
+    return [
+        ECRMItem(quantity=qty, price=price, adgCode=adg_code, goodCode=code, goodName=name)
+        for (price, code, name), qty in tier_groups.items()
+    ]
+
+
+async def run_post_confirmation_effects(
+    db: AsyncSession,
+    payment: Payment,
+    person: Person,
+    ticket_holders: list,
+    all_intents: list,
+    print_receipt: bool,
+):
+    recipient_names = []
+
+    try:
+        for h in ticket_holders:
+            recipient_names.append(f"{h.first_name} {h.last_name}")
+            if h.status == PersonStatus.pending:
+                continue
+
+            event_ticket = EventTicket(
+                person_id=h.id, event_id=payment.event_id, payment_order_id=payment.order_id)
+
+            if h.status == PersonStatus.member:
+                await add_ticket_to_db(event_ticket)
+                member_pass = await db.scalar(select(MemberPass).where(MemberPass.person_id == h.id))
+                await send_member_pass(member_pass, purchase=True)
+            else:
+                await create_event_ticket(event_ticket)
+                await send_event_ticket(event_ticket)
+
+            await delete_payment_intent(payment.order_id, h.id)
+    except Exception as e:
+        logger.error(f"Ticket delivery failed for order {payment.order_id}: {e}")
+
+    try:
+        drinks = await get_drink_payment_intents(payment.order_id)
+        if drinks:
+            for d in drinks:
+                await create_drink_voucher(
+                    DrinkVoucher(
+                        person_id=person.id,
+                        drink_id=d.drink_id,
+                        payment_order_id=payment.order_id
+                    )
+                )
+            await delete_drink_payment_intents(payment.order_id)
+    except Exception as e:
+        logger.error(f"Drink voucher delivery failed for order {payment.order_id}: {e}")
+
+    if print_receipt:
+        try:
+            items = await build_ecrm_items(db, all_intents)
+            await ecrm_print(ECRMPrintRequest(crn=ecrm_crn, cardAmount=payment.amount, items=items))
+        except Exception as e:
+            logger.error(f"ECRM print failed for order {payment.order_id}: {e}")
+
+    try:
+        await notify_payment_confirmed(person, payment, recipient_names)
+    except Exception as e:
+        logger.error(f"Payment notification failed for order {payment.order_id}: {e}")
+
+
+@with_db
+async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest, print_receipt=True):
+    # Lock the row so concurrent confirm calls for the same order serialize
+    payment = await db.scalar(
+        select(Payment)
+        .where(Payment.order_id == transaction.order_id)
+        .with_for_update()
+    )
+    if not payment:
+        raise HTTPException(404, "Payment not found")
+
+    if payment.status == PaymentStatus.CONFIRMED:
+        raise HTTPException(409, "This payment is already processed")
+
+    if payment.status is not PaymentStatus.CREATED:
+        raise HTTPException(400, f"Invalid payment status: {payment.status.value}")
+
+    logger.info(f"Attempting to confirm payment {payment.order_id}")
+
+    ticket_holders = (await db.scalars(
+        select(Person)
+        .join(PaymentIntent, PaymentIntent.recipient_id == Person.id)
+        .where(PaymentIntent.order_id == payment.order_id)
+    )).all()
+
+    # Pre-fetch before intents get deleted in post-confirmation effects
+    all_intents = (await db.scalars(
+        select(PaymentIntent).where(PaymentIntent.order_id == payment.order_id)
+    )).all()
+
+    confirm_response = await verify_provider_status(transaction, payment, ticket_holders)
+
+    # Persist status before side effects — concurrent requests will now see CONFIRMED
     db.add(payment)
     await db.commit()
 
     if payment.status == PaymentStatus.CONFIRMED:
         person = await db.get(Person, payment.person_id)
-
-        recipient_names = []
-        items = []
-
-        try:
-            if ticket_holders:
-                for h in ticket_holders:
-                    recipient_names.append(f"{h.first_name} {h.last_name}")
-                    if h.status == PersonStatus.pending:
-                        continue
-
-                    event_ticket = EventTicket(
-                        person_id=h.id, event_id=payment.event_id, payment_order_id=payment.order_id)
-
-                    if h.status == PersonStatus.member:
-                        await add_ticket_to_db(event_ticket)
-                        member_pass = await db.scalar(select(MemberPass).where(MemberPass.person_id == h.id))
-                        await send_member_pass(member_pass, purchase=True)
-
-                    else:
-                        await create_event_ticket(event_ticket)
-                        await send_event_ticket(event_ticket)
-
-                    await delete_payment_intent(payment.order_id, h.id)
-
-            drinks = await get_drink_payment_intents(payment.order_id)
-            if drinks:
-                for d in drinks:
-                    await create_drink_voucher(
-                        DrinkVoucher(
-                            person_id=person.id,
-                            drink_id=d.drink_id,
-                            payment_order_id=payment.order_id
-                        )
-                    )
-                await delete_drink_payment_intents(payment.order_id)
-
-            if print_receipt:
-                adg_code = "79.90"
-
-                # Group intents by tier snapshot
-                tier_groups: dict[tuple, int] = {}
-
-                for intent in all_intents:
-                    if intent.tier_id is not None and intent.tier_price is not None:
-                        tier_obj = await db.get(TicketTier, intent.tier_id)
-                        key = (
-                            intent.tier_price,
-                            tier_obj.ecrm_good_code if tier_obj else "0001",
-                            tier_obj.ecrm_good_name if tier_obj else "General Admission Event Entry",
-                        )
-                        tier_groups[key] = tier_groups.get(key, 0) + 1
-
-                for (price, code, name), qty in tier_groups.items():
-                    items.append(ECRMItem(quantity=qty, price=price, adgCode=adg_code, goodCode=code, goodName=name))
-
-                print_req = ECRMPrintRequest(crn=ecrm_crn, cardAmount=payment.amount, items=items)
-
-                try:
-                    await ecrm_print(print_req)
-                except Exception as e:
-                    logger.error(f"ECRM print failed for order {payment.order_id}: {e}")
-
-            await notify_payment_confirmed(person, payment, recipient_names)
-
-        except Exception as e:
-            logger.error(f"Post-confirmation delivery failed for order {payment.order_id}: {e}")
+        await run_post_confirmation_effects(db, payment, person, ticket_holders, all_intents, print_receipt)
 
     return confirm_response
 
