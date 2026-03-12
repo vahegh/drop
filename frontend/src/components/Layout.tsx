@@ -60,9 +60,15 @@ export default function Layout({ children, heroBg, showFooter = true }: LayoutPr
         style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
         className="fixed top-0 left-0 right-0 h-14 px-4 flex items-center justify-between z-50 bg-black/20"
       >
-        <Link to="/" className="flex items-center">
-          <img src="/static/images/logo_gray.png" alt="Drop Dead Disco" className="h-12 w-14 object-contain" />
-        </Link>
+        {location.pathname === '/' ? (
+          <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center" aria-label="Scroll to top">
+            <img src="/static/images/logo_gray.png" alt="Drop Dead Disco" className="h-12 w-14 object-contain" />
+          </button>
+        ) : (
+          <Link to="/" className="flex items-center">
+            <img src="/static/images/logo_gray.png" alt="Drop Dead Disco" className="h-12 w-14 object-contain" />
+          </Link>
+        )}
 
         {meLoading ? null : me ? (
           <div className="relative">
