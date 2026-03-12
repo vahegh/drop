@@ -107,7 +107,12 @@ async def init_payment(payment: Payment, save_card=False):
 
 @with_db
 async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest, print_receipt=True):
-    payment = await get_payment(transaction.order_id)
+    # Lock the row so concurrent confirm calls for the same order serialize
+    payment = await db.scalar(
+        select(Payment)
+        .where(Payment.order_id == transaction.order_id)
+        .with_for_update()
+    )
     if not payment:
         raise HTTPException(404, "Payment not found")
 
@@ -218,72 +223,80 @@ async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest, 
             except Exception as e:
                 raise HTTPException(500, f"Unable to check MyAmeria payment status: {str(e)}")
 
+    # Persist payment status before side effects — concurrent requests will now see CONFIRMED
+    db.add(payment)
+    await db.commit()
+
     if payment.status == PaymentStatus.CONFIRMED:
         person = await db.get(Person, payment.person_id)
 
         recipient_names = []
         items = []
 
-        if ticket_holders:
-            for h in ticket_holders:
-                recipient_names.append(f"{h.first_name} {h.last_name}")
-                if h.status == PersonStatus.pending:
-                    continue
+        try:
+            if ticket_holders:
+                for h in ticket_holders:
+                    recipient_names.append(f"{h.first_name} {h.last_name}")
+                    if h.status == PersonStatus.pending:
+                        continue
 
-                event_ticket = EventTicket(
-                    person_id=h.id, event_id=payment.event_id, payment_order_id=payment.order_id)
+                    event_ticket = EventTicket(
+                        person_id=h.id, event_id=payment.event_id, payment_order_id=payment.order_id)
 
-                if h.status == PersonStatus.member:
-                    await add_ticket_to_db(event_ticket)
-                    member_pass = await db.scalar(select(MemberPass).where(MemberPass.person_id == h.id))
-                    await send_member_pass(member_pass, purchase=True)
+                    if h.status == PersonStatus.member:
+                        await add_ticket_to_db(event_ticket)
+                        member_pass = await db.scalar(select(MemberPass).where(MemberPass.person_id == h.id))
+                        await send_member_pass(member_pass, purchase=True)
 
-                else:
-                    await create_event_ticket(event_ticket)
-                    await send_event_ticket(event_ticket)
+                    else:
+                        await create_event_ticket(event_ticket)
+                        await send_event_ticket(event_ticket)
 
-                await delete_payment_intent(payment.order_id, h.id)
+                    await delete_payment_intent(payment.order_id, h.id)
 
-        drinks = await get_drink_payment_intents(payment.order_id)
-        if drinks:
-            for d in drinks:
-                await create_drink_voucher(
-                    DrinkVoucher(
-                        person_id=person.id,
-                        drink_id=d.drink_id,
-                        payment_order_id=payment.order_id
+            drinks = await get_drink_payment_intents(payment.order_id)
+            if drinks:
+                for d in drinks:
+                    await create_drink_voucher(
+                        DrinkVoucher(
+                            person_id=person.id,
+                            drink_id=d.drink_id,
+                            payment_order_id=payment.order_id
+                        )
                     )
-                )
-            await delete_drink_payment_intents(payment.order_id)
+                await delete_drink_payment_intents(payment.order_id)
 
-        if print_receipt:
-            event = await db.get(Event, payment.event_id)
-            adg_code = "79.90"
+            if print_receipt:
+                adg_code = "79.90"
 
-            # Group intents by tier snapshot
-            tier_groups: dict[tuple, int] = {}
+                # Group intents by tier snapshot
+                tier_groups: dict[tuple, int] = {}
 
-            for intent in all_intents:
-                if intent.tier_id is not None and intent.tier_price is not None:
-                    tier_obj = await db.get(TicketTier, intent.tier_id)
-                    key = (
-                        intent.tier_price,
-                        tier_obj.ecrm_good_code if tier_obj else "0001",
-                        tier_obj.ecrm_good_name if tier_obj else "General Admission Event Entry",
-                    )
-                    tier_groups[key] = tier_groups.get(key, 0) + 1
+                for intent in all_intents:
+                    if intent.tier_id is not None and intent.tier_price is not None:
+                        tier_obj = await db.get(TicketTier, intent.tier_id)
+                        key = (
+                            intent.tier_price,
+                            tier_obj.ecrm_good_code if tier_obj else "0001",
+                            tier_obj.ecrm_good_name if tier_obj else "General Admission Event Entry",
+                        )
+                        tier_groups[key] = tier_groups.get(key, 0) + 1
 
-            for (price, code, name), qty in tier_groups.items():
-                items.append(ECRMItem(quantity=qty, price=price, adgCode=adg_code, goodCode=code, goodName=name))
+                for (price, code, name), qty in tier_groups.items():
+                    items.append(ECRMItem(quantity=qty, price=price, adgCode=adg_code, goodCode=code, goodName=name))
 
-            print_req = ECRMPrintRequest(crn=ecrm_crn, cardAmount=payment.amount, items=items)
+                print_req = ECRMPrintRequest(crn=ecrm_crn, cardAmount=payment.amount, items=items)
 
-            await ecrm_print(print_req)
+                try:
+                    await ecrm_print(print_req)
+                except Exception as e:
+                    logger.error(f"ECRM print failed for order {payment.order_id}: {e}")
 
-        await notify_payment_confirmed(person, payment, recipient_names)
+            await notify_payment_confirmed(person, payment, recipient_names)
 
-    db.add(payment)
-    await db.commit()
+        except Exception as e:
+            logger.error(f"Post-confirmation delivery failed for order {payment.order_id}: {e}")
+
     return confirm_response
 
 
