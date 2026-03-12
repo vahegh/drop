@@ -7,15 +7,9 @@ import { createPerson, checkEmail } from '../api/people'
 import Layout from '../components/Layout'
 import Section from '../components/Section'
 import GoogleButton from '../components/GoogleButton'
+import PaymentProviderSelector from '../components/PaymentProviderSelector'
 import { gtagEvent } from '../lib/analytics'
 import type { PaymentProvider, TicketTierResponse, PersonStatus, CheckEmailResponse } from '../types'
-
-const PROVIDERS: { label: string; icon: string; value: PaymentProvider }[] = [
-  { label: 'Card', icon: '/static/images/visa.svg', value: 'VPOS' },
-  { label: 'MyAmeria', icon: '/static/images/myameria.png', value: 'MYAMERIA' },
-  { label: 'Apple Pay', icon: '/static/images/applePay.svg', value: 'APPLEPAY' },
-  { label: 'Google Pay', icon: '/static/images/google_pay.svg', value: 'GOOGLEPAY' },
-]
 
 function resolveClientTier(tiers: TicketTierResponse[], status?: PersonStatus): TicketTierResponse | null {
   const now = new Date()
@@ -113,95 +107,257 @@ export default function BuyTicket() {
   )
 
   const tiers = event.tiers
+  const guestPrice = resolvePrice(tiers, 'pending')
 
-  if (!me) {
-    const guestPrice = resolvePrice(tiers, 'pending')
+  // Logged-in derived values
+  const myTier = me ? resolveClientTier(tiers, me.status) : null
+  const myPrice = me ? resolvePrice(tiers, me.status) : 0
+  const ticketLabel = myTier?.name ?? (me?.status === 'member' ? 'Member Ticket' : 'Standard Ticket')
+  const alreadyHasTicket = me?.event_tickets.some(t => t.event_id === eventId) ?? false
+  const additionalTotal = additionalAttendees.reduce((sum, a) => {
+    const status: PersonStatus = a.kind === 'existing' ? a.status : 'pending'
+    return sum + resolvePrice(tiers, status)
+  }, 0)
+  const totalPrice = myPrice + additionalTotal
 
-    async function handleGuestEmailContinue() {
-      if (!guestEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)) {
-        setGuestFormError('A valid email is required.')
-        return
-      }
-      setGuestFormError(null)
-      setGuestEmailChecking(true)
-      try {
-        const result = await checkEmail(guestEmail.trim())
-        if (result.exists) {
-          if (result.status === 'rejected') {
-            setGuestFormError('This account has been rejected. Please contact us for help.')
-          } else {
-            setGuestLoginHint(guestEmail.trim())
-          }
+  const showPayment = me != null || guestStep === 'confirm'
+
+  // Guest handlers
+  async function handleGuestEmailContinue() {
+    if (!guestEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)) {
+      setGuestFormError('A valid email is required.')
+      return
+    }
+    setGuestFormError(null)
+    setGuestEmailChecking(true)
+    try {
+      const result = await checkEmail(guestEmail.trim())
+      if (result.exists) {
+        if (result.status === 'rejected') {
+          setGuestFormError('This account has been rejected. Please contact us for help.')
         } else {
-          setGuestStep('details')
+          setGuestLoginHint(guestEmail.trim())
         }
-      } catch {
-        setGuestFormError('Something went wrong. Please try again.')
-      } finally {
-        setGuestEmailChecking(false)
+      } else {
+        setGuestStep('details')
       }
+    } catch {
+      setGuestFormError('Something went wrong. Please try again.')
+    } finally {
+      setGuestEmailChecking(false)
     }
+  }
 
-    function validateGuestDetails() {
-      if (!guestFirstName.trim()) return 'First name is required.'
-      if (!guestLastName.trim()) return 'Last name is required.'
+  function validateGuestDetails() {
+    if (!guestFirstName.trim()) return 'First name is required.'
+    if (!guestLastName.trim()) return 'Last name is required.'
+    const ig = guestInstagram.replace(/^@/, '').trim()
+    if (!ig) return 'Instagram handle is required.'
+    return null
+  }
+
+  function handleGuestContinue() {
+    const err = validateGuestDetails()
+    if (err) { setGuestFormError(err); return }
+    setGuestFormError(null)
+    setGuestStep('confirm')
+  }
+
+  async function handleGuestPay() {
+    setLoading(true)
+    setError(null)
+    try {
       const ig = guestInstagram.replace(/^@/, '').trim()
-      if (!ig) return 'Instagram handle is required.'
-      return null
+      const person = await createPerson({
+        first_name: guestFirstName.trim(),
+        last_name: guestLastName.trim(),
+        email: guestEmail.trim(),
+        instagram_handle: ig,
+      })
+      gtagEvent('begin_checkout', { currency: 'AMD', value: guestPrice, items: [{ item_id: event.id, price: guestPrice }] })
+      const res = await initiatePayment({
+        event_id: event.id,
+        provider,
+        attendees: [{ person_id: person.id }],
+        save_card: saveCard,
+      })
+      window.location.href = res.redirect_url
+    } catch {
+      setError('Something went wrong. Please try again.')
+    } finally {
+      setLoading(false)
     }
+  }
 
-    function handleGuestContinue() {
-      const err = validateGuestDetails()
-      if (err) { setGuestFormError(err); return }
-      setGuestFormError(null)
-      setGuestStep('confirm')
-    }
-
-    async function handleGuestPay() {
-      setLoading(true)
-      setError(null)
-      try {
-        const ig = guestInstagram.replace(/^@/, '').trim()
-        if (!event) return
-        const person = await createPerson({
-          first_name: guestFirstName.trim(),
-          last_name: guestLastName.trim(),
-          email: guestEmail.trim(),
-          instagram_handle: ig,
-        })
-        gtagEvent('begin_checkout', { currency: 'AMD', value: guestPrice, items: [{ item_id: event.id, price: guestPrice }] })
-        const res = await initiatePayment({
-          event_id: event.id,
-          provider,
-          attendees: [{ person_id: person.id }],
-          save_card: saveCard,
-        })
-        window.location.href = res.redirect_url
-      } catch {
-        setError('Something went wrong. Please try again.')
-      } finally {
-        setLoading(false)
+  // Logged-in handlers
+  async function handleSearchAttendee() {
+    const email = addEmail.trim()
+    if (!email) return
+    if (me && email === me.email) { setAddError("That's your own email - already included."); return }
+    if (additionalAttendees.some(a => a.kind === 'new' && a.email === email)) { setAddError('This person is already added.'); return }
+    setAddError(null)
+    setAddSearching(true)
+    setLookupResult(null)
+    try {
+      const result = await checkEmail(email)
+      if (result.exists) {
+        if (me && result.id === me.id) { setAddError("That's you - already included."); return }
+        if (additionalAttendees.some(a => a.kind === 'existing' && a.id === result.id)) { setAddError('This person is already added.'); return }
       }
+      setLookupResult(result)
+      setAddStep(result.exists ? 'found' : 'create')
+      if (!result.exists) {
+        setNewFirst('')
+        setNewLast('')
+        setNewInstagram('')
+      }
+    } catch {
+      // ignore
+    } finally {
+      setAddSearching(false)
     }
+  }
 
-    return (
-      <Layout heroBg={event.image_url}>
-        <Section className="pt-4">
-          <Link to={`/event/${event.id}`} className="text-sm text-white/45 hover:text-white/80 w-full">
-            ← Back
-          </Link>
+  function handleAddExisting() {
+    if (!lookupResult?.id || !lookupResult.full_name) return
+    setAdditionalAttendees(prev => [...prev, {
+      kind: 'existing',
+      id: lookupResult.id!,
+      full_name: lookupResult.full_name!,
+      status: lookupResult.status!,
+    }])
+    resetAddForm()
+  }
 
-          {/* Event summary */}
-          <div className="drop-card p-4 flex gap-3 items-center">
-            <img src={event.image_url} alt={event.name} className="w-16 h-16 rounded-2xl object-cover flex-none" />
-            <div className="flex flex-col gap-0.5">
-              <p className="font-semibold text-sm">{event.name}</p>
+  function handleAddNew() {
+    if (!newFirst.trim() || !newLast.trim() || !addEmail.trim()) return
+    const email = addEmail.trim()
+    setAdditionalAttendees(prev => [...prev, {
+      kind: 'new',
+      email,
+      first_name: newFirst.trim(),
+      last_name: newLast.trim(),
+      instagram: newInstagram.replace(/^@/, '').trim(),
+    }])
+    resetAddForm()
+  }
+
+  function resetAddForm() {
+    setAddEmail('')
+    setLookupResult(null)
+    setAddStep('idle')
+    setNewFirst('')
+    setNewLast('')
+    setNewInstagram('')
+    setAddError(null)
+  }
+
+  async function handlePay() {
+    if (!me) return
+    gtagEvent('add_to_cart', { currency: 'AMD', value: totalPrice, items: [{ item_id: event.id, price: totalPrice }] })
+    setLoading(true)
+    setError(null)
+    try {
+      const resolvedAttendees: { person_id: string }[] = [{ person_id: me.id }]
+      for (const a of additionalAttendees) {
+        if (a.kind === 'existing') {
+          resolvedAttendees.push({ person_id: a.id })
+        } else {
+          const created = await createPerson({
+            first_name: a.first_name,
+            last_name: a.last_name,
+            email: a.email,
+            instagram_handle: a.instagram || 'n/a',
+          })
+          resolvedAttendees.push({ person_id: created.id })
+        }
+      }
+      const res = await initiatePayment({
+        event_id: event.id,
+        provider,
+        attendees: resolvedAttendees,
+        save_card: saveCard,
+      })
+      window.location.href = res.redirect_url
+    } catch {
+      setError('Unable to start payment. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <Layout heroBg={event.image_url}>
+      <Section className="pt-4">
+        <Link to={`/event/${event.id}`} className="text-sm text-white/45 hover:text-white/80 w-full">
+          ← Back
+        </Link>
+
+        {/* Event summary */}
+        <div className="drop-card p-4 flex gap-3 items-center">
+          <img src={event.image_url} alt={event.name} className="w-16 h-16 rounded-2xl object-cover flex-none" />
+          <div className="flex flex-col gap-0.5">
+            <p className="font-semibold text-sm">{event.name}</p>
+            {me ? (
+              <p className="text-xs text-white/45">{me.full_name}</p>
+            ) : (
               <p className="text-xs text-white/45">Standard Ticket - {guestPrice.toLocaleString()} AMD</p>
+            )}
+          </div>
+        </div>
+
+        {/* Already has ticket notice (logged-in only) */}
+        {me && alreadyHasTicket && !dismissTicketNotice && (
+          <div className="drop-card p-4 w-full flex flex-col gap-3 border border-white/20">
+            <p className="text-sm font-semibold">You already have a ticket for this event</p>
+            <div className="flex gap-2">
+              <Link to="/profile" className="btn-primary flex-1 py-2 text-sm text-center">
+                View Ticket
+              </Link>
+              <button
+                onClick={() => setDismissTicketNotice(true)}
+                className="text-sm text-white/45 hover:text-white/70 px-3"
+              >
+                Buy for others
+              </button>
             </div>
           </div>
+        )}
 
-        </Section>
+        {/* Price summary (logged-in only) */}
+        {me && (
+          <div className="drop-card p-4 w-full flex flex-col gap-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-white/70">1 × {ticketLabel}</span>
+              <span className="font-semibold">{myPrice.toLocaleString()} AMD</span>
+            </div>
+            {additionalAttendees.map((a, i) => {
+              const status: PersonStatus = a.kind === 'existing' ? a.status : 'pending'
+              const price = resolvePrice(tiers, status)
+              const tier = resolveClientTier(tiers, status)
+              const label = tier?.name ?? 'Standard Ticket'
+              const name = a.kind === 'existing' ? a.full_name : `${a.first_name} ${a.last_name}`
+              return (
+                <div key={i} className="flex justify-between text-sm items-center">
+                  <span className="text-white/70 flex items-center gap-2">
+                    1 × {label} ({name})
+                    <button onClick={() => setAdditionalAttendees(prev => prev.filter((_, j) => j !== i))} className="text-white/30 hover:text-white/70 text-xs">×</button>
+                  </span>
+                  <span className="font-semibold">{price.toLocaleString()} AMD</span>
+                </div>
+              )
+            })}
+            <div className="h-px bg-white/10" />
+            <div className="flex justify-between font-bold">
+              <span>Total</span>
+              <span>{totalPrice.toLocaleString()} AMD</span>
+            </div>
+          </div>
+        )}
+      </Section>
 
+      {/* Identity section */}
+      {!me ? (
         <Section title="New here?" subtitle="Enter your details below to continue as a guest.">
           {guestStep === 'email' && (
             <div className="drop-card p-5 flex flex-col gap-4 w-full">
@@ -316,367 +472,120 @@ export default function BuyTicket() {
             </div>
           )}
         </Section>
-
-        {guestStep === 'confirm' && (
-          <>
-            <Section title="Payment method">
-              <div className="flex flex-col gap-2 w-full max-w-96">
-                {PROVIDERS.map((p) => (
-                  <button
-                    key={p.value}
-                    onClick={() => setProvider(p.value)}
-                    className="w-full rounded-3xl px-4 py-3 flex items-center gap-3 transition-all text-sm font-medium"
-                    style={{
-                      background: provider === p.value ? 'rgba(255,255,255,0.12)' : 'var(--drop-card)',
-                      border: provider === p.value ? '1px solid rgba(255,255,255,0.35)' : '1px solid rgba(255,255,255,0.18)',
-                    }}
-                  >
-                    <img src={p.icon} alt={p.label} className="w-8 h-5 object-contain" />
-                    <span>{p.label}</span>
-                    {provider === p.value && (
-                      <span className="ml-auto text-xs text-white/45">Selected</span>
-                    )}
-                  </button>
-                ))}
+      ) : (
+        <Section title="Add another person">
+          {addStep === 'idle' && (
+            <div className="flex flex-col gap-2 w-full">
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  value={addEmail}
+                  onChange={e => { setAddEmail(e.target.value); setAddError(null) }}
+                  placeholder="friend@example.com"
+                  className="flex-1 bg-white/8 rounded-xl px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-white/30 placeholder:text-white/20"
+                  onKeyDown={e => { if (e.key === 'Enter') handleSearchAttendee() }}
+                />
+                <button onClick={handleSearchAttendee} disabled={addSearching} className="btn-primary px-4 py-2 text-sm">
+                  {addSearching ? '…' : 'Search'}
+                </button>
               </div>
-              {provider === 'VPOS' && (
-                <label className="flex items-center gap-2 text-sm text-white/55 cursor-pointer w-full">
-                  <input
-                    type="checkbox"
-                    checked={saveCard}
-                    onChange={(e) => setSaveCard(e.target.checked)}
-                    className="rounded accent-white"
-                  />
-                  Save card for future payments
-                </label>
-              )}
-            </Section>
-
-            <div className="w-full max-w-96 pb-4">
-              <button
-                onClick={handleGuestPay}
-                disabled={loading}
-                className="btn-primary h-14 text-base"
-                style={{ maxWidth: '100%' }}
-              >
-                {loading ? 'Processing…' : `Pay ${guestPrice.toLocaleString()} AMD`}
-              </button>
+              {addError && <p className="text-xs" style={{ color: 'var(--drop-negative)' }}>{addError}</p>}
             </div>
-          </>
-        )}
+          )}
 
-        <div className="w-full max-w-96 flex items-center gap-3 text-white/20 text-xs px-1">
-          <div className="flex-1 h-px bg-white/10" />
-          or
-          <div className="flex-1 h-px bg-white/10" />
-        </div>
-        <div className="w-full max-w-96 pb-6">
-          <GoogleButton text="Sign in with Google" variant="outline" redirectUrl={`/buy-ticket?event_id=${eventId}`} />
-        </div>
-      </Layout>
-    )
-  }
-
-  // Logged-in flow
-  const myTier = resolveClientTier(tiers, me.status)
-  const myPrice = resolvePrice(tiers, me.status)
-
-  const ticketLabel = myTier?.name ?? (
-    me.status === 'member' ? 'Member Ticket' : 'Standard Ticket'
-  )
-
-  const alreadyHasTicket = me.event_tickets.some(t => t.event_id === eventId)
-
-  // Compute total including additional attendees
-  const additionalTotal = additionalAttendees.reduce((sum, a) => {
-    const status: PersonStatus = a.kind === 'existing' ? a.status : 'pending'
-    return sum + resolvePrice(tiers, status)
-  }, 0)
-  const totalPrice = myPrice + additionalTotal
-
-  async function handleSearchAttendee() {
-    const email = addEmail.trim()
-    if (!email) return
-    if (me && email === me.email) { setAddError("That's your own email - already included."); return }
-    if (additionalAttendees.some(a => a.kind === 'new' && a.email === email)) { setAddError('This person is already added.'); return }
-    setAddError(null)
-    setAddSearching(true)
-    setLookupResult(null)
-    try {
-      const result = await checkEmail(email)
-      if (result.exists) {
-        if (me && result.id === me.id) { setAddError("That's you - already included."); return }
-        if (additionalAttendees.some(a => a.kind === 'existing' && a.id === result.id)) { setAddError('This person is already added.'); return }
-      }
-      setLookupResult(result)
-      setAddStep(result.exists ? 'found' : 'create')
-      if (!result.exists) {
-        setNewFirst('')
-        setNewLast('')
-        setNewInstagram('')
-      }
-    } catch {
-      // ignore
-    } finally {
-      setAddSearching(false)
-    }
-  }
-
-  function handleAddExisting() {
-    if (!lookupResult?.id || !lookupResult.full_name) return
-    setAdditionalAttendees(prev => [...prev, {
-      kind: 'existing',
-      id: lookupResult.id!,
-      full_name: lookupResult.full_name!,
-      status: lookupResult.status!,
-    }])
-    resetAddForm()
-  }
-
-  function handleAddNew() {
-    if (!newFirst.trim() || !newLast.trim() || !addEmail.trim()) return
-    const email = addEmail.trim()
-    setAdditionalAttendees(prev => [...prev, {
-      kind: 'new',
-      email,
-      first_name: newFirst.trim(),
-      last_name: newLast.trim(),
-      instagram: newInstagram.replace(/^@/, '').trim(),
-    }])
-    resetAddForm()
-  }
-
-  function resetAddForm() {
-    setAddEmail('')
-    setLookupResult(null)
-    setAddStep('idle')
-    setNewFirst('')
-    setNewLast('')
-    setNewInstagram('')
-    setAddError(null)
-  }
-
-  async function handlePay() {
-    if (!me) return
-    gtagEvent('add_to_cart', { currency: 'AMD', value: totalPrice, items: [{ item_id: event!.id, price: totalPrice }] })
-    setLoading(true)
-    setError(null)
-    try {
-      const resolvedAttendees: { person_id: string }[] = [{ person_id: me.id }]
-      for (const a of additionalAttendees) {
-        if (a.kind === 'existing') {
-          resolvedAttendees.push({ person_id: a.id })
-        } else {
-          const created = await createPerson({
-            first_name: a.first_name,
-            last_name: a.last_name,
-            email: a.email,
-            instagram_handle: a.instagram || 'n/a',
-          })
-          resolvedAttendees.push({ person_id: created.id })
-        }
-      }
-      const res = await initiatePayment({
-        event_id: event!.id,
-        provider,
-        attendees: resolvedAttendees,
-        save_card: saveCard,
-      })
-      window.location.href = res.redirect_url
-    } catch {
-      setError('Unable to start payment. Please try again.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  return (
-    <Layout heroBg={event.image_url}>
-      <Section className="pt-4">
-        <Link to={`/event/${event.id}`} className="text-sm text-white/45 hover:text-white/80 w-full">
-          ← Back
-        </Link>
-
-        {/* Event summary */}
-        <div
-          className="drop-card p-4 flex gap-3 items-center"
-          style={{ background: 'var(--drop-card)' }}
-        >
-          <img src={event.image_url} alt={event.name} className="w-16 h-16 rounded-2xl object-cover flex-none" />
-          <div className="flex flex-col gap-0.5">
-            <p className="font-semibold text-sm">{event.name}</p>
-            <p className="text-xs text-white/45">{me.full_name}</p>
-          </div>
-        </div>
-
-        {/* Already has ticket notice */}
-        {alreadyHasTicket && !dismissTicketNotice && (
-          <div className="drop-card p-4 w-full flex flex-col gap-3 border border-white/20">
-            <p className="text-sm font-semibold">You already have a ticket for this event</p>
-            <div className="flex gap-2">
-              <Link to="/profile" className="btn-primary flex-1 py-2 text-sm text-center">
-                View Ticket
-              </Link>
-              <button
-                onClick={() => setDismissTicketNotice(true)}
-                className="text-sm text-white/45 hover:text-white/70 px-3"
-              >
-                Buy for others
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Price summary */}
-        <div className="drop-card p-4 w-full flex flex-col gap-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-white/70">1 × {ticketLabel}</span>
-            <span className="font-semibold">{myPrice.toLocaleString()} AMD</span>
-          </div>
-          {additionalAttendees.map((a, i) => {
-            const status: PersonStatus = a.kind === 'existing' ? a.status : 'pending'
-            const price = resolvePrice(tiers, status)
-            const tier = resolveClientTier(tiers, status)
-            const label = tier?.name ?? 'Standard Ticket'
-            const name = a.kind === 'existing' ? a.full_name : `${a.first_name} ${a.last_name}`
-            return (
-              <div key={i} className="flex justify-between text-sm items-center">
-                <span className="text-white/70 flex items-center gap-2">
-                  1 × {label} ({name})
-                  <button onClick={() => setAdditionalAttendees(prev => prev.filter((_, j) => j !== i))} className="text-white/30 hover:text-white/70 text-xs">×</button>
+          {addStep === 'found' && lookupResult && (
+            <div className="drop-card p-4 w-full flex flex-col gap-3">
+              <div className="flex justify-between text-sm">
+                <div>
+                  <p className="font-semibold">{lookupResult.full_name}</p>
+                  <p className="text-xs text-white/45">{lookupResult.status}</p>
+                </div>
+                <span className="text-sm font-semibold">
+                  {resolvePrice(tiers, lookupResult.status ?? undefined).toLocaleString()} AMD
                 </span>
-                <span className="font-semibold">{price.toLocaleString()} AMD</span>
               </div>
-            )
-          })}
-          <div className="h-px bg-white/10" />
-          <div className="flex justify-between font-bold">
-            <span>Total</span>
-            <span>{totalPrice.toLocaleString()} AMD</span>
-          </div>
-        </div>
-      </Section>
-
-      {/* Add attendee section */}
-      <Section title="Add another person">
-        {addStep === 'idle' && (
-          <div className="flex flex-col gap-2 w-full">
-            <div className="flex gap-2">
-              <input
-                type="email"
-                value={addEmail}
-                onChange={e => { setAddEmail(e.target.value); setAddError(null) }}
-                placeholder="friend@example.com"
-                className="flex-1 bg-white/8 rounded-xl px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-white/30 placeholder:text-white/20"
-                onKeyDown={e => { if (e.key === 'Enter') handleSearchAttendee() }}
-              />
-              <button onClick={handleSearchAttendee} disabled={addSearching} className="btn-primary px-4 py-2 text-sm">
-                {addSearching ? '…' : 'Search'}
-              </button>
-            </div>
-            {addError && <p className="text-xs" style={{ color: 'var(--drop-negative)' }}>{addError}</p>}
-          </div>
-        )}
-
-        {addStep === 'found' && lookupResult && (
-          <div className="drop-card p-4 w-full flex flex-col gap-3">
-            <div className="flex justify-between text-sm">
-              <div>
-                <p className="font-semibold">{lookupResult.full_name}</p>
-                <p className="text-xs text-white/45">{lookupResult.status}</p>
+              <div className="flex gap-2">
+                <button onClick={handleAddExisting} className="btn-primary flex-1 py-2 text-sm">Add</button>
+                <button onClick={resetAddForm} className="text-sm text-white/45 hover:text-white/70 px-3">Cancel</button>
               </div>
-              <span className="text-sm font-semibold">
-                {resolvePrice(tiers, lookupResult.status ?? undefined).toLocaleString()} AMD
-              </span>
             </div>
-            <div className="flex gap-2">
-              <button onClick={handleAddExisting} className="btn-primary flex-1 py-2 text-sm">Add</button>
-              <button onClick={resetAddForm} className="text-sm text-white/45 hover:text-white/70 px-3">Cancel</button>
-            </div>
-          </div>
-        )}
+          )}
 
-        {addStep === 'create' && (
-          <div className="drop-card p-4 w-full flex flex-col gap-3">
-            <p className="text-sm font-semibold">Not found — enter their details</p>
-            <p className="text-xs text-white/45">{addEmail}</p>
-            <div className="flex gap-2">
-              <div className="flex flex-col gap-1 flex-1">
-                <label className="text-xs text-white/45">First name</label>
-                <input type="text" value={newFirst} onChange={e => setNewFirst(e.target.value)} placeholder="Alex"
+          {addStep === 'create' && (
+            <div className="drop-card p-4 w-full flex flex-col gap-3">
+              <p className="text-sm font-semibold">Not found — enter their details</p>
+              <p className="text-xs text-white/45">{addEmail}</p>
+              <div className="flex gap-2">
+                <div className="flex flex-col gap-1 flex-1">
+                  <label className="text-xs text-white/45">First name</label>
+                  <input type="text" value={newFirst} onChange={e => setNewFirst(e.target.value)} placeholder="Alex"
+                    className="w-full bg-white/8 rounded-xl px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-white/30 placeholder:text-white/20" />
+                </div>
+                <div className="flex flex-col gap-1 flex-1">
+                  <label className="text-xs text-white/45">Last name</label>
+                  <input type="text" value={newLast} onChange={e => setNewLast(e.target.value)} placeholder="Smith"
+                    className="w-full bg-white/8 rounded-xl px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-white/30 placeholder:text-white/20" />
+                </div>
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-white/45">Instagram (optional)</label>
+                <input type="text" value={newInstagram} onChange={e => setNewInstagram(e.target.value)} placeholder="@handle"
                   className="w-full bg-white/8 rounded-xl px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-white/30 placeholder:text-white/20" />
               </div>
-              <div className="flex flex-col gap-1 flex-1">
-                <label className="text-xs text-white/45">Last name</label>
-                <input type="text" value={newLast} onChange={e => setNewLast(e.target.value)} placeholder="Smith"
-                  className="w-full bg-white/8 rounded-xl px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-white/30 placeholder:text-white/20" />
+              <div className="flex gap-2">
+                <button onClick={handleAddNew} className="btn-primary flex-1 py-2 text-sm">Add</button>
+                <button onClick={resetAddForm} className="text-sm text-white/45 hover:text-white/70 px-3">Cancel</button>
               </div>
             </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-xs text-white/45">Instagram (optional)</label>
-              <input type="text" value={newInstagram} onChange={e => setNewInstagram(e.target.value)} placeholder="@handle"
-                className="w-full bg-white/8 rounded-xl px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-white/30 placeholder:text-white/20" />
-            </div>
-            <div className="flex gap-2">
-              <button onClick={handleAddNew} className="btn-primary flex-1 py-2 text-sm">Add</button>
-              <button onClick={resetAddForm} className="text-sm text-white/45 hover:text-white/70 px-3">Cancel</button>
-            </div>
-          </div>
-        )}
-      </Section>
+          )}
+        </Section>
+      )}
 
-      {/* Payment method selector */}
-      <Section title="Payment method">
-        <div className="flex flex-col gap-2 w-full max-w-96">
-          {PROVIDERS.map((p) => (
-            <button
-              key={p.value}
-              onClick={() => setProvider(p.value)}
-              className="w-full rounded-3xl px-4 py-3 flex items-center gap-3 transition-all text-sm font-medium"
-              style={{
-                background: provider === p.value ? 'rgba(255,255,255,0.12)' : 'var(--drop-card)',
-                border: provider === p.value ? '1px solid rgba(255,255,255,0.35)' : '1px solid rgba(255,255,255,0.18)',
-              }}
-            >
-              <img src={p.icon} alt={p.label} className="w-8 h-5 object-contain" />
-              <span>{p.label}</span>
-              {provider === p.value && (
-                <span className="ml-auto text-xs text-white/45">Selected</span>
-              )}
-            </button>
-          ))}
-        </div>
+      {/* Payment method — gated by showPayment */}
+      {showPayment && (
+        <Section title="Payment method">
+          <PaymentProviderSelector
+            provider={provider}
+            setProvider={setProvider}
+            saveCard={saveCard}
+            setSaveCard={setSaveCard}
+          />
+        </Section>
+      )}
 
-        {provider === 'VPOS' && (
-          <label className="flex items-center gap-2 text-sm text-white/55 cursor-pointer w-full">
-            <input
-              type="checkbox"
-              checked={saveCard}
-              onChange={(e) => setSaveCard(e.target.checked)}
-              className="rounded accent-white"
-            />
-            Save card for future payments
-          </label>
-        )}
-      </Section>
-
-      {error && (
+      {error && !(!me && guestStep === 'confirm') && (
         <p className="text-sm w-full max-w-96" style={{ color: 'var(--drop-negative)' }}>
           {error}
         </p>
       )}
 
-      {/* Pay button */}
-      <div className="w-full max-w-96 pb-4">
-        <button
-          onClick={handlePay}
-          disabled={loading}
-          className="btn-primary h-14 text-base"
-          style={{ maxWidth: '100%' }}
-        >
-          {loading ? 'Processing…' : `Pay ${totalPrice.toLocaleString()} AMD`}
-        </button>
-      </div>
+      {/* Pay button — gated by showPayment */}
+      {showPayment && (
+        <div className="w-full max-w-96 pb-4">
+          <button
+            onClick={!me ? handleGuestPay : handlePay}
+            disabled={loading}
+            className="btn-primary h-14 text-base"
+            style={{ maxWidth: '100%' }}
+          >
+            {loading ? 'Processing…' : `Pay ${(!me ? guestPrice : totalPrice).toLocaleString()} AMD`}
+          </button>
+        </div>
+      )}
+
+      {/* Sign-in alternative — guest only */}
+      {!me && (
+        <>
+          <div className="w-full max-w-96 flex items-center gap-3 text-white/20 text-xs px-1">
+            <div className="flex-1 h-px bg-white/10" />
+            or
+            <div className="flex-1 h-px bg-white/10" />
+          </div>
+          <div className="w-full max-w-96 pb-6">
+            <GoogleButton text="Sign in with Google" variant="outline" redirectUrl={`/buy-ticket?event_id=${eventId}`} />
+          </div>
+        </>
+      )}
     </Layout>
   )
 }
