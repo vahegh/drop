@@ -58,22 +58,35 @@ export default function Home() {
       )}
 
       {/* Guest: stats */}
-      {!me && stats && (
+      {!me && (statsLoading || stats) && (
         <Section sep>
-          <div className="flex gap-8 w-full">
-            {stats['member'] != null && (
-              <div className="flex flex-col gap-0.5">
-                <span className="text-3xl font-bold">{stats['member']}</span>
-                <span className="text-xs text-white/40 uppercase tracking-widest">Members</span>
+          {statsLoading ? (
+            <div className="flex gap-8 w-full">
+              <div className="flex flex-col gap-1.5">
+                <div className="skeleton h-9 w-10" />
+                <div className="skeleton h-2.5 w-16" />
               </div>
-            )}
-            {stats['verified'] != null && (
-              <div className="flex flex-col gap-0.5">
-                <span className="text-3xl font-bold">{stats['verified']}</span>
-                <span className="text-xs text-white/40 uppercase tracking-widest">Verified</span>
+              <div className="flex flex-col gap-1.5">
+                <div className="skeleton h-9 w-10" />
+                <div className="skeleton h-2.5 w-16" />
               </div>
-            )}
-          </div>
+            </div>
+          ) : stats && (
+            <div className="flex gap-8 w-full">
+              {stats['member'] != null && (
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-3xl font-bold">{stats['member']}</span>
+                  <span className="text-xs text-white/40 uppercase tracking-widest">Members</span>
+                </div>
+              )}
+              {stats['verified'] != null && (
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-3xl font-bold">{stats['verified']}</span>
+                  <span className="text-xs text-white/40 uppercase tracking-widest">Verified</span>
+                </div>
+              )}
+            </div>
+          )}
           <p className="text-xs text-white/40 leading-relaxed w-full mt-1">
             Drop Dead Disco is a hand-picked community hosting dance parties in secret locations around Yerevan.
             Every guest passes <strong className="text-white/60">verification</strong> before they can attend.
