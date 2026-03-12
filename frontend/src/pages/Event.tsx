@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
 import { useEvent, useEventPhotos } from '../hooks/useEvents'
@@ -16,9 +16,18 @@ export default function Event() {
   const { data: photos, isLoading: photosLoading } = useEventPhotos(id ?? '', !!event?.album_url)
 
   const [descExpanded, setDescExpanded] = useState(false)
+  const [descOverflows, setDescOverflows] = useState(false)
+  const descRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (descRef.current) {
+      setDescOverflows(descRef.current.scrollHeight > 130)
+    }
+  }, [event?.description])
 
   useEffect(() => {
     if (!event) return
+    document.title = `${event.name} | Drop Dead Disco`
     gtagEvent('view_item_list', {
       items: event.tiers.map(t => ({ item_id: t.id, item_name: t.name, price: t.price })),
     })
@@ -26,7 +35,7 @@ export default function Event() {
 
   if (isLoading) return (
     <Layout showFooter={false}>
-      <div className="w-full max-w-96 mt-4 space-y-4">
+      <div className="w-full max-w-96 md:max-w-2xl lg:max-w-3xl mt-4 space-y-4">
         <div className="skeleton w-full rounded-2xl" style={{ aspectRatio: '4/5', minHeight: 420 }} />
         <div className="skeleton h-7 w-3/4" />
         <div className="skeleton h-4 w-1/2" />
@@ -55,71 +64,80 @@ export default function Event() {
 
   return (
     <Layout heroBg={event.image_url} showFooter={false}>
-      {/* Event image */}
-      <EventCard
-        event={event}
-        linkTo={false}
-        showEndsAt
-        className="w-full max-w-96 mt-4"
-        imageClassName='m-4'
-      />
+      {/* Two-column layout at lg: image left, details right */}
+      <div className="w-full max-w-96 md:max-w-2xl lg:max-w-3xl mt-4 lg:flex lg:gap-8 lg:items-start">
 
-      {/* Spotify track */}
-      {event.track_url && (
-        <Section>
-          <iframe
-            style={{ borderRadius: '12px' }}
-            src={`${event.track_url}?utm_source=generator`}
-            width="100%"
-            height="80"
-            allowFullScreen
-            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-            loading="lazy"
-            className="w-full max-w-96"
+        {/* Left column: event image — sticky on desktop */}
+        <div className="lg:w-80 lg:flex-none lg:sticky lg:top-4">
+          <EventCard
+            event={event}
+            linkTo={false}
+            showEndsAt
+            className="w-full"
+            imageClassName='m-4'
           />
-        </Section>
-      )}
+        </div>
 
-      {/* Description - rendered as markdown */}
-      {event.description && (
-        <Section sep>
-          <p className="text-xs uppercase tracking-wider text-white/40 w-full mb-1">About this event</p>
-          <div className="overflow-hidden transition-all duration-300 ease-in-out"
-            style={descExpanded ? undefined : { height: '8em', maskImage: 'linear-gradient(black 0%, black 30%, transparent 100%)' }}
-          >
-            <div className="w-full text-sm text-white/80 leading-relaxed prose prose-invert prose-sm max-w-none">
-              <ReactMarkdown>{event.description}</ReactMarkdown>
-            </div>
-          </div>
-          <button
-            onClick={() => setDescExpanded(v => !v)}
-            className="mt-1 text-sm text-white/45 hover:text-white/70 transition-colors w-full text-center"
-          >
-            {descExpanded ? 'View less' : 'View more'}
-          </button>
-        </Section>
-      )}
-
-      {/* Ticket tiers */}
-      {!eventPassed && event.tiers.length > 0 && (
-        <Section title="Tickets" sep>
-          {event.tiers.map(t => {
-            const soldOut = (!!t.available_until && now >= new Date(t.available_until))
-              || (!!t.available_from && now < new Date(t.available_from))
-            return (
-              <TicketCard
-                key={t.id}
-                label={t.name}
-                price={t.price}
-                soldOut={soldOut}
-                selected={myTier?.id === t.id}
+        {/* Right column: track, description, tiers */}
+        <div className="lg:flex-1 flex flex-col min-w-0">
+          {event.track_url && (
+            <div className="py-4 lg:pt-0">
+              <iframe
+                style={{ borderRadius: '12px' }}
+                src={`${event.track_url}?utm_source=generator`}
+                width="100%"
+                height="80"
+                allowFullScreen
+                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                loading="lazy"
+                className="w-full"
               />
-            )
-          })}
-        </Section>
-      )}
+            </div>
+          )}
 
-      {/* YouTube */}
+          {event.description && (
+            <div className="flex flex-col gap-2 py-4 border-t border-white/10">
+              <p className="text-xs uppercase tracking-wider text-white/40 w-full mb-1">About this event</p>
+              <div className="overflow-hidden transition-all duration-300 ease-in-out"
+                style={descOverflows && !descExpanded ? { height: '8em', maskImage: 'linear-gradient(black 0%, black 30%, transparent 100%)' } : undefined}
+              >
+                <div ref={descRef} className="w-full text-sm text-white/80 leading-relaxed prose prose-invert prose-sm max-w-none">
+                  <ReactMarkdown>{event.description}</ReactMarkdown>
+                </div>
+              </div>
+              {descOverflows && (
+                <button
+                  onClick={() => setDescExpanded(v => !v)}
+                  className="mt-1 text-sm text-white/45 hover:text-white/70 transition-colors w-full text-center"
+                >
+                  {descExpanded ? 'View less' : 'View more'}
+                </button>
+              )}
+            </div>
+          )}
+
+          {!eventPassed && event.tiers.length > 0 && (
+            <div className="flex flex-col gap-2 py-4 border-t border-white/10">
+              <h2 className="text-xl font-medium px-2">Tickets</h2>
+              {event.tiers.map(t => {
+                const soldOut = (!!t.available_until && now >= new Date(t.available_until))
+                  || (!!t.available_from && now < new Date(t.available_from))
+                return (
+                  <TicketCard
+                    key={t.id}
+                    label={t.name}
+                    price={t.price}
+                    soldOut={soldOut}
+                    selected={myTier?.id === t.id}
+                  />
+                )
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* YouTube — full width below columns */}
       {event.video_url && (
         <Section sep>
           <iframe
@@ -128,17 +146,17 @@ export default function Event() {
             frameBorder={0}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
-            className="w-full max-w-96 rounded-xl aspect-video"
+            className="w-full rounded-xl aspect-video"
           />
         </Section>
       )}
 
-      {/* Photo album carousel */}
+      {/* Photo album carousel — full width below columns */}
       {(photosLoading && !!event?.album_url || Array.isArray(photos) && photos.length > 0) && (
         <Section sep>
           <p className="text-xs uppercase tracking-wider text-white/40 w-full mb-3">Photos</p>
           {photosLoading ? (
-            <div className="w-full max-w-96 space-y-2">
+            <div className="w-full max-w-96 md:max-w-full space-y-2">
               <div className="skeleton w-full rounded-xl" style={{ aspectRatio: '3/2' }} />
               <div className="flex gap-1.5">
                 {[0, 1, 2, 3].map(i => <div key={i} className="skeleton w-14 h-14 rounded-lg flex-none" />)}
@@ -159,16 +177,14 @@ export default function Event() {
           {me?.status === 'rejected' ? (
             <button
               disabled
-              className="btn-primary h-16 text-base opacity-40 cursor-not-allowed"
-              style={{ maxWidth: '24rem' }}
+              className="btn-primary h-16 text-base opacity-40 cursor-not-allowed max-w-sm md:max-w-lg"
             >
               🎟️ Buy your ticket
             </button>
           ) : (
             <a
               href={`/buy-ticket?event_id=${event.id}`}
-              className="btn-primary h-16 text-base"
-              style={{ maxWidth: '24rem' }}
+              className="btn-primary h-16 text-base max-w-sm md:max-w-lg"
             >
               🎟️ Buy your ticket
             </a>
@@ -190,7 +206,7 @@ interface TicketCardProps {
 function TicketCard({ label, price, soldOut, selected }: TicketCardProps) {
   return (
     <div
-      className="w-full max-w-96 rounded-xl px-4 py-3 flex justify-between items-center transition-all"
+      className="w-full rounded-xl px-4 py-3 flex justify-between items-center transition-all"
       style={{
         background: selected ? 'rgba(255,255,255,0.1)' : 'var(--drop-card)',
         border: selected ? '1px solid rgba(255,255,255,0.3)' : '1px solid rgba(255,255,255,0.18)',

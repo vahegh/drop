@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useNextEvent, useEvents, useAllPhotos } from '../hooks/useEvents'
 import { useMe, usePeopleStats } from '../hooks/useMe'
 import { useTickets } from '../hooks/useTickets'
@@ -12,7 +13,7 @@ import EventCard from '../components/EventCard'
 
 function AlbumSkeleton() {
   return (
-    <div className="w-full max-w-96 space-y-2">
+    <div className="w-full max-w-96 md:max-w-full space-y-2">
       <div className="skeleton w-full rounded-xl" style={{ aspectRatio: '3/2' }} />
       <div className="flex gap-1.5">
         {[0, 1, 2, 3].map(i => <div key={i} className="skeleton w-14 h-14 rounded-lg flex-none" />)}
@@ -28,6 +29,8 @@ export default function Home() {
   const { data: tickets } = useTickets()
   const { data: stats, isLoading: statsLoading } = usePeopleStats()
   const { data: allPhotos, isLoading: photosLoading } = useAllPhotos()
+
+  useEffect(() => { document.title = 'Home | Drop Dead Disco' }, [])
 
   const now = new Date()
   const pastEvents = (events ?? []).filter(e => new Date(e.ends_at) < now)
@@ -97,7 +100,7 @@ export default function Home() {
       {/* Guest: sign up CTA */}
       {!me && (
         <Section title="Apply for access" subtitle="Sign up to get verified">
-          <div className="flex gap-2 w-full max-w-96">
+          <div className="flex gap-2 w-full">
             <GoogleButton text="Sign up" variant="primary" redirectUrl="/" className="flex-1" style={{ maxWidth: 'none' }} />
             <GoogleButton text="Log in" variant="outline" redirectUrl="/" className="flex-1" style={{ maxWidth: 'none' }} />
           </div>
@@ -107,7 +110,7 @@ export default function Home() {
       {/* Greeting */}
       {me && (
         <Section className="pt-4">
-          <div className="flex items-center justify-between w-full max-w-96">
+          <div className="flex items-center justify-between w-full">
             <div className="flex flex-col gap-0.5">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full" style={{ background: STATUS_COLORS[me.status] }} />
@@ -193,7 +196,7 @@ export default function Home() {
       {/* Next event card */}
       {nextEvent && (
         <Section>
-          <EventCard event={nextEvent} className="w-full max-w-96" />
+          <EventCard event={nextEvent} className="w-full" />
           {(!me || (me.status !== 'verified' && me.status !== 'member')) && (
             <a href={`/buy-ticket?event_id=${nextEvent.id}`} className="btn-primary">
               🎟️ Buy your ticket
@@ -249,9 +252,9 @@ export default function Home() {
       {/* Past events grid */}
       {pastEvents.length > 0 && (
         <Section title="Previous events" subtitle="Photos and videos from past events" sep>
-          <div className="flex flex-col divide-y divide-white/10 w-full max-w-96">
+          <div className="w-full grid grid-cols-1 divide-y divide-white/10 lg:grid-cols-2 lg:gap-6 lg:divide-y-0">
             {pastEvents.map((event) => (
-              <EventCard key={event.id} event={event} className="py-6 first:pt-0" />
+              <EventCard key={event.id} event={event} className="py-6 first:pt-0 lg:py-0" />
             ))}
           </div>
         </Section>
@@ -267,7 +270,7 @@ export default function Home() {
           frameBorder={0}
           allowFullScreen
           allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-          className="w-full max-w-96"
+          className="w-full"
         />
       </Section>
     </Layout>

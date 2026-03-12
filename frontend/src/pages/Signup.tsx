@@ -24,6 +24,8 @@ export default function Signup() {
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
+  useEffect(() => { document.title = 'Sign Up | Drop Dead Disco' }, [])
+
   useEffect(() => {
     const raw = sessionStorage.getItem('drop_signup')
     if (!raw) {

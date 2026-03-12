@@ -1,7 +1,9 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import Layout from '../components/Layout'
 
 export default function NotFound() {
+  useEffect(() => { document.title = 'Not Found | Drop Dead Disco' }, [])
   return (
     <Layout>
       <div className="flex flex-col items-center justify-center gap-6 min-h-[70vh] text-center">

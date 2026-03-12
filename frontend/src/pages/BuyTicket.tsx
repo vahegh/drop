@@ -70,6 +70,7 @@ export default function BuyTicket() {
 
   useEffect(() => {
     if (!event || !me) return
+    document.title = `Buy Ticket | Drop Dead Disco`
     const price = resolvePrice(event.tiers, me.status)
     gtagEvent('begin_checkout', { currency: 'AMD', value: price, items: [{ item_id: event.id, price }] })
   }, [event?.id, me?.id])
@@ -88,7 +89,7 @@ export default function BuyTicket() {
 
   if (eventLoading) return (
     <Layout>
-      <div className="w-full max-w-96 mt-4 space-y-3">
+      <div className="w-full mt-4 space-y-3">
         <div className="skeleton h-20 w-full rounded-3xl" />
         <div className="skeleton h-6 w-3/4" />
         <div className="skeleton h-4 w-1/2" />
@@ -104,7 +105,7 @@ export default function BuyTicket() {
 
   if (meLoading) return (
     <Layout heroBg={event.image_url}>
-      <div className="w-full max-w-96 mt-4 space-y-4">
+      <div className="w-full mt-4 space-y-4">
         <div className="skeleton h-24 w-full rounded-3xl" />
         <div className="skeleton h-12 w-full rounded-xl" />
         <div className="skeleton h-12 w-full rounded-xl" />
@@ -567,14 +568,14 @@ export default function BuyTicket() {
       )}
 
       {error && !(!me && guestStep === 'confirm') && (
-        <p className="text-sm w-full max-w-96" style={{ color: 'var(--drop-negative)' }}>
+        <p className="text-sm w-full" style={{ color: 'var(--drop-negative)' }}>
           {error}
         </p>
       )}
 
       {/* Pay button — gated by showPayment */}
       {showPayment && (
-        <div className="w-full max-w-96 pb-4">
+        <div className="w-full pb-4">
           <button
             onClick={!me ? handleGuestPay : handlePay}
             disabled={loading}
@@ -589,12 +590,12 @@ export default function BuyTicket() {
       {/* Sign-in alternative — guest only */}
       {!me && (
         <>
-          <div className="w-full max-w-96 flex items-center gap-3 text-white/20 text-xs px-1">
+          <div className="w-full flex items-center gap-3 text-white/20 text-xs px-1">
             <div className="flex-1 h-px bg-white/10" />
             or
             <div className="flex-1 h-px bg-white/10" />
           </div>
-          <div className="w-full max-w-96 pb-6">
+          <div className="w-full pb-6">
             <GoogleButton text="Sign in with Google" variant="outline" redirectUrl={`/buy-ticket?event_id=${eventId}`} />
           </div>
         </>
