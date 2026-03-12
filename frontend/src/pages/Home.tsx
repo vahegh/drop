@@ -22,7 +22,7 @@ function AlbumSkeleton() {
 }
 
 export default function Home() {
-  const { data: me, isLoading: meLoading } = useMe()
+  const { data: me } = useMe()
   const { data: nextEvent } = useNextEvent()
   const { data: events } = useEvents()
   const { data: tickets } = useTickets()
@@ -39,7 +39,7 @@ export default function Home() {
   return (
     <Layout showFooter>
       {/* Guest hero */}
-      {!me && !meLoading && (
+      {!me && (
         <Section className="pt-6 pb-2">
           <div className="flex flex-col items-center gap-3 text-center w-full">
             <h1 className="text-4xl font-bold tracking-tight">Drop Dead Disco</h1>
@@ -51,14 +51,14 @@ export default function Home() {
       )}
 
       {/* Guest: photos right after hero */}
-      {!me && !meLoading && (photosLoading || (Array.isArray(allPhotos) && allPhotos.length > 0)) && (
+      {!me && (photosLoading || (Array.isArray(allPhotos) && allPhotos.length > 0)) && (
         <Section>
           {photosLoading ? <AlbumSkeleton /> : <AlbumCarousel photos={allPhotos!} />}
         </Section>
       )}
 
       {/* Guest: stats */}
-      {!me && !meLoading && (statsLoading || stats) && (
+      {!me && (statsLoading || stats) && (
         <Section sep>
           {statsLoading ? (
             <div className="flex gap-8 w-full">
@@ -95,7 +95,7 @@ export default function Home() {
       )}
 
       {/* Guest: sign up CTA */}
-      {!me && !meLoading && (
+      {!me && (
         <Section title="Apply for access" subtitle="Sign up to get verified">
           <div className="flex gap-2 w-full max-w-96">
             <GoogleButton text="Sign up" variant="primary" redirectUrl="/" className="flex-1" style={{ maxWidth: 'none' }} />
@@ -194,7 +194,7 @@ export default function Home() {
       {nextEvent && (
         <Section>
           <EventCard event={nextEvent} className="w-full max-w-96" />
-          {(!me && !meLoading || (me && me.status !== 'verified' && me.status !== 'member')) && (
+          {(!me || (me.status !== 'verified' && me.status !== 'member')) && (
             <a href={`/buy-ticket?event_id=${nextEvent.id}`} className="btn-primary">
               🎟️ Buy your ticket
             </a>
@@ -240,7 +240,7 @@ export default function Home() {
       )}
 
       {/* Logged-in: photo carousel */}
-      {me && !meLoading && (photosLoading || (Array.isArray(allPhotos) && allPhotos.length > 0)) && (
+      {me && (photosLoading || (Array.isArray(allPhotos) && allPhotos.length > 0)) && (
         <Section>
           {photosLoading ? <AlbumSkeleton /> : <AlbumCarousel photos={allPhotos!} />}
         </Section>
