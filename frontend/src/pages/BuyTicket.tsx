@@ -39,6 +39,8 @@ export default function BuyTicket() {
   const { data: event, isLoading: eventLoading } = useEvent(eventId)
   const { data: me, isLoading: meLoading } = useMe()
 
+  document.title = 'Buy Ticket | Drop Dead Disco'
+
   const [provider, setProvider] = useState<PaymentProvider>(
     isIOS ? 'APPLEPAY' : isAndroid ? 'GOOGLEPAY' : 'VPOS'
   )
@@ -70,7 +72,6 @@ export default function BuyTicket() {
 
   useEffect(() => {
     if (!event || !me) return
-    document.title = `Buy Ticket | Drop Dead Disco`
     const price = resolvePrice(event.tiers, me.status)
     gtagEvent('begin_checkout', { currency: 'AMD', value: price, items: [{ item_id: event.id, price }] })
   }, [event?.id, me?.id])

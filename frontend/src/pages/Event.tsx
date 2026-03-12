@@ -15,6 +15,8 @@ export default function Event() {
   const { data: me } = useMe()
   const { data: photos, isLoading: photosLoading } = useEventPhotos(id ?? '', !!event?.album_url)
 
+  document.title = event ? `${event.name} | Drop Dead Disco` : 'Drop Dead Disco'
+
   const [descExpanded, setDescExpanded] = useState(false)
   const [descOverflows, setDescOverflows] = useState(false)
   const descRef = useRef<HTMLDivElement>(null)
@@ -27,7 +29,6 @@ export default function Event() {
 
   useEffect(() => {
     if (!event) return
-    document.title = `${event.name} | Drop Dead Disco`
     gtagEvent('view_item_list', {
       items: event.tiers.map(t => ({ item_id: t.id, item_name: t.name, price: t.price })),
     })

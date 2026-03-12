@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { useNextEvent, useEvents, useAllPhotos } from '../hooks/useEvents'
 import { useMe, usePeopleStats } from '../hooks/useMe'
 import { useTickets } from '../hooks/useTickets'
@@ -30,7 +29,7 @@ export default function Home() {
   const { data: stats, isLoading: statsLoading } = usePeopleStats()
   const { data: allPhotos, isLoading: photosLoading } = useAllPhotos()
 
-  useEffect(() => { document.title = 'Home | Drop Dead Disco' }, [])
+  document.title = 'Home | Drop Dead Disco'
 
   const now = new Date()
   const pastEvents = (events ?? []).filter(e => new Date(e.ends_at) < now)

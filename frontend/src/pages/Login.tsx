@@ -82,7 +82,7 @@ export default function Login() {
 
   const { data: me, isLoading } = useMe()
 
-  useEffect(() => { document.title = 'Login | Drop Dead Disco' }, [])
+  document.title = 'Login | Drop Dead Disco'
 
   // Handle magic link token in URL
   useEffect(() => {

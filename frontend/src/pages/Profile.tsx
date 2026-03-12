@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMe } from '../hooks/useMe'
 import { useTickets } from '../hooks/useTickets'
@@ -48,7 +48,7 @@ export default function Profile() {
   const { data: events } = useEvents()
   const qc = useQueryClient()
 
-  useEffect(() => { document.title = 'Profile | Drop Dead Disco' }, [])
+  document.title = 'Profile | Drop Dead Disco'
 
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState<PersonUpdate>({})

@@ -9,7 +9,7 @@ type State = 'unsubscribed' | 'resubscribed'
 export default function Unsubscribe() {
   const [searchParams] = useSearchParams()
   const email = searchParams.get('email') ?? ''
-  useEffect(() => { document.title = 'Unsubscribe | Drop Dead Disco' }, [])
+  document.title = 'Unsubscribe | Drop Dead Disco'
 
   const [state, setState] = useState<State>('unsubscribed')
   const [loading, setLoading] = useState(false)
