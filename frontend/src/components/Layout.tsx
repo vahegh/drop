@@ -133,12 +133,9 @@ export default function Layout({ children, heroBg, showFooter = true }: LayoutPr
       {/* Footer - mirrors frame.py show_footer */}
       {showFooter && (
         <footer className="w-full border-t border-white/10 py-6 flex flex-col items-center gap-4">
-          <Link to="/">
-            <img src="/static/images/logo_gray.png" alt="Drop Dead Disco" className="h-12 w-20 object-contain opacity-60 hover:opacity-90 transition-opacity" />
-          </Link>
-          <div className="flex gap-6 text-sm text-white/45">
-            <Link to="/" className="hover:text-white/80 transition-colors">Home</Link>
-          </div>
+          <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="Scroll to top">
+            <img src="/static/images/logo_gray.png" alt="Drop Dead Disco" className="h-16 w-24 object-contain opacity-60 hover:opacity-90 transition-opacity" />
+          </button>
           <div className="flex gap-1">
             <a href="https://www.instagram.com/dropdeadisco/" rel="noopener noreferrer"
               className="p-2 opacity-50 hover:opacity-90 transition-opacity">
