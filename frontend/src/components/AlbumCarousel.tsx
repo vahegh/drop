@@ -32,7 +32,7 @@ export default function AlbumCarousel({ photos }: { photos: string[] }) {
     : 'animate-in slide-in-from-left-4 fade-in duration-200'
 
   return (
-    <div className="w-full max-w-96 space-y-2">
+    <div className="w-full max-w-96 md:max-w-full space-y-2">
       {/* Preload all images for instant switching */}
       <div className="hidden">
         {photos.map((url, i) => <img key={i} src={`${url}=w800`} />)}
