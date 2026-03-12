@@ -22,7 +22,7 @@ function AlbumSkeleton() {
 }
 
 export default function Home() {
-  const { data: me, isPending: mePending } = useMe()
+  const { data: me } = useMe()
   const { data: nextEvent } = useNextEvent()
   const { data: events } = useEvents()
   const { data: tickets } = useTickets()
@@ -190,60 +190,38 @@ export default function Home() {
       )}
 
       {/* Logged-in: community blurb */}
-      {(mePending || me) && (
+      {me && (
         <Section sep>
-          {mePending ? (
-            <div className="w-full space-y-3">
-              <div className="space-y-1.5">
-                <div className="skeleton h-3 w-full" />
-                <div className="skeleton h-3 w-5/6" />
-                <div className="skeleton h-3 w-4/6" />
+          <p className="text-sm text-white/70 leading-relaxed w-full">
+            Drop Dead Disco is a hand-picked community hosting dance parties in secret locations around Yerevan.
+            Every guest has to pass <strong>verification</strong> before they're able to buy tickets and attend.
+          </p>
+          {statsLoading ? (
+            <div className="flex gap-6 w-full mt-1">
+              <div className="flex flex-col gap-1.5">
+                <div className="skeleton h-7 w-8" />
+                <div className="skeleton h-2.5 w-14" />
               </div>
-              <div className="flex gap-6">
-                <div className="flex flex-col gap-1.5">
-                  <div className="skeleton h-7 w-8" />
-                  <div className="skeleton h-2.5 w-14" />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <div className="skeleton h-7 w-8" />
-                  <div className="skeleton h-2.5 w-14" />
-                </div>
+              <div className="flex flex-col gap-1.5">
+                <div className="skeleton h-7 w-8" />
+                <div className="skeleton h-2.5 w-14" />
               </div>
             </div>
-          ) : (
-            <>
-              <p className="text-sm text-white/70 leading-relaxed w-full">
-                Drop Dead Disco is a hand-picked community hosting dance parties in secret locations around Yerevan.
-                Every guest has to pass <strong>verification</strong> before they're able to buy tickets and attend.
-              </p>
-              {statsLoading ? (
-                <div className="flex gap-6 w-full mt-1">
-                  <div className="flex flex-col gap-1.5">
-                    <div className="skeleton h-7 w-8" />
-                    <div className="skeleton h-2.5 w-14" />
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    <div className="skeleton h-7 w-8" />
-                    <div className="skeleton h-2.5 w-14" />
-                  </div>
-                </div>
-              ) : stats && (
-                <div className="flex gap-6 w-full mt-1">
-                  {stats['member'] != null && (
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-xl font-bold">{stats['member']}</span>
-                      <span className="text-xs text-white/40 uppercase tracking-widest">Members</span>
-                    </div>
-                  )}
-                  {stats['verified'] != null && (
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-xl font-bold">{stats['verified']}</span>
-                      <span className="text-xs text-white/40 uppercase tracking-widest">Verified</span>
-                    </div>
-                  )}
+          ) : stats && (
+            <div className="flex gap-6 w-full mt-1">
+              {stats['member'] != null && (
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-xl font-bold">{stats['member']}</span>
+                  <span className="text-xs text-white/40 uppercase tracking-widest">Members</span>
                 </div>
               )}
-            </>
+              {stats['verified'] != null && (
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-xl font-bold">{stats['verified']}</span>
+                  <span className="text-xs text-white/40 uppercase tracking-widest">Verified</span>
+                </div>
+              )}
+            </div>
           )}
         </Section>
       )}
