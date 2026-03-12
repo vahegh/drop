@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom'
 import { useNextEvent, useEvents, useAllPhotos } from '../hooks/useEvents'
 import { useMe, usePeopleStats } from '../hooks/useMe'
 import { useTickets } from '../hooks/useTickets'
@@ -87,8 +86,7 @@ export default function Home() {
           </div>
           <p className="text-xs text-white/40 leading-relaxed w-full mt-1">
             Drop Dead Disco is a hand-picked community hosting dance parties in secret locations around Yerevan.
-            Every guest passes <strong className="text-white/60">verification</strong> before they can attend.{' '}
-            <Link to="/about" className="underline underline-offset-2 hover:text-white/60">Read more</Link>
+            Every guest passes <strong className="text-white/60">verification</strong> before they can attend.
           </p>
         </Section>
       )}
@@ -206,8 +204,7 @@ export default function Home() {
         <Section sep>
           <p className="text-sm text-white/70 leading-relaxed w-full">
             Drop Dead Disco is a hand-picked community hosting dance parties in secret locations around Yerevan.
-            Every guest has to pass <strong>verification</strong> before they're able to buy tickets and attend.{' '}
-            <Link to="/about" className="underline underline-offset-2 text-white/55 hover:text-white/80">Read more</Link>
+            Every guest has to pass <strong>verification</strong> before they're able to buy tickets and attend.
           </p>
           {stats && (
             <div className="flex gap-6 w-full mt-1">

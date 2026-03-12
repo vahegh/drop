@@ -138,8 +138,6 @@ export default function Layout({ children, heroBg, showFooter = true }: LayoutPr
           </Link>
           <div className="flex gap-6 text-sm text-white/45">
             <Link to="/" className="hover:text-white/80 transition-colors">Home</Link>
-            <Link to="/about" className="hover:text-white/80 transition-colors">About</Link>
-            <Link to="/policy" className="hover:text-white/80 transition-colors">Policy</Link>
           </div>
           <div className="flex gap-1">
             <a href="https://www.instagram.com/dropdeadisco/" rel="noopener noreferrer"
