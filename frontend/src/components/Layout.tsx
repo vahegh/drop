@@ -16,9 +16,11 @@ interface LayoutProps {
   /** Per-page blurred bg override (event pages) - replaces the video */
   heroBg?: string
   showFooter?: boolean
+  /** Only true on the Home page — loads the background video */
+  showVideo?: boolean
 }
 
-export default function Layout({ children, heroBg, showFooter = true }: LayoutProps) {
+export default function Layout({ children, heroBg, showFooter = true, showVideo = false }: LayoutProps) {
   const { data: me, isLoading: meLoading } = useMe()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
@@ -58,11 +60,13 @@ export default function Layout({ children, heroBg, showFooter = true }: LayoutPr
             zIndex: -1,
           }}
         />
-      ) : (
+      ) : showVideo ? (
         <video autoPlay muted loop playsInline id="bg-video">
           <source src="/static/images/bg_video.webm" type="video/webm" />
           <source src="/static/images/bg_video.mp4" type="video/mp4" />
         </video>
+      ) : (
+        <div style={{ position: 'fixed', inset: 0, background: '#000', zIndex: -1 }} />
       )}
 
       {/* Menu overlay - outside navbar so it's not trapped in its stacking context */}

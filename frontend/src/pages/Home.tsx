@@ -50,7 +50,7 @@ export default function Home() {
     : null
 
   return (
-    <Layout showFooter>
+    <Layout showFooter showVideo>
       {showSplash && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-black/60 transition-opacity duration-500"
