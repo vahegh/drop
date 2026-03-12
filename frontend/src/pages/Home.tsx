@@ -106,139 +106,100 @@ export default function Home() {
         </Section>
       )}
 
-      {/* Logged-in: two-column layout at lg */}
+      {/* Greeting */}
       {me && (
-        <div className={`w-full max-w-96 md:max-w-2xl lg:max-w-3xl flex flex-col ${nextEvent ? 'lg:flex-row lg:gap-8 lg:items-start' : ''}`}>
-
-          {/* Left column: user info + pass/ticket */}
-          <div className={`flex flex-col ${nextEvent ? 'lg:w-80 lg:flex-none lg:sticky lg:top-4' : ''}`}>
-
-            {/* Greeting */}
-            <div className="flex flex-col gap-2 pt-4 pb-2">
-              <div className="flex items-center justify-between w-full">
-                <div className="flex flex-col gap-0.5">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full" style={{ background: STATUS_COLORS[me.status] }} />
-                    <span className="text-xs uppercase tracking-widest text-white/45">{me.status}</span>
-                  </div>
-                  <h1 className="text-2xl font-bold">{me.full_name}</h1>
-                  <div className="flex items-center gap-3 mt-1">
-                    {me.events_attended > 0 && (
-                      <span className="text-sm text-white/70">🔥 {me.events_attended}</span>
-                    )}
-                    {me.referral_count > 0 && (
-                      <span className="text-sm text-white/70">👥 {me.referral_count}</span>
-                    )}
-                  </div>
-                </div>
-                {me.avatar_url ? (
-                  <img src={me.avatar_url} alt={me.full_name} className="w-16 h-16 rounded-full object-cover" />
-                ) : (
-                  <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center text-2xl font-bold">
-                    {me.first_name[0]}
-                  </div>
+        <Section className="pt-4">
+          <div className="flex items-center justify-between w-full">
+            <div className="flex flex-col gap-0.5">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full" style={{ background: STATUS_COLORS[me.status] }} />
+                <span className="text-xs uppercase tracking-widest text-white/45">{me.status}</span>
+              </div>
+              <h1 className="text-2xl font-bold">{me.full_name}</h1>
+              <div className="flex items-center gap-3 mt-1">
+                {me.events_attended > 0 && (
+                  <span className="text-sm text-white/70">🔥 {me.events_attended}</span>
+                )}
+                {me.referral_count > 0 && (
+                  <span className="text-sm text-white/70">👥 {me.referral_count}</span>
                 )}
               </div>
             </div>
-
-            {/* Pending: under review */}
-            {me.status === 'pending' && (
-              <div className="flex flex-col gap-2 py-4 border-t border-white/10">
-                <div className="flex flex-col gap-0 px-2 w-full">
-                  <h2 className="text-xl font-medium">Review in progress</h2>
-                </div>
-                <div className="drop-card p-5 flex flex-col items-center gap-3 text-center">
-                  <img src="/static/images/review.gif" alt="reviewing" className="w-32 rounded-xl" />
-                  <p className="text-sm text-white/70 leading-relaxed">
-                    We're working day and night to review your application!<br />
-                    We'll get back to you ASAP via email.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Verified: ticket or buy-ticket CTA */}
-            {me.status === 'verified' && nextEvent && (
-              nextEventTicket ? (
-                <div className="flex flex-col gap-2 py-4 border-t border-white/10">
-                  <div className="flex flex-col gap-0 px-2 w-full">
-                    <h2 className="text-xl font-medium">Your ticket</h2>
-                    <p className="text-sm text-white/60">Show this at the entrance</p>
-                  </div>
-                  <EventTicketCard ticket={nextEventTicket} event={nextEvent} />
-                </div>
-              ) : (
-                <div className="flex flex-col gap-2 py-4 border-t border-white/10">
-                  <div className="flex flex-col gap-0 px-2 w-full">
-                    <h2 className="text-xl font-medium">Still no ticket?</h2>
-                    <p className="text-sm text-white/60">Get yours for {nextEvent.name}</p>
-                  </div>
-                  <a href={`/buy-ticket?event_id=${nextEvent.id}`} className="btn-primary">
-                    🎟️ Buy your ticket
-                  </a>
-                </div>
-              )
-            )}
-
-            {/* Member: membership pass */}
-            {me.status === 'member' && me.member_pass && (
-              <div className="flex flex-col gap-2 py-4 border-t border-white/10">
-                <div className="flex flex-col gap-0 px-2 w-full">
-                  <h2 className="text-xl font-medium">Your Membership Pass</h2>
-                  <p className="text-sm text-white/60">Use this to enter any Drop event</p>
-                </div>
-                <MemberPassCard pass={me.member_pass} eventsAttended={me.events_attended} />
-                {nextEvent && (
-                  <a href={`/buy-ticket?event_id=${nextEvent.id}`} className="btn-primary">
-                    🎟️ Buy your ticket
-                  </a>
-                )}
-              </div>
-            )}
-
-            {/* Member: Google Photos */}
-            {me.status === 'member' && me.album_url && (
-              <div className="flex flex-col gap-2 py-4 border-t border-white/10">
-                <div className="flex flex-col gap-0 px-2 w-full">
-                  <h2 className="text-xl font-medium">You at Drop</h2>
-                  <p className="text-sm text-white/60">Your photos in full quality</p>
-                </div>
-                <a
-                  href={`${me.album_url}?authuser=${me.email}`}
-                  rel="noopener noreferrer"
-                  className="btn-outline"
-                >
-                  <img src="/static/images/google_photos.svg" alt="" className="w-4 h-4 mr-2" />
-                  Open in Google Photos
-                </a>
-                <p className="text-xs text-white/30 text-center">*only visible to you</p>
+            {me.avatar_url ? (
+              <img src={me.avatar_url} alt={me.full_name} className="w-16 h-16 rounded-full object-cover" />
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center text-2xl font-bold">
+                {me.first_name[0]}
               </div>
             )}
           </div>
-
-          {/* Right column: next event */}
-          <div className="lg:flex-1 min-w-0 pt-4">
-            {nextEvent && (
-              <>
-                <EventCard event={nextEvent} className="w-full" />
-                {(me.status !== 'verified' && me.status !== 'member') && (
-                  <a href={`/buy-ticket?event_id=${nextEvent.id}`} className="btn-primary mt-2">
-                    🎟️ Buy your ticket
-                  </a>
-                )}
-              </>
-            )}
-          </div>
-        </div>
+        </Section>
       )}
 
-      {/* Guest: next event card */}
-      {!me && nextEvent && (
+      {/* Pending: under review */}
+      {me?.status === 'pending' && (
+        <Section title="Review in progress" sep>
+          <div className="drop-card p-5 flex flex-col items-center gap-3 text-center">
+            <img src="/static/images/review.gif" alt="reviewing" className="w-32 rounded-xl" />
+            <p className="text-sm text-white/70 leading-relaxed">
+              We're working day and night to review your application!<br />
+              We'll get back to you ASAP via email.
+            </p>
+          </div>
+        </Section>
+      )}
+
+      {/* Verified: ticket or buy-ticket CTA */}
+      {me?.status === 'verified' && nextEvent && (
+        nextEventTicket ? (
+          <Section title="Your ticket" subtitle="Show this at the entrance" sep>
+            <EventTicketCard ticket={nextEventTicket} event={nextEvent} />
+          </Section>
+        ) : (
+          <Section title="Still no ticket?" subtitle={`Get yours for ${nextEvent.name}`} sep>
+            <a href={`/buy-ticket?event_id=${nextEvent.id}`} className="btn-primary">
+              🎟️ Buy your ticket
+            </a>
+          </Section>
+        )
+      )}
+
+      {/* Member: membership pass */}
+      {me?.status === 'member' && me.member_pass && (
+        <Section title="Your Membership Pass" subtitle="Use this to enter any Drop event" sep>
+          <MemberPassCard pass={me.member_pass} eventsAttended={me.events_attended} />
+          {nextEvent && (
+            <a href={`/buy-ticket?event_id=${nextEvent.id}`} className="btn-primary">
+              🎟️ Buy your ticket
+            </a>
+          )}
+        </Section>
+      )}
+
+      {/* Member: Google Photos */}
+      {me?.status === 'member' && me.album_url && (
+        <Section title="You at Drop" subtitle="Your photos in full quality" sep>
+          <a
+            href={`${me.album_url}?authuser=${me.email}`}
+            rel="noopener noreferrer"
+            className="btn-outline"
+          >
+            <img src="/static/images/google_photos.svg" alt="" className="w-4 h-4 mr-2" />
+            Open in Google Photos
+          </a>
+          <p className="text-xs text-white/30 text-center">*only visible to you</p>
+        </Section>
+      )}
+
+      {/* Next event card */}
+      {nextEvent && (
         <Section>
           <EventCard event={nextEvent} className="w-full" />
-          <a href={`/buy-ticket?event_id=${nextEvent.id}`} className="btn-primary">
-            🎟️ Buy your ticket
-          </a>
+          {(!me || (me.status !== 'verified' && me.status !== 'member')) && (
+            <a href={`/buy-ticket?event_id=${nextEvent.id}`} className="btn-primary">
+              🎟️ Buy your ticket
+            </a>
+          )}
         </Section>
       )}
 
