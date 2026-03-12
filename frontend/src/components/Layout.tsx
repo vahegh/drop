@@ -61,7 +61,7 @@ export default function Layout({ children, heroBg, showFooter = true }: LayoutPr
         className="fixed top-0 left-0 right-0 h-14 px-4 flex items-center justify-between z-50 bg-black/20"
       >
         {location.pathname === '/' ? (
-          <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center" aria-label="Scroll to top">
+          <button type="button" onClick={() => document.documentElement.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center" aria-label="Scroll to top">
             <img src="/static/images/logo_gray.png" alt="Drop Dead Disco" className="h-12 w-14 object-contain" />
           </button>
         ) : (
@@ -139,7 +139,7 @@ export default function Layout({ children, heroBg, showFooter = true }: LayoutPr
       {/* Footer - mirrors frame.py show_footer */}
       {showFooter && (
         <footer className="w-full border-t border-white/10 py-6 flex flex-col items-center gap-4">
-          <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="Scroll to top">
+          <button type="button" onClick={() => document.documentElement.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="Scroll to top">
             <img src="/static/images/logo_gray.png" alt="Drop Dead Disco" className="h-16 w-24 object-contain opacity-60 hover:opacity-90 transition-opacity" />
           </button>
           <div className="flex gap-1">
