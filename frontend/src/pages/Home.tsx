@@ -22,7 +22,7 @@ function AlbumSkeleton() {
 }
 
 export default function Home() {
-  const { data: me, isLoading: meLoading } = useMe()
+  const { data: me, isPending: mePending } = useMe()
   const { data: nextEvent } = useNextEvent()
   const { data: events } = useEvents()
   const { data: tickets } = useTickets()
@@ -190,9 +190,9 @@ export default function Home() {
       )}
 
       {/* Logged-in: community blurb */}
-      {(meLoading || me) && (
+      {(mePending || me) && (
         <Section sep>
-          {meLoading ? (
+          {mePending ? (
             <div className="w-full space-y-3">
               <div className="space-y-1.5">
                 <div className="skeleton h-3 w-full" />
