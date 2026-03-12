@@ -7,7 +7,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from db_models import Person, MemberPass, EventTicket, CardBinding, Payment, DrinkVoucher, Drink
 from enums import PersonStatus
-from api_models import PersonCreate, PersonUpdate, PersonResponseFull, MemberCardResponse, EventTicketResponse, CardBindingResponse, PaymentResponse, DrinkVoucherAdminResponse
+from api_models import PersonCreate, PersonUpdate, PersonResponseFull, PersonRefResponse, MemberCardResponse, EventTicketResponse, CardBindingResponse, PaymentResponse, DrinkVoucherAdminResponse
 from fastapi.responses import Response
 from services.person import update_person, delete_person
 
@@ -76,6 +76,22 @@ async def _get_person_detail(db: AsyncSession, id: UUID):
         select(func.count(Person.id)).where(Person.referer_id == id)
     ) or 0
 
+    referer = None
+    if person.referer_id:
+        referer_person = await db.get(Person, person.referer_id)
+        if referer_person:
+            referer = PersonRefResponse(
+                id=referer_person.id,
+                full_name=f"{referer_person.first_name} {referer_person.last_name}",
+                status=referer_person.status,
+            )
+
+    referrals_result = await db.scalars(select(Person).where(Person.referer_id == id))
+    referrals = [
+        PersonRefResponse(id=p.id, full_name=f"{p.first_name} {p.last_name}", status=p.status)
+        for p in referrals_result.all()
+    ]
+
     bindings_result = await db.scalars(select(CardBinding).where(CardBinding.person_id == id))
     bindings = bindings_result.all()
 
@@ -117,6 +133,8 @@ async def _get_person_detail(db: AsyncSession, id: UUID):
         referral_count=referral_count,
         card_bindings=[CardBindingResponse.model_validate(b) for b in bindings],
         referer_id=person.referer_id,
+        referer=referer,
+        referrals=referrals,
         payments=[PaymentResponse.model_validate(p) for p in payments],
         drink_vouchers=drink_vouchers,
     )

@@ -103,6 +103,12 @@ export interface DrinkVoucherAdminResponse {
   used_at: string | null
 }
 
+export interface PersonRefResponse {
+  id: string
+  full_name: string
+  status: PersonStatus
+}
+
 export interface PersonResponseFull {
   id: string
   first_name: string
@@ -121,6 +127,8 @@ export interface PersonResponseFull {
   card_bindings: CardBindingResponse[]
   is_admin: boolean
   referer_id: string | null
+  referer: PersonRefResponse | null
+  referrals: PersonRefResponse[]
   payments: PaymentResponse[]
   drink_vouchers: DrinkVoucherAdminResponse[]
 }

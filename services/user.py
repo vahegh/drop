@@ -7,7 +7,7 @@ from decorators import with_db
 from decorators import verify_user_token
 from db_models import Person,  MemberPass
 from consts import admins
-from api_models import PersonUpdate, PersonResponseFull
+from api_models import PersonUpdate, PersonResponseFull, PersonRefResponse
 from services.event_ticket import get_tickets_by_person_id
 from services.card_binding import get_card_binding_by_person_id
 
@@ -29,6 +29,22 @@ async def user_info(db: AsyncSession, request: Request):
         select(func.count(Person.id)).where(Person.referer_id == person.id)
     ) or 0
 
+    referer = None
+    if person.referer_id:
+        referer_person = await db.get(Person, person.referer_id)
+        if referer_person:
+            referer = PersonRefResponse(
+                id=referer_person.id,
+                full_name=f"{referer_person.first_name} {referer_person.last_name}",
+                status=referer_person.status,
+            )
+
+    referrals_result = await db.scalars(select(Person).where(Person.referer_id == person.id))
+    referrals = [
+        PersonRefResponse(id=p.id, full_name=f"{p.first_name} {p.last_name}", status=p.status)
+        for p in referrals_result.all()
+    ]
+
     response = PersonResponseFull(
         id=person.id,
         first_name=person.first_name,
@@ -46,6 +62,9 @@ async def user_info(db: AsyncSession, request: Request):
         album_url=person.album_url,
         card_bindings=card_bindings,
         is_admin=person.email in admins,
+        referer_id=person.referer_id,
+        referer=referer,
+        referrals=referrals,
     )
 
     return response

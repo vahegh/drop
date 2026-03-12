@@ -546,6 +546,12 @@ class ValidateTokenResponse(BaseModel):
     has_ticket: bool
 
 
+class PersonRefResponse(BaseModel):
+    id: UUID
+    full_name: str
+    status: PersonStatus
+
+
 class PersonResponseFull(BaseModel):
     id: UUID
     first_name: str
@@ -564,6 +570,8 @@ class PersonResponseFull(BaseModel):
     card_bindings: list[CardBindingResponse] = []
     is_admin: bool = False
     referer_id: Optional[UUID] = None
+    referer: Optional['PersonRefResponse'] = None
+    referrals: list['PersonRefResponse'] = []
     payments: list[PaymentResponse] = []
     drink_vouchers: list['DrinkVoucherAdminResponse'] = []
 

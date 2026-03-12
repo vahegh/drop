@@ -182,6 +182,36 @@ export default function Profile() {
         </Section>
       )}
 
+      {/* Referrals */}
+      {(me.referer || (me.referrals && me.referrals.length > 0)) && (
+        <Section sep>
+          <div className="drop-card p-4 flex flex-col gap-3 w-full">
+            {me.referer && (
+              <div className="flex flex-col gap-1 border-b border-white/8 pb-3">
+                <span className="text-xs text-white/45">Referred by</span>
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: STATUS_COLORS[me.referer.status] }} />
+                  <span className="text-sm font-medium">{me.referer.full_name}</span>
+                  <span className="text-xs text-white/35">({me.referer.status})</span>
+                </div>
+              </div>
+            )}
+            {me.referrals && me.referrals.length > 0 && (
+              <div className="flex flex-col gap-2">
+                <span className="text-xs text-white/45">People you referred ({me.referrals.length})</span>
+                {me.referrals.map((r) => (
+                  <div key={r.id} className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: STATUS_COLORS[r.status] }} />
+                    <span className="text-sm">{r.full_name}</span>
+                    <span className="text-xs text-white/35">({r.status})</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </Section>
+      )}
+
       {/* Member pass */}
       {me.member_pass && (
         <Section title="Membership Pass" sep>
@@ -189,8 +219,8 @@ export default function Profile() {
         </Section>
       )}
 
-      {/* Upcoming tickets */}
-      {pendingTickets.length > 0 && (
+      {/* Upcoming tickets — hidden for members who use their member pass to attend */}
+      {me.status !== 'member' && pendingTickets.length > 0 && (
         <Section title="Your ticket" subtitle="Show this at the entrance" sep>
           {pendingTickets.map((ticket) => {
             const ev = eventMap.get(ticket.event_id)
