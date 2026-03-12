@@ -4,6 +4,7 @@ import { useMe } from '../hooks/useMe'
 import { useTickets } from '../hooks/useTickets'
 import { useEvents } from '../hooks/useEvents'
 import { updateMe, uploadAvatar } from '../api/people'
+import { addPaymentMethod, removePaymentMethod } from '../api/payments'
 import { useQueryClient } from '@tanstack/react-query'
 import Layout from '../components/Layout'
 import { STATUS_COLORS } from '../components/Layout'
@@ -193,6 +194,37 @@ export default function Profile() {
             </Card>
           </>
         )}
+
+        {/* Card bindings */}
+        <SectionTitle title="Saved Cards" />
+        <Card>
+          {me.card_bindings.filter(b => b.is_active).map((b) => (
+            <div key={b.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid #1a1a1a' }}>
+              <div>
+                <div style={{ color: '#fff', fontSize: 13, fontWeight: 500 }}>{b.masked_card_number}</div>
+                <div style={{ color: '#555', fontSize: 11, marginTop: 2 }}>exp. {b.card_expiry_date}</div>
+              </div>
+              <button
+                onClick={async () => {
+                  await removePaymentMethod(b.id)
+                  await qc.invalidateQueries({ queryKey: ['me'] })
+                }}
+                style={{ background: 'none', border: 'none', color: '#555', fontSize: 12, cursor: 'pointer', padding: '4px 8px' }}
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+          <button
+            onClick={async () => {
+              const { redirect_url } = await addPaymentMethod()
+              window.location.href = redirect_url
+            }}
+            style={{ display: 'block', width: '100%', padding: '12px 16px', background: 'none', border: 'none', color: '#5b8fff', fontSize: 13, fontWeight: 500, cursor: 'pointer', textAlign: 'left' }}
+          >
+            + Add card
+          </button>
+        </Card>
 
         {/* Stats */}
         <SectionTitle title="Stats" />

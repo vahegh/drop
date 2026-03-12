@@ -9,6 +9,7 @@ import Section from '../components/Section'
 import GoogleButton from '../components/GoogleButton'
 import PaymentProviderSelector from '../components/PaymentProviderSelector'
 import { gtagEvent } from '../lib/analytics'
+import { isIOS, isAndroid } from '../lib/ua'
 import type { PaymentProvider, TicketTierResponse, PersonStatus, CheckEmailResponse } from '../types'
 
 function resolveClientTier(tiers: TicketTierResponse[], status?: PersonStatus): TicketTierResponse | null {
@@ -38,7 +39,9 @@ export default function BuyTicket() {
   const { data: event, isLoading: eventLoading } = useEvent(eventId)
   const { data: me, isLoading: meLoading } = useMe()
 
-  const [provider, setProvider] = useState<PaymentProvider>('VPOS')
+  const [provider, setProvider] = useState<PaymentProvider>(
+    isIOS ? 'APPLEPAY' : isAndroid ? 'GOOGLEPAY' : 'VPOS'
+  )
   const [saveCard, setSaveCard] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -70,6 +73,12 @@ export default function BuyTicket() {
     const price = resolvePrice(event.tiers, me.status)
     gtagEvent('begin_checkout', { currency: 'AMD', value: price, items: [{ item_id: event.id, price }] })
   }, [event?.id, me?.id])
+
+  useEffect(() => {
+    if (!me || isIOS || isAndroid) return
+    const b = me.card_bindings.find(b => b.is_active)
+    if (b) setProvider('BINDING')
+  }, [me?.id])
 
   if (!eventId) return (
     <Layout>
@@ -110,6 +119,7 @@ export default function BuyTicket() {
   const guestPrice = resolvePrice(tiers, 'pending')
 
   // Logged-in derived values
+  const activeBinding = me?.card_bindings.find(b => b.is_active) ?? null
   const myTier = me ? resolveClientTier(tiers, me.status) : null
   const myPrice = me ? resolvePrice(tiers, me.status) : 0
   const ticketLabel = myTier?.name ?? (me?.status === 'member' ? 'Member Ticket' : 'Standard Ticket')
@@ -277,6 +287,7 @@ export default function BuyTicket() {
         provider,
         attendees: resolvedAttendees,
         save_card: saveCard,
+        ...(provider === 'BINDING' && activeBinding ? { card_id: activeBinding.id } : {}),
       })
       window.location.href = res.redirect_url
     } catch {
@@ -549,6 +560,7 @@ export default function BuyTicket() {
             setProvider={setProvider}
             saveCard={saveCard}
             setSaveCard={setSaveCard}
+            cardBinding={me ? activeBinding : null}
           />
         </Section>
       )}

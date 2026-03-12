@@ -202,6 +202,7 @@ export interface InitiatePaymentRequest {
   attendees: { person_id: string }[]
   drink_ids?: string[]
   save_card?: boolean
+  card_id?: string
 }
 
 export interface InitiatePaymentResponse {

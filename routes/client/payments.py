@@ -18,6 +18,9 @@ from services.vpos_payment import make_binding_payment_vpos, deactivate_binding_
 import logging
 
 logger = logging.getLogger(__name__)
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["Client Payments"], prefix="/payments")
 
@@ -32,6 +35,7 @@ class InitiatePaymentRequest(BaseModel):
     attendees: list[AttendeeItem]
     drink_ids: list[UUID] = []
     save_card: bool = False
+    card_id: Optional[UUID] = None
 
 
 class BindingPaymentRequest(BaseModel):
@@ -99,6 +103,20 @@ async def initiate_payment(body: InitiatePaymentRequest, request: Request):
         await create_drink_payment_intent(
             DrinkPaymentIntent(order_id=new_payment.order_id, drink_id=drink_id)
         )
+
+    if body.provider == PaymentProvider.BINDING:
+        if not body.card_id:
+            raise HTTPException(422, "card_id is required for BINDING payments")
+        try:
+            resp = await make_binding_payment_vpos(body.card_id, new_payment.order_id, total)
+        except Exception as e:
+            raise HTTPException(500, f"Card payment failed: {str(e)}")
+        await confirm_payment(PaymentConfirmRequest(
+            order_id=new_payment.order_id,
+            provider=PaymentProvider.BINDING,
+            payment_id=resp.PaymentID,
+        ))
+        return {"order_id": new_payment.order_id, "redirect_url": f"{APP_BASE_URL}/profile"}
 
     redirect_url = await init_payment(new_payment, save_card=body.save_card)
     return {"order_id": new_payment.order_id, "redirect_url": redirect_url}
