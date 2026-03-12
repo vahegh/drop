@@ -244,7 +244,15 @@ export default function AdminEventForm() {
 
       <SectionHeader title="Details" />
       <Field label="Name" value={form.name} onChange={v => set('name', v)} />
-      <Field label="Description" value={form.description} onChange={v => set('description', v)} />
+      <div style={{ marginBottom: 14 }}>
+        <label style={{ display: 'block', color: '#888', fontSize: 12, marginBottom: 5 }}>Description</label>
+        <textarea
+          value={form.description}
+          onChange={e => set('description', e.target.value)}
+          rows={5}
+          style={{ width: '100%', background: '#111', color: '#fff', border: '1px solid #1a1a1a', borderRadius: 8, padding: '10px 12px', fontSize: 14, boxSizing: 'border-box', outline: 'none', resize: 'vertical', fontFamily: 'inherit' }}
+        />
+      </div>
 
       <SectionHeader title="Media" />
       <Field label="Image URL" value={form.image_url} onChange={v => set('image_url', v)} />
