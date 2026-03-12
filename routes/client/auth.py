@@ -50,6 +50,42 @@ async def me(request: Request):
     return await user_info(request)
 
 
+@router.post("/refresh")
+@with_db
+async def refresh_token(db: AsyncSession, request: Request):
+    import jwt as pyjwt
+    from db_models import Person
+    from enums import PersonStatus
+    from services.auth import auth_secret
+    from sqlalchemy import select
+
+    token = request.cookies.get("refresh_token")
+    if not token:
+        raise HTTPException(401, "No refresh token")
+
+    try:
+        payload = pyjwt.decode(token, auth_secret, algorithms=["HS256"])
+    except (pyjwt.ExpiredSignatureError, pyjwt.InvalidTokenError):
+        raise HTTPException(401, "Invalid refresh token")
+
+    stored = await db.scalar(select(RefreshToken).where(RefreshToken.token == token))
+    if not stored:
+        raise HTTPException(401, "Token revoked")
+
+    person = await db.get(Person, payload["person_id"])
+    if not person or person.status == PersonStatus.rejected:
+        raise HTTPException(403, "Rejected")
+
+    await db.delete(stored)
+
+    redirect_resp = await generate_and_set_tokens(person.id, redirect_url="/")
+    json_resp = JSONResponse({"ok": True})
+    for key, val in redirect_resp.raw_headers:
+        if key == b"set-cookie":
+            json_resp.raw_headers.append((key, val))
+    return json_resp
+
+
 @router.post("/logout")
 @with_db
 async def logout(db: AsyncSession, request: Request):
