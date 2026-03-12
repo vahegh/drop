@@ -311,7 +311,7 @@ export default function Profile() {
         )}
 
         <div style={{ marginTop: 8 }}>
-          <Link to="/" className="btn-outline" style={{ display: 'inline-block' }}>← Home</Link>
+          <Link to="/" style={{ color: '#555', fontSize: 13, textDecoration: 'none' }}>← Home</Link>
         </div>
 
       </div>
