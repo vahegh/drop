@@ -251,7 +251,7 @@ export default function Home() {
         <Section title="Previous events" subtitle="Photos and videos from past events" sep>
           <div className="flex flex-col divide-y divide-white/10 w-full max-w-96">
             {pastEvents.map((event) => (
-              <EventCard key={event.id} event={event} className="py-6" />
+              <EventCard key={event.id} event={event} className="py-6 first:pt-0" />
             ))}
           </div>
         </Section>
