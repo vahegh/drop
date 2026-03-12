@@ -53,7 +53,7 @@ export default function Layout({ children, heroBg, showFooter = true }: LayoutPr
             backgroundImage: `url('${heroBg}')`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            filter: 'blur(12px) brightness(25%)',
+            filter: 'blur(8px) brightness(50%)',
             transform: 'scale(1.05)',
             zIndex: -1,
           }}

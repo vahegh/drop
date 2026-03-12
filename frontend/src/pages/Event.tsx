@@ -75,7 +75,7 @@ export default function Event() {
             linkTo={false}
             showEndsAt
             className="w-full"
-            imageClassName='m-4'
+            imageClassName='mx-4'
           />
         </div>
 
