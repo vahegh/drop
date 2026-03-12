@@ -1,7 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import delete, select
 from decorators import with_db
-from db_models import PaymentIntent
+from db_models import Payment, PaymentIntent
+from enums import PaymentStatus
 from uuid import UUID
 
 
@@ -28,4 +29,16 @@ async def get_payment_intents(db: AsyncSession, order_id: int):
 @with_db
 async def get_payment_intent(db: AsyncSession, recipient_id: UUID):
     payment_intent = await db.scalar(select(PaymentIntent).where(PaymentIntent.recipient_id == recipient_id))
+    return payment_intent
+
+
+@with_db
+async def get_confirmed_payment_intent(db: AsyncSession, recipient_id: UUID, event_id: UUID):
+    payment_intent = await db.scalar(
+        select(PaymentIntent)
+        .join(Payment, PaymentIntent.order_id == Payment.order_id)
+        .where(PaymentIntent.recipient_id == recipient_id)
+        .where(Payment.event_id == event_id)
+        .where(Payment.status == PaymentStatus.CONFIRMED)
+    )
     return payment_intent

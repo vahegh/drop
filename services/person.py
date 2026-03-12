@@ -11,7 +11,7 @@ from services.templating import generate_template
 from services.mailing import EmailRequest, send_email
 from services.payment import get_payment, refund_payment
 from services.event_ticket import EventTicket, create_event_ticket, send_event_ticket
-from services.payment_intent import get_payment_intent, delete_payment_intent
+from services.payment_intent import get_payment_intent, get_confirmed_payment_intent, delete_payment_intent
 from api_models import PersonCreate, PersonUpdate
 from consts import (APP_BASE_URL, APPLICATION_SUBMITTED_TEMPLATE, APPROVED_TEMPLATE,
                     REJECTED_TEMPLATE, APPLICATION_SUBMITTED_SUBJECT,
@@ -106,14 +106,16 @@ async def update_person(db: AsyncSession, id: UUID, updated_person: PersonUpdate
 
     match updated_person.status:
         case PersonStatus.rejected:
+            if person.status != PersonStatus.pending:
+                break
+
             if next_event:
-                intent = await get_payment_intent(person.id)
+                intent = await get_confirmed_payment_intent(person.id, next_event.id)
                 if intent:
                     existing_payment = await get_payment(intent.order_id)
-                    if existing_payment.status == PaymentStatus.CONFIRMED:
-                        await refund_payment(existing_payment)
-                        context["refunded"] = True
-                        await delete_payment_intent(intent.order_id, person.id)
+                    await refund_payment(existing_payment)
+                    context["refunded"] = True
+                    await delete_payment_intent(intent.order_id, person.id)
 
             template = await generate_template(REJECTED_TEMPLATE, context)
             email_request = EmailRequest(
@@ -123,22 +125,24 @@ async def update_person(db: AsyncSession, id: UUID, updated_person: PersonUpdate
             )
 
         case PersonStatus.verified:
+            if person.status != PersonStatus.pending:
+                break
+
             ticket_sent = False
 
             if next_event:
-                intent = await get_payment_intent(person.id)  # TODO handle multiple intents
+                intent = await get_confirmed_payment_intent(person.id, next_event.id)
                 if intent:
                     existing_payment = await get_payment(intent.order_id)
-                    if existing_payment.status == PaymentStatus.CONFIRMED:
-                        event_ticket = EventTicket(
-                            person_id=person.id,
-                            event_id=existing_payment.event_id,
-                            payment_order_id=existing_payment.order_id
-                        )
-                        await create_event_ticket(event_ticket)
-                        await send_event_ticket(event_ticket)
-                        await delete_payment_intent(intent.order_id, person.id)
-                        ticket_sent = True
+                    event_ticket = EventTicket(
+                        person_id=person.id,
+                        event_id=existing_payment.event_id,
+                        payment_order_id=existing_payment.order_id
+                    )
+                    await create_event_ticket(event_ticket)
+                    await send_event_ticket(event_ticket)
+                    await delete_payment_intent(intent.order_id, person.id)
+                    ticket_sent = True
 
             if not ticket_sent:
                 if next_event:
