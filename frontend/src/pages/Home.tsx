@@ -10,34 +10,24 @@ import EventTicketCard from '../components/EventTicketCard'
 import AlbumCarousel from '../components/AlbumCarousel'
 import EventCard from '../components/EventCard'
 
+function AlbumSkeleton() {
+  return (
+    <div className="w-full max-w-96 space-y-2">
+      <div className="skeleton w-full rounded-xl" style={{ aspectRatio: '3/2' }} />
+      <div className="flex gap-1.5">
+        {[0, 1, 2, 3].map(i => <div key={i} className="skeleton w-14 h-14 rounded-lg flex-none" />)}
+      </div>
+    </div>
+  )
+}
+
 export default function Home() {
-  const { data: me, isLoading: meLoading } = useMe()
+  const { data: me } = useMe()
   const { data: nextEvent } = useNextEvent()
   const { data: events } = useEvents()
   const { data: tickets } = useTickets()
-  const { data: stats } = usePeopleStats()
-  const { data: allPhotos } = useAllPhotos()
-
-  if (meLoading) return (
-    <Layout showFooter>
-      <div className="w-full max-w-96 mt-6 space-y-5">
-        <div className="flex items-center gap-3">
-          <div className="skeleton w-16 h-16 rounded-full flex-shrink-0" />
-          <div className="space-y-2 flex-1">
-            <div className="skeleton h-5 w-36" />
-            <div className="skeleton h-4 w-24" />
-          </div>
-        </div>
-        <div className="skeleton h-64 w-full rounded-2xl" />
-        <div className="grid grid-cols-2 gap-3">
-          <div className="skeleton rounded-2xl" style={{ aspectRatio: '4/5' }} />
-          <div className="skeleton rounded-2xl" style={{ aspectRatio: '4/5' }} />
-          <div className="skeleton rounded-2xl" style={{ aspectRatio: '4/5' }} />
-          <div className="skeleton rounded-2xl" style={{ aspectRatio: '4/5' }} />
-        </div>
-      </div>
-    </Layout>
-  )
+  const { data: stats, isLoading: statsLoading } = usePeopleStats()
+  const { data: allPhotos, isLoading: photosLoading } = useAllPhotos()
 
   const now = new Date()
   const pastEvents = (events ?? []).filter(e => new Date(e.ends_at) < now)
@@ -61,9 +51,9 @@ export default function Home() {
       )}
 
       {/* Guest: photos right after hero */}
-      {!me && Array.isArray(allPhotos) && allPhotos.length > 0 && (
+      {!me && (photosLoading || (Array.isArray(allPhotos) && allPhotos.length > 0)) && (
         <Section>
-          <AlbumCarousel photos={allPhotos} />
+          {photosLoading ? <AlbumSkeleton /> : <AlbumCarousel photos={allPhotos!} />}
         </Section>
       )}
 
@@ -206,7 +196,18 @@ export default function Home() {
             Drop Dead Disco is a hand-picked community hosting dance parties in secret locations around Yerevan.
             Every guest has to pass <strong>verification</strong> before they're able to buy tickets and attend.
           </p>
-          {stats && (
+          {statsLoading ? (
+            <div className="flex gap-6 w-full mt-1">
+              <div className="flex flex-col gap-1.5">
+                <div className="skeleton h-7 w-8" />
+                <div className="skeleton h-2.5 w-14" />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <div className="skeleton h-7 w-8" />
+                <div className="skeleton h-2.5 w-14" />
+              </div>
+            </div>
+          ) : stats && (
             <div className="flex gap-6 w-full mt-1">
               {stats['member'] != null && (
                 <div className="flex flex-col gap-0.5">
@@ -226,9 +227,9 @@ export default function Home() {
       )}
 
       {/* Logged-in: photo carousel */}
-      {me && Array.isArray(allPhotos) && allPhotos.length > 0 && (
+      {me && (photosLoading || (Array.isArray(allPhotos) && allPhotos.length > 0)) && (
         <Section>
-          <AlbumCarousel photos={allPhotos} />
+          {photosLoading ? <AlbumSkeleton /> : <AlbumCarousel photos={allPhotos!} />}
         </Section>
       )}
 
