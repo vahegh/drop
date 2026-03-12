@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { useMe } from '../hooks/useMe'
 import { logout } from '../api/auth'
 import { loginUrl } from '../lib/loginUrl'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 
 export const STATUS_COLORS: Record<string, string> = {
   verified: '#00c951',
@@ -22,10 +22,19 @@ export default function Layout({ children, heroBg, showFooter = true }: LayoutPr
   const { data: me, isLoading: meLoading } = useMe()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [menuClosing, setMenuClosing] = useState(false)
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [loggingOut, setLoggingOut] = useState(false)
 
+  function openMenu() { setMenuOpen(true); setMenuClosing(false) }
+  function closeMenu() {
+    setMenuClosing(true)
+    closeTimerRef.current = setTimeout(() => { setMenuOpen(false); setMenuClosing(false) }, 150)
+  }
+  function toggleMenu() { menuOpen ? closeMenu() : openMenu() }
+
   async function handleLogout() {
-    setMenuOpen(false)
+    closeMenu()
     setLoggingOut(true)
     const returnTo = window.location.pathname + window.location.search
     await logout()
@@ -55,6 +64,11 @@ export default function Layout({ children, heroBg, showFooter = true }: LayoutPr
         </video>
       )}
 
+      {/* Menu overlay - outside navbar so it's not trapped in its stacking context */}
+      {menuOpen && (
+        <div className="fixed inset-0 z-40" onClick={closeMenu} />
+      )}
+
       {/* Navbar */}
       <nav
         style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
@@ -73,7 +87,7 @@ export default function Layout({ children, heroBg, showFooter = true }: LayoutPr
         {meLoading ? null : me ? (
           <div className="relative">
             <button
-              onClick={() => setMenuOpen(!menuOpen)}
+              onClick={toggleMenu}
               className="w-8 h-8 rounded-full overflow-hidden border border-white/20 hover:border-white/50 transition-colors flex items-center justify-center"
             >
               {me.avatar_url ? (
@@ -87,9 +101,8 @@ export default function Layout({ children, heroBg, showFooter = true }: LayoutPr
 
             {menuOpen && (
               <>
-                <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
                 <div
-                  className="absolute right-0 top-10 z-50 w-56 rounded-xl p-4 flex flex-col gap-3"
+                  className={`absolute right-0 top-10 z-50 w-56 rounded-xl p-4 flex flex-col gap-3 ${menuClosing ? 'animate-out fade-out-0 zoom-out-95 slide-out-to-top-1 duration-150' : 'animate-in fade-in-0 zoom-in-95 slide-in-from-top-1 duration-150'}`}
                   style={{ background: 'var(--drop-card)', boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}
                 >
                   <div className="flex flex-col items-center gap-2 pb-3 border-b border-white/10">
@@ -102,18 +115,22 @@ export default function Layout({ children, heroBg, showFooter = true }: LayoutPr
                     )}
                     <p className="font-semibold text-sm text-center">{me.full_name}</p>
                     <p className="text-xs" style={{ color: STATUS_COLORS[me.status] }}>{me.status}</p>
-                    {me.events_attended > 0 && (
-                      <p className="text-xs text-white/45">🔥 {me.events_attended}</p>
-                    )}
-                    {me.referral_count > 0 && (
-                      <p className="text-xs text-white/45">👥 {me.referral_count}</p>
+                    {(me.events_attended > 0 || me.referral_count > 0) && (
+                      <div className="flex gap-3">
+                        {me.events_attended > 0 && (
+                          <p className="text-xs text-white/45">🔥 {me.events_attended}</p>
+                        )}
+                        {me.referral_count > 0 && (
+                          <p className="text-xs text-white/45">👥 {me.referral_count}</p>
+                        )}
+                      </div>
                     )}
                   </div>
-                  <Link to="/profile" onClick={() => setMenuOpen(false)} className="btn-primary text-sm text-center">
+                  <Link to="/profile" onClick={closeMenu} className="btn-primary text-sm text-center">
                     Your profile
                   </Link>
                   {me.is_admin && (
-                    <Link to="/admin" onClick={() => setMenuOpen(false)} className="text-sm text-center text-white/60 hover:text-white transition-colors">
+                    <Link to="/admin" onClick={closeMenu} className="text-sm text-center text-white/60 hover:text-white transition-colors">
                       Admin panel
                     </Link>
                   )}
