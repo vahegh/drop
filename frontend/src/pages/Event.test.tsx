@@ -20,10 +20,10 @@ const mockEvent = {
   description: 'A great event',
   track_url: null,
   video_url: null,
-  member_ticket_price: 2000,
-  early_bird_price: 3000,
-  general_admission_price: 5000,
-  early_bird_date: null,
+  tiers: [
+    { id: 't-1', name: 'Members', price: 2000, required_person_status: 'member', sort_order: 0, is_active: true, available_from: null, available_until: null, capacity: null, ecrm_good_code: null, ecrm_good_name: null, event_id: 'evt-1', created_at: '' },
+    { id: 't-2', name: 'Standard', price: 5000, required_person_status: null, sort_order: 1, is_active: true, available_from: null, available_until: null, capacity: null, ecrm_good_code: null, ecrm_good_name: null, event_id: 'evt-1', created_at: '' },
+  ],
 }
 
 function wrapper() {

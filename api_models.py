@@ -149,10 +149,6 @@ class EventCreate(BaseModel):
     album_url: Optional[str]
     track_url: Optional[str]
     description: str
-    early_bird_date: Optional[datetime] = None
-    early_bird_price: Optional[int] = None
-    general_admission_price: int
-    member_ticket_price: int
     max_capacity: int
     area: Optional[str] = None
     shared: bool
@@ -169,10 +165,6 @@ class EventResponse(BaseModel):
     album_url: Optional[str]
     track_url: Optional[str]
     description: str
-    early_bird_date: Optional[datetime] = None
-    early_bird_price: Optional[int] = None
-    general_admission_price: int
-    member_ticket_price: int
     max_capacity: int
     area: Optional[str] = None
     shared: bool
@@ -193,10 +185,6 @@ class EventUpdate(BaseModel):
     album_url: Optional[str] = None
     track_url: Optional[str] = None
     description: Optional[str] = None
-    early_bird_date: Optional[datetime] = None
-    early_bird_price: Optional[int] = None
-    general_admission_price: Optional[int] = None
-    member_ticket_price: Optional[int] = None
     max_capacity: Optional[int] = None
     area: Optional[str] = None
     shared: Optional[bool] = None

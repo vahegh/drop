@@ -29,18 +29,8 @@ function resolveClientTier(tiers: TicketTierResponse[], status?: PersonStatus): 
   return null
 }
 
-function resolvePrice(tiers: TicketTierResponse[], status?: PersonStatus, fallback?: { member: number; earlyBird?: number | null; earlyBirdDate?: string | null; ga: number }): number {
-  if (tiers.length > 0) {
-    const tier = resolveClientTier(tiers, status)
-    return tier?.price ?? fallback?.ga ?? 0
-  }
-  // Flat-field fallback for stale cache
-  if (!fallback) return 0
-  const now = new Date()
-  const earlyBirdActive = fallback.earlyBirdDate ? new Date(fallback.earlyBirdDate) > now : false
-  if (status === 'member') return fallback.member
-  if (earlyBirdActive && fallback.earlyBird) return fallback.earlyBird
-  return fallback.ga
+function resolvePrice(tiers: TicketTierResponse[], status?: PersonStatus): number {
+  return resolveClientTier(tiers, status)?.price ?? 0
 }
 
 type AdditionalAttendee =
@@ -83,8 +73,7 @@ export default function BuyTicket() {
 
   useEffect(() => {
     if (!event || !me) return
-    const fallback = { member: event.member_ticket_price, earlyBird: event.early_bird_price, earlyBirdDate: event.early_bird_date, ga: event.general_admission_price }
-    const price = resolvePrice(event.tiers ?? [], me.status, fallback)
+    const price = resolvePrice(event.tiers, me.status)
     gtagEvent('begin_checkout', { currency: 'AMD', value: price, items: [{ item_id: event.id, price }] })
   }, [event?.id, me?.id])
 
@@ -123,11 +112,10 @@ export default function BuyTicket() {
     </Layout>
   )
 
-  const tiers = event.tiers ?? []
-  const flatFallback = { member: event.member_ticket_price, earlyBird: event.early_bird_price, earlyBirdDate: event.early_bird_date, ga: event.general_admission_price }
+  const tiers = event.tiers
 
   if (!me) {
-    const guestPrice = resolvePrice(tiers, 'pending', flatFallback)
+    const guestPrice = resolvePrice(tiers, 'pending')
 
     async function handleGuestEmailContinue() {
       if (!guestEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)) {
@@ -391,7 +379,7 @@ export default function BuyTicket() {
 
   // Logged-in flow
   const myTier = resolveClientTier(tiers, me.status)
-  const myPrice = resolvePrice(tiers, me.status, flatFallback)
+  const myPrice = resolvePrice(tiers, me.status)
 
   const ticketLabel = myTier?.name ?? (
     me.status === 'member' ? 'Member Ticket' : 'Standard Ticket'
@@ -402,7 +390,7 @@ export default function BuyTicket() {
   // Compute total including additional attendees
   const additionalTotal = additionalAttendees.reduce((sum, a) => {
     const status: PersonStatus = a.kind === 'existing' ? a.status : 'pending'
-    return sum + resolvePrice(tiers, status, flatFallback)
+    return sum + resolvePrice(tiers, status)
   }, 0)
   const totalPrice = myPrice + additionalTotal
 
@@ -547,7 +535,7 @@ export default function BuyTicket() {
           </div>
           {additionalAttendees.map((a, i) => {
             const status: PersonStatus = a.kind === 'existing' ? a.status : 'pending'
-            const price = resolvePrice(tiers, status, flatFallback)
+            const price = resolvePrice(tiers, status)
             const tier = resolveClientTier(tiers, status)
             const label = tier?.name ?? 'Standard Ticket'
             const name = a.kind === 'existing' ? a.full_name : `${a.first_name} ${a.last_name}`
@@ -598,7 +586,7 @@ export default function BuyTicket() {
                 <p className="text-xs text-white/45">{lookupResult.status}</p>
               </div>
               <span className="text-sm font-semibold">
-                {resolvePrice(tiers, lookupResult.status ?? undefined, flatFallback).toLocaleString()} AMD
+                {resolvePrice(tiers, lookupResult.status ?? undefined).toLocaleString()} AMD
               </span>
             </div>
             <div className="flex gap-2">

@@ -6,8 +6,8 @@ import { useAdminVenues } from '../../hooks/useAdmin'
 
 const EMPTY = {
   name: '', description: '', image_url: '', video_url: '', album_url: '', track_url: '',
-  starts_at: '', ends_at: '', early_bird_date: '', venue_id: '', area: '',
-  max_capacity: '', general_admission_price: '', early_bird_price: '', member_ticket_price: '', shared: 'false',
+  starts_at: '', ends_at: '', venue_id: '', area: '',
+  max_capacity: '', shared: 'false',
 }
 
 const EMPTY_TIER = {
@@ -201,13 +201,9 @@ export default function AdminEventForm() {
       track_url: existing.track_url ?? '',
       starts_at: existing.starts_at ?? '',
       ends_at: existing.ends_at ?? '',
-      early_bird_date: existing.early_bird_date ?? '',
       venue_id: existing.venue_id ?? '',
       area: existing.area ?? '',
       max_capacity: String(existing.max_capacity ?? ''),
-      general_admission_price: String(existing.general_admission_price ?? ''),
-      early_bird_price: String(existing.early_bird_price ?? ''),
-      member_ticket_price: String(existing.member_ticket_price ?? ''),
       shared: String(existing.shared ?? 'false'),
     })
   }, [existing])
@@ -221,19 +217,15 @@ export default function AdminEventForm() {
         name: form.name,
         description: form.description,
         image_url: form.image_url,
-        video_url: form.video_url || null,       // ← always send, null if empty
-        album_url: form.album_url || null,       // ← always send, null if empty
-        track_url: form.track_url || null,       // ← always send, null if empty
+        video_url: form.video_url || null,
+        album_url: form.album_url || null,
+        track_url: form.track_url || null,
         starts_at: form.starts_at,
         ends_at: form.ends_at,
         venue_id: form.venue_id,
         area: form.area || null,
-        general_admission_price: parseInt(form.general_admission_price),
-        member_ticket_price: parseInt(form.member_ticket_price),
         max_capacity: parseInt(form.max_capacity),
         shared: form.shared === 'true',
-        early_bird_date: form.early_bird_date || null,
-        early_bird_price: form.early_bird_price ? parseInt(form.early_bird_price) : null,
       }
       if (isEdit) await update({ id: id!, body })
       else await create(body)
@@ -263,7 +255,6 @@ export default function AdminEventForm() {
       <SectionHeader title="Dates (ISO format)" />
         <DateTimeField label="Starts at" value={form.starts_at} onChange={v => set('starts_at', v)} />
         <DateTimeField label="Ends at" value={form.ends_at} onChange={v => set('ends_at', v)} />
-        <DateTimeField label="Early Bird Cutoff (optional)" value={form.early_bird_date} onChange={v => set('early_bird_date', v)} />
 
       <SectionHeader title="Venue & Capacity" />
       <Field label="Area hint (optional, e.g. Kentron)" value={form.area} onChange={v => set('area', v)} />
@@ -281,11 +272,6 @@ export default function AdminEventForm() {
         </select>
         </div>
       <Field label="Max Capacity" value={form.max_capacity} onChange={v => set('max_capacity', v)} type="number" />
-
-      <SectionHeader title="Pricing (AMD) — Legacy flat fields" />
-      <Field label="General Admission" value={form.general_admission_price} onChange={v => set('general_admission_price', v)} type="number" />
-      <Field label="Early Bird (optional)" value={form.early_bird_price} onChange={v => set('early_bird_price', v)} type="number" />
-      <Field label="Member" value={form.member_ticket_price} onChange={v => set('member_ticket_price', v)} type="number" />
 
       <SectionHeader title="Other" />
       <div style={{ marginBottom: 14 }}>

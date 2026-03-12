@@ -85,11 +85,13 @@ async def early_bird_end(db: AsyncSession, event_id: UUID):
 
     starts_at_local = event.starts_at.astimezone()
     ends_at_local = event.ends_at.astimezone()
+    early_bird_tier = next((t for t in event.tiers if t.available_until and not t.required_person_status), None)
+    ga_tier = next((t for t in event.tiers if not t.required_person_status and not t.available_until), None)
     context = {
         "event_name": event.name,
         "event_day_of_week": starts_at_local.strftime("%A"),
-        "early_bird_price": f"{event.early_bird_price} AMD",
-        "standard_price": f"{event.general_admission_price} AMD",
+        "early_bird_price": f"{early_bird_tier.price} AMD" if early_bird_tier else "—",
+        "standard_price": f"{ga_tier.price} AMD" if ga_tier else "—",
         "event_url": f"{APP_BASE_URL}/event/{event.id}",
         "event_date": starts_at_local.strftime("%A %d %B"),
         "start_time": starts_at_local.strftime("%H:%M"),
@@ -132,16 +134,19 @@ async def event_announcement(db: AsyncSession, event_id: UUID):
     starts_at_local = event.starts_at.astimezone()
     ends_at_local = event.ends_at.astimezone()
 
+    early_bird_tier = next((t for t in event.tiers if t.available_until and not t.required_person_status), None)
+    ga_tier = next((t for t in event.tiers if not t.required_person_status and not t.available_until), None)
+    member_tier = next((t for t in event.tiers if t.required_person_status == PersonStatus.member), None)
     context = {
         "event_name": event.name,
         "description": markdown(event.description),
         "event_date": event.starts_at.astimezone().strftime("%A, %d %B"),
         "start_time": starts_at_local.strftime("%H:%M"),
         "end_time": ends_at_local.strftime("%H:%M"),
-        "early_bird_date": event.early_bird_date.astimezone().strftime("%d.%m"),
-        "early_bird_price": f"{event.early_bird_price} AMD",
-        "standard_price": f"{event.general_admission_price} AMD",
-        "member_price": f"{event.member_ticket_price} AMD",
+        "early_bird_date": early_bird_tier.available_until.astimezone().strftime("%d.%m") if early_bird_tier else "—",
+        "early_bird_price": f"{early_bird_tier.price} AMD" if early_bird_tier else "—",
+        "standard_price": f"{ga_tier.price} AMD" if ga_tier else "—",
+        "member_price": f"{member_tier.price} AMD" if member_tier else "—",
         "event_url": f"{APP_BASE_URL}/event/{event.id}?utm_source=email&utm_medium=marketing&utm_campaign=announcement_{event.id}",
     }
 

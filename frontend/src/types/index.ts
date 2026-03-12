@@ -136,10 +136,6 @@ export interface EventResponse {
   album_url: string | null
   track_url: string | null
   description: string
-  early_bird_date: string | null
-  early_bird_price: number | null
-  general_admission_price: number
-  member_ticket_price: number
   max_capacity: number
   area: string | null
   shared: boolean

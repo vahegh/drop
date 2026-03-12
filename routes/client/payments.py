@@ -1,10 +1,9 @@
-from datetime import timezone
 from uuid import UUID
 from typing import Optional
 from fastapi import APIRouter, Request, HTTPException
 from pydantic import BaseModel
 from decorators import verify_user_token
-from enums import PaymentProvider, PersonStatus
+from enums import PaymentProvider
 from api_models import PaymentConfirmRequest, CardBindingUpdate
 from consts import APP_BASE_URL
 from db_models import Payment, PaymentIntent, DrinkPaymentIntent
@@ -62,22 +61,10 @@ async def initiate_payment(body: InitiatePaymentRequest, request: Request):
     resolved_attendees = []  # list of (person, tier)
     for item in body.attendees:
         p = await get_person(item.person_id)
-        if tiers:
-            tier = resolve_tier_for_person(tiers, p.status)
-            if not tier:
-                raise HTTPException(422, f"No applicable ticket tier for attendee {p.id}")
-        else:
-            # Fallback: no tiers defined yet (stale state), use flat event pricing
-            tier = None
-            from datetime import datetime as _dt
-            if p.status == PersonStatus.member:
-                total += event.member_ticket_price
-            elif event.early_bird_date and _dt.now(timezone.utc) < event.early_bird_date and event.early_bird_price:
-                total += event.early_bird_price
-            else:
-                total += event.general_admission_price
-        if tier:
-            total += tier.price
+        tier = resolve_tier_for_person(tiers, p.status)
+        if not tier:
+            raise HTTPException(422, f"No applicable ticket tier for attendee {p.id}")
+        total += tier.price
         resolved_attendees.append((p, tier))
 
     # Add drinks

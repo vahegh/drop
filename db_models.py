@@ -53,20 +53,18 @@ class Event(Base):
     album_url: Mapped[str] = mapped_column(String, nullable=True)
     track_url: Mapped[str] = mapped_column(String, nullable=True)
     description: Mapped[str] = mapped_column(String(2000))
-    early_bird_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
-    early_bird_price: Mapped[int] = mapped_column(Integer, nullable=True)
-    general_admission_price: Mapped[int] = mapped_column(Integer)
-    member_ticket_price: Mapped[int] = mapped_column(Integer)
     max_capacity: Mapped[int] = mapped_column(Integer)
     area: Mapped[str] = mapped_column(String, nullable=True)
     shared: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    tiers: Mapped[list['TicketTier']] = relationship('TicketTier', order_by='TicketTier.sort_order', lazy='selectin')
+    tiers: Mapped[list['TicketTier']] = relationship(
+        'TicketTier', order_by='TicketTier.sort_order', lazy='selectin')
 
 
 class TicketTier(Base):
     __tablename__ = 'ticket_tier'
-    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"))
+    id: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"))
     event_id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), ForeignKey('event.id'))
     name: Mapped[str] = mapped_column(String(100))
     price: Mapped[int] = mapped_column(Integer)
@@ -151,7 +149,8 @@ class PaymentIntent(Base):
                                      server_default=text("gen_random_uuid()"))
     order_id: Mapped[int] = mapped_column(BigInteger, ForeignKey('payment.order_id'))
     recipient_id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), ForeignKey('person.id'))
-    tier_id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), ForeignKey('ticket_tier.id'), nullable=True)
+    tier_id: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey('ticket_tier.id'), nullable=True)
     tier_price: Mapped[int] = mapped_column(Integer, nullable=True)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True),
                                                  server_default=func.now(),

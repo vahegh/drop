@@ -18,11 +18,7 @@ export default function Event() {
   useEffect(() => {
     if (!event) return
     gtagEvent('view_item_list', {
-      items: [
-        { item_id: 'ticket_member', price: event.member_ticket_price },
-        { item_id: 'ticket_early_bird', price: event.early_bird_price },
-        { item_id: 'ticket_general', price: event.general_admission_price },
-      ],
+      items: event.tiers.map(t => ({ item_id: t.id, item_name: t.name, price: t.price })),
     })
   }, [event?.id])
 
@@ -47,8 +43,13 @@ export default function Event() {
   const now = new Date()
   const eventPassed = new Date(event.ends_at) < now
 //   const eventPassed = false
-  const earlyBirdActive = event.early_bird_date ? new Date(event.early_bird_date) > now : false
-  const isMember = me?.status === 'member'
+  const myTier = event.tiers.find(t => {
+    if (!t.is_active) return false
+    if (t.required_person_status && t.required_person_status !== me?.status) return false
+    if (t.available_from && now < new Date(t.available_from)) return false
+    if (t.available_until && now >= new Date(t.available_until)) return false
+    return true
+  })
 
   return (
     <Layout heroBg={event.image_url} showFooter={false}>
@@ -87,20 +88,21 @@ export default function Event() {
       )}
 
       {/* Ticket tiers */}
-      {!eventPassed && (
+      {!eventPassed && event.tiers.length > 0 && (
         <Section title="Tickets" sep>
-          <TicketCard label="Members" price={event.member_ticket_price} selected={isMember} />
-          <TicketCard
-            label="Early Bird"
-            price={event.early_bird_price}
-            soldOut={!earlyBirdActive}
-            selected={earlyBirdActive && !isMember}
-          />
-          <TicketCard
-            label="Standard"
-            price={event.general_admission_price}
-            selected={!earlyBirdActive && !isMember}
-          />
+          {event.tiers.map(t => {
+            const soldOut = (!!t.available_until && now >= new Date(t.available_until))
+              || (!!t.available_from && now < new Date(t.available_from))
+            return (
+              <TicketCard
+                key={t.id}
+                label={t.name}
+                price={t.price}
+                soldOut={soldOut}
+                selected={myTier?.id === t.id}
+              />
+            )
+          })}
         </Section>
       )}
 

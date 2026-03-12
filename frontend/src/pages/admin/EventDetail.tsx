@@ -51,13 +51,6 @@ export default function AdminEventDetail() {
         <InfoRow label="Shared" value={ev.shared ? 'Yes' : 'No'} />
       </div>
 
-      <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, color: '#555', marginBottom: 8 }}>Pricing</div>
-      <div style={{ background: '#111', borderRadius: 12, border: '1px solid #1a1a1a', overflow: 'hidden', marginBottom: 20 }}>
-        <InfoRow label="General Admission" value={`${ev.general_admission_price} AMD`} />
-        {ev.early_bird_price != null && <InfoRow label="Early Bird" value={`${ev.early_bird_price} AMD`} />}
-        <InfoRow label="Member" value={`${ev.member_ticket_price} AMD`} />
-      </div>
-
       {(ev.video_url || ev.album_url || ev.track_url) && (
         <>
           <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, color: '#555', marginBottom: 8 }}>Media</div>
