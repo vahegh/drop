@@ -8,6 +8,28 @@ const BASE_PROVIDERS: { label: string; icon: string; value: PaymentProvider }[] 
   ...(isAndroid ? [{ label: 'Google Pay', icon: '/static/images/google_pay.svg', value: 'GOOGLEPAY' as PaymentProvider }] : []),
 ]
 
+function cardNetwork(masked: string): { icon: string; name: string } {
+  const digits = masked.replace(/\D/g, '')
+  if (digits[0] === '4') return { icon: '/static/images/visa.svg', name: 'Visa' }
+  const first2 = parseInt(digits.slice(0, 2))
+  const first4 = parseInt(digits.slice(0, 4))
+  if ((first2 >= 51 && first2 <= 55) || (first4 >= 2221 && first4 <= 2720))
+    return { icon: '/static/images/mastercard.svg', name: 'Mastercard' }
+  return { icon: '/static/images/visa.svg', name: 'Card' }
+}
+
+function formatMaskedCard(masked: string, networkName: string): string {
+  const digits = masked.replace(/\D/g, '')
+  return `${networkName} •••• ${digits.slice(-4)}`
+}
+
+// card_expiry_date is stored as YYYYmm → format as MM/YY
+function formatExpiry(raw: string): string {
+  const digits = raw.replace(/\D/g, '')
+  if (digits.length === 6) return `${digits.slice(4, 6)}/${digits.slice(2, 4)}`
+  return raw
+}
+
 interface Props {
   provider: PaymentProvider
   setProvider: (p: PaymentProvider) => void
@@ -17,11 +39,11 @@ interface Props {
 }
 
 export default function PaymentProviderSelector({ provider, setProvider, saveCard, setSaveCard, cardBinding }: Props) {
-  const providers: { label: string; sublabel?: string; icon: string; value: PaymentProvider }[] = [
+  const providers: { label: string; sublabel?: string; icon: string; value: PaymentProvider; expiry?: string }[] = [
     ...(cardBinding ? [{
-      label: cardBinding.masked_card_number,
-      sublabel: `exp. ${cardBinding.card_expiry_date}`,
-      icon: '/static/images/visa.svg',
+      label: formatMaskedCard(cardBinding.masked_card_number, cardNetwork(cardBinding.masked_card_number).name),
+      expiry: formatExpiry(cardBinding.card_expiry_date),
+      icon: cardNetwork(cardBinding.masked_card_number).icon,
       value: 'BINDING' as PaymentProvider,
     }] : []),
     ...BASE_PROVIDERS,
@@ -40,11 +62,15 @@ export default function PaymentProviderSelector({ provider, setProvider, saveCar
               border: provider === p.value ? '1px solid rgba(255,255,255,0.35)' : '1px solid rgba(255,255,255,0.18)',
             }}
           >
-            <img src={p.icon} alt={p.label} className="w-8 h-5 object-contain" />
-            <span className="flex flex-col items-start">
+            <img src={p.icon} alt={p.label} className="w-8 h-5 object-contain flex-none" />
+            {p.expiry ? (
+              <>
+                <span className="tracking-wider">{p.label}</span>
+                <span className="ml-auto text-xs text-white/40 font-normal shrink-0">{p.expiry}</span>
+              </>
+            ) : (
               <span>{p.label}</span>
-              {p.sublabel && <span className="text-xs text-white/40 font-normal">{p.sublabel}</span>}
-            </span>
+            )}
             {provider === p.value && (
               <span className="ml-auto text-xs text-white/45">Selected</span>
             )}

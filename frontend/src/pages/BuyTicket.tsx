@@ -174,6 +174,7 @@ export default function BuyTicket() {
   }
 
   async function handleGuestPay() {
+    if (!event) return
     setLoading(true)
     setError(null)
     try {
@@ -263,7 +264,7 @@ export default function BuyTicket() {
   }
 
   async function handlePay() {
-    if (!me) return
+    if (!me || !event) return
     gtagEvent('add_to_cart', { currency: 'AMD', value: totalPrice, items: [{ item_id: event.id, price: totalPrice }] })
     setLoading(true)
     setError(null)
