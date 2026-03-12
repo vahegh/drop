@@ -108,10 +108,10 @@ export default function Home() {
 
       {/* Logged-in: two-column layout at lg */}
       {me && (
-        <div className="w-full max-w-96 md:max-w-2xl lg:max-w-3xl flex flex-col lg:flex-row lg:gap-8 lg:items-start">
+        <div className={`w-full max-w-96 md:max-w-2xl lg:max-w-3xl flex flex-col ${nextEvent ? 'lg:flex-row lg:gap-8 lg:items-start' : ''}`}>
 
           {/* Left column: user info + pass/ticket */}
-          <div className="lg:w-80 lg:flex-none lg:sticky lg:top-4 flex flex-col">
+          <div className={`flex flex-col ${nextEvent ? 'lg:w-80 lg:flex-none lg:sticky lg:top-4' : ''}`}>
 
             {/* Greeting */}
             <div className="flex flex-col gap-2 pt-4 pb-2">
