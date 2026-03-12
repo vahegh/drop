@@ -73,7 +73,7 @@ export default function AlbumCarousel({ photos }: { photos: string[] }) {
 
       {/* Thumbnails */}
       {photos.length > 1 && (
-        <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+        <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {photos.map((url, i) => (
             <button
               key={i}
