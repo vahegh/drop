@@ -11,7 +11,7 @@ export default function EventTicketCard({ ticket, event }: Props) {
   return (
     <div
       className="flex flex-col items-center gap-4 px-0 py-4 w-full max-w-96 rounded-xl"
-      style={{ border: '1px solid rgba(255,255,255,0.15)', background: 'var(--drop-card)' }}
+      style={{ border: '1px solid rgba(255,255,255,0.25)', background: 'var(--drop-card)' }}
     >
       <div className="flex flex-col items-center gap-0 px-6 w-full">
         <p className="text-2xl font-medium text-center">{event.name}</p>

@@ -6,9 +6,9 @@
 
 /* Drop Dead Disco design tokens - mirrors frame.py ui.colors() */
 :root {
-  --drop-bg: #24262b;
-  --drop-card: #2a2e38;
-  --drop-card-hover: #313748;
+  --drop-bg: #000000;
+  --drop-card: #111111;
+  --drop-card-hover: #1a1a1a;
   --drop-primary: #f3f4f6;
   --drop-accent: #8e51ff;
   --drop-secondary: #ff50ad;
@@ -116,7 +116,7 @@
   background: var(--drop-card);
   color: #fff;
   font-size: 0.875rem;
-  border: 1px solid rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.22);
   outline: none;
 }
 .drop-input::placeholder { color: rgba(255,255,255,0.35); }

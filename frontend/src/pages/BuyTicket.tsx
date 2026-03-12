@@ -328,7 +328,7 @@ export default function BuyTicket() {
                     className="w-full rounded-3xl px-4 py-3 flex items-center gap-3 transition-all text-sm font-medium"
                     style={{
                       background: provider === p.value ? 'rgba(255,255,255,0.12)' : 'var(--drop-card)',
-                      border: provider === p.value ? '1px solid rgba(255,255,255,0.35)' : '1px solid rgba(255,255,255,0.05)',
+                      border: provider === p.value ? '1px solid rgba(255,255,255,0.35)' : '1px solid rgba(255,255,255,0.18)',
                     }}
                   >
                     <img src={p.icon} alt={p.label} className="w-8 h-5 object-contain" />
@@ -635,7 +635,7 @@ export default function BuyTicket() {
               className="w-full rounded-3xl px-4 py-3 flex items-center gap-3 transition-all text-sm font-medium"
               style={{
                 background: provider === p.value ? 'rgba(255,255,255,0.12)' : 'var(--drop-card)',
-                border: provider === p.value ? '1px solid rgba(255,255,255,0.35)' : '1px solid rgba(255,255,255,0.05)',
+                border: provider === p.value ? '1px solid rgba(255,255,255,0.35)' : '1px solid rgba(255,255,255,0.18)',
               }}
             >
               <img src={p.icon} alt={p.label} className="w-8 h-5 object-contain" />

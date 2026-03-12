@@ -171,7 +171,7 @@ function TicketCard({ label, price, soldOut, selected }: TicketCardProps) {
       className="w-full max-w-96 rounded-xl px-4 py-3 flex justify-between items-center transition-all"
       style={{
         background: selected ? 'rgba(255,255,255,0.1)' : 'var(--drop-card)',
-        border: selected ? '1px solid rgba(255,255,255,0.3)' : '1px solid rgba(255,255,255,0.05)',
+        border: selected ? '1px solid rgba(255,255,255,0.3)' : '1px solid rgba(255,255,255,0.18)',
         opacity: soldOut ? 0.4 : 1,
       }}
     >
