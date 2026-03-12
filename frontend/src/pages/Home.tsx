@@ -67,6 +67,7 @@ export default function Home() {
           />
         </div>
       )}
+      {!meLoading && <>
       {/* Guest hero */}
       {!me && (
         <Section className="pt-6 pb-2">
@@ -298,6 +299,7 @@ export default function Home() {
           className="w-full"
         />
       </Section>
+      </>}
     </Layout>
   )
 }
