@@ -21,8 +21,13 @@ export default function MemberPassCard({ pass, eventsAttended }: Props) {
           <span className="font-bold text-lg">{eventsAttended}</span>
         </div>
       </div>
-      <div className="w-3/5 bg-white p-3 rounded-xl">
-        <QRCode value={pass.id} style={{ width: '100%', height: 'auto' }} />
+      <div className="w-3/5 bg-white p-3 rounded-xl relative">
+        <QRCode value={pass.id} style={{ width: '100%', height: 'auto' }} level="H" />
+        <img
+          src="/static/images/logo_black.png"
+          alt=""
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[20%]"
+        />
       </div>
       <div className="flex items-center gap-2">
         <span className="font-semibold text-sm">MEMBER SINCE</span>

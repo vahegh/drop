@@ -16,8 +16,13 @@ export default function EventTicketCard({ ticket, event }: Props) {
       <div className="flex flex-col items-center gap-0 px-6 w-full">
         <p className="text-2xl font-medium text-center">{event.name}</p>
       </div>
-      <div className="w-3/4 bg-white p-3 rounded-xl">
-        <QRCode value={ticket.id} style={{ width: '100%', height: 'auto' }} />
+      <div className="w-3/4 bg-white p-3 rounded-xl relative">
+        <QRCode value={ticket.id} style={{ width: '100%', height: 'auto' }} level="H" />
+        <img
+          src="/static/images/logo_black.png"
+          alt=""
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[20%]"
+        />
       </div>
       <div className="flex items-center justify-between w-full px-6">
         <div className="flex flex-col gap-0">
