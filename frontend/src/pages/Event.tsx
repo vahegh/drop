@@ -61,6 +61,7 @@ export default function Event() {
         linkTo={false}
         showEndsAt
         className="w-full max-w-96 mt-4"
+        imageClassName='m-4'
       />
 
       {/* Spotify track */}

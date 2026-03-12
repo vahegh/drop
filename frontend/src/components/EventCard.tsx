@@ -21,6 +21,7 @@ interface EventCardProps {
   showDate?: boolean
   compact?: boolean
   className?: string
+  imageClassName?: string
 }
 
 export default function EventCard({
@@ -30,10 +31,11 @@ export default function EventCard({
   showDate = true,
   compact = false,
   className = '',
+  imageClassName = 'w-full',
 }: EventCardProps) {
   const inner = (
     <>
-      <div className="relative rounded-xl overflow-hidden w-full" style={{ aspectRatio: '4/5' }}>
+      <div className={`relative rounded-md overflow-hidden ${imageClassName}`} style={{ aspectRatio: '4/5' }}>
         <img
           src={event.image_url}
           alt={event.name}
