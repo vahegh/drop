@@ -17,11 +17,9 @@ export default function Section({ title, subtitle, sep, children, className = ''
     <div className={`flex flex-col items-center gap-2 px-2 py-0 w-full max-w-96 ${className}`}>
       {sep && <div className="w-full h-px bg-white/10" />}
       {title && (
-        <div className="flex flex-col items-center gap-0 p-2">
-          {/* section_title = text-2xl font-medium text-center */}
-          <h2 className="text-xl font-medium text-center">{title}</h2>
-          {/* section_subtitle = text-center text-sm */}
-          {subtitle && <p className="text-sm text-center text-white/60">{subtitle}</p>}
+        <div className="flex flex-col items-start gap-0 p-2 w-full">
+          <h2 className="text-xl font-medium">{title}</h2>
+          {subtitle && <p className="text-sm text-white/60">{subtitle}</p>}
         </div>
       )}
       {children}
