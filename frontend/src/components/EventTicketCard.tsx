@@ -1,5 +1,6 @@
 import QRCode from 'react-qr-code'
 import type { EventTicketResponse, EventResponse } from '../types'
+import { isIOS, isAndroid } from '../lib/ua'
 
 interface Props {
   ticket: EventTicketResponse
@@ -33,14 +34,14 @@ export default function EventTicketCard({ ticket, event }: Props) {
           </span>
         </div>
       </div>
-      {(ticket.apple_pass_url || ticket.google_pass_url) && (
+      {((isIOS && ticket.apple_pass_url) || (isAndroid && ticket.google_pass_url)) && (
         <div className="flex gap-2 justify-center">
-          {ticket.apple_pass_url && (
+          {isIOS && ticket.apple_pass_url && (
             <a href={ticket.apple_pass_url} rel="noopener noreferrer">
               <img src="/static/images/apple_wallet.svg" alt="Apple Wallet" className="h-8" />
             </a>
           )}
-          {ticket.google_pass_url && (
+          {isAndroid && ticket.google_pass_url && (
             <a href={ticket.google_pass_url} rel="noopener noreferrer">
               <img src="/static/images/google_wallet.svg" alt="Google Wallet" className="h-8" />
             </a>

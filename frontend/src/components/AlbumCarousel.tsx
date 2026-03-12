@@ -40,7 +40,7 @@ export default function AlbumCarousel({ photos }: { photos: string[] }) {
 
       {/* Main image */}
       <div
-        className="relative w-full rounded-xl overflow-hidden bg-black/30 select-none"
+        className="relative w-full rounded-sm overflow-hidden bg-black/30 select-none"
         style={{ aspectRatio: '3/2' }}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
@@ -78,7 +78,7 @@ export default function AlbumCarousel({ photos }: { photos: string[] }) {
             <button
               key={i}
               onClick={() => go(i, i > active ? 'left' : 'right')}
-              className="flex-none w-14 h-14 rounded-lg overflow-hidden transition-opacity"
+              className="flex-none w-14 h-14 rounded-xs overflow-hidden transition-opacity"
               style={{ opacity: i === active ? 1 : 0.45 }}
             >
               <img src={`${url}=w120`} alt="" className="w-full h-full object-cover" />

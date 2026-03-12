@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
 import { useEvent, useEventPhotos } from '../hooks/useEvents'
@@ -13,7 +13,9 @@ export default function Event() {
   const { id } = useParams<{ id: string }>()
   const { data: event, isLoading, error } = useEvent(id ?? '')
   const { data: me } = useMe()
-  const { data: photos } = useEventPhotos(id ?? '', !!event?.album_url)
+  const { data: photos, isLoading: photosLoading } = useEventPhotos(id ?? '', !!event?.album_url)
+
+  const [descExpanded, setDescExpanded] = useState(false)
 
   useEffect(() => {
     if (!event) return
@@ -81,9 +83,19 @@ export default function Event() {
       {event.description && (
         <Section sep>
           <p className="text-xs uppercase tracking-wider text-white/40 w-full mb-1">About this event</p>
-          <div className="w-full text-sm text-white/80 leading-relaxed prose prose-invert prose-sm max-w-none">
-            <ReactMarkdown>{event.description}</ReactMarkdown>
+          <div className="overflow-hidden transition-all duration-300 ease-in-out"
+            style={descExpanded ? undefined : { height: '8em', maskImage: 'linear-gradient(black 0%, black 30%, transparent 100%)' }}
+          >
+            <div className="w-full text-sm text-white/80 leading-relaxed prose prose-invert prose-sm max-w-none">
+              <ReactMarkdown>{event.description}</ReactMarkdown>
+            </div>
           </div>
+          <button
+            onClick={() => setDescExpanded(v => !v)}
+            className="mt-1 text-sm text-white/45 hover:text-white/70 transition-colors w-full text-center"
+          >
+            {descExpanded ? 'View less' : 'View more'}
+          </button>
         </Section>
       )}
 
@@ -121,10 +133,19 @@ export default function Event() {
       )}
 
       {/* Photo album carousel */}
-      {Array.isArray(photos) && photos.length > 0 && (
+      {(photosLoading && !!event?.album_url || Array.isArray(photos) && photos.length > 0) && (
         <Section sep>
           <p className="text-xs uppercase tracking-wider text-white/40 w-full mb-3">Photos</p>
-          <AlbumCarousel photos={photos} />
+          {photosLoading ? (
+            <div className="w-full max-w-96 space-y-2">
+              <div className="skeleton w-full rounded-xl" style={{ aspectRatio: '3/2' }} />
+              <div className="flex gap-1.5">
+                {[0, 1, 2, 3].map(i => <div key={i} className="skeleton w-14 h-14 rounded-lg flex-none" />)}
+              </div>
+            </div>
+          ) : (
+            <AlbumCarousel photos={photos!} />
+          )}
         </Section>
       )}
 

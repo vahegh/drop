@@ -1,5 +1,6 @@
 import QRCode from 'react-qr-code'
 import type { MemberCardResponse } from '../types'
+import { isIOS, isAndroid } from '../lib/ua'
 
 interface Props {
   pass: MemberCardResponse
@@ -30,34 +31,26 @@ export default function MemberPassCard({ pass, eventsAttended }: Props) {
           {new Date(pass.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toUpperCase()}
         </span>
       </div>
-      {(() => {
-        const ua = navigator.userAgent
-        const isIOS = /iPhone|iPad|iPod/i.test(ua)
-        const isAndroid = /Android/i.test(ua)
-        if (isIOS && pass.apple_pass_url)
-          return (
-            <a
-              href={pass.apple_pass_url}
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 px-4 py-2 rounded-xl border border-white/30 bg-transparent text-white font-semibold text-sm"
-            >
-              <img src="/static/images/apple_wallet.svg" alt="" className="h-5" />
-              Add to Apple Wallet
-            </a>
-          )
-        if (isAndroid && pass.google_pass_url)
-          return (
-            <a
-              href={pass.google_pass_url}
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 px-4 py-2 rounded-xl border border-white/30 bg-transparent text-white font-semibold text-sm"
-            >
-              <img src="/static/images/google_wallet.svg" alt="" className="h-5" />
-              Add to Google Wallet
-            </a>
-          )
-        return null
-      })()}
+      {isIOS && pass.apple_pass_url && (
+        <a
+          href={pass.apple_pass_url}
+          rel="noopener noreferrer"
+          className="flex items-center gap-3 px-4 py-2 rounded-xl border border-white/30 bg-transparent text-white font-semibold text-sm"
+        >
+          <img src="/static/images/apple_wallet.svg" alt="" className="h-5" />
+          Add to Apple Wallet
+        </a>
+      )}
+      {isAndroid && pass.google_pass_url && (
+        <a
+          href={pass.google_pass_url}
+          rel="noopener noreferrer"
+          className="flex items-center gap-3 px-4 py-2 rounded-xl border border-white/30 bg-transparent text-white font-semibold text-sm"
+        >
+          <img src="/static/images/google_wallet.svg" alt="" className="h-5" />
+          Add to Google Wallet
+        </a>
+      )}
     </div>
   )
 }
