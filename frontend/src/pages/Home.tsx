@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { useNextEvent, useEvents, useAllPhotos } from '../hooks/useEvents'
 import { useMe, usePeopleStats } from '../hooks/useMe'
 import { useTickets } from '../hooks/useTickets'
@@ -23,6 +24,16 @@ function AlbumSkeleton() {
 
 export default function Home() {
   const { data: me, isLoading: meLoading } = useMe()
+  const [showSplash, setShowSplash] = useState(true)
+  const [splashVisible, setSplashVisible] = useState(true)
+
+  useEffect(() => {
+    if (!meLoading) {
+      setSplashVisible(false)
+      const t = setTimeout(() => setShowSplash(false), 600)
+      return () => clearTimeout(t)
+    }
+  }, [meLoading])
   const { data: nextEvent } = useNextEvent()
   const { data: events } = useEvents()
   const { data: tickets } = useTickets()
@@ -40,9 +51,20 @@ export default function Home() {
 
   return (
     <Layout showFooter>
-      {meLoading && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-black/60">
-          <img src="/static/images/logo_white.png" alt="Drop Dead Disco" className="w-32 opacity-90" />
+      {showSplash && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-black/60 transition-opacity duration-500"
+          style={{ opacity: splashVisible ? 1 : 0 }}
+        >
+          <img
+            src="/static/images/logo_white.png"
+            alt="Drop Dead Disco"
+            className="w-32 transition-all duration-500"
+            style={{
+              opacity: splashVisible ? 0.9 : 0,
+              transform: splashVisible ? 'scale(1)' : 'scale(0.95)',
+            }}
+          />
         </div>
       )}
       {/* Guest hero */}
