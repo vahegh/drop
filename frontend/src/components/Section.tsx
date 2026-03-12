@@ -14,7 +14,7 @@ interface SectionProps {
  */
 export default function Section({ title, subtitle, sep, children, className = '' }: SectionProps) {
   return (
-    <div className={`flex flex-col items-center gap-2 px-2 py-0 w-full max-w-96 ${className}`}>
+    <div className={`flex flex-col items-center gap-2 py-0 w-full max-w-96 ${className}`}>
       {sep && <div className="w-full h-px bg-white/10" />}
       {title && (
         <div className="flex flex-col items-start gap-0 p-2 w-full">
