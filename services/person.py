@@ -106,55 +106,51 @@ async def update_person(db: AsyncSession, id: UUID, updated_person: PersonUpdate
 
     match updated_person.status:
         case PersonStatus.rejected:
-            if person.status != PersonStatus.pending:
-                break
-
-            if next_event:
-                intent = await get_confirmed_payment_intent(person.id, next_event.id)
-                if intent:
-                    existing_payment = await get_payment(intent.order_id)
-                    await refund_payment(existing_payment)
-                    context["refunded"] = True
-                    await delete_payment_intent(intent.order_id, person.id)
-
-            template = await generate_template(REJECTED_TEMPLATE, context)
-            email_request = EmailRequest(
-                recipient_email=person.email,
-                subject=STATUS_CHANGE_SUBJECT,
-                body=template
-            )
-
-        case PersonStatus.verified:
-            if person.status != PersonStatus.pending:
-                break
-
-            ticket_sent = False
-
-            if next_event:
-                intent = await get_confirmed_payment_intent(person.id, next_event.id)
-                if intent:
-                    existing_payment = await get_payment(intent.order_id)
-                    event_ticket = EventTicket(
-                        person_id=person.id,
-                        event_id=existing_payment.event_id,
-                        payment_order_id=existing_payment.order_id
-                    )
-                    await create_event_ticket(event_ticket)
-                    await send_event_ticket(event_ticket)
-                    await delete_payment_intent(intent.order_id, person.id)
-                    ticket_sent = True
-
-            if not ticket_sent:
+            if person.status == PersonStatus.pending:
                 if next_event:
-                    context["event_name"] = next_event.name
-                    context["event_url"] = f"{APP_BASE_URL}/buy-ticket?event_id={next_event.id}&utm_source=email&utm_medium=transactional&utm_campaign=account_approved&utm_content=buy_ticket_cta"
+                    intent = await get_confirmed_payment_intent(person.id, next_event.id)
+                    if intent:
+                        existing_payment = await get_payment(intent.order_id)
+                        await refund_payment(existing_payment)
+                        context["refunded"] = True
+                        await delete_payment_intent(intent.order_id, person.id)
 
-                template = await generate_template(APPROVED_TEMPLATE, context)
+                template = await generate_template(REJECTED_TEMPLATE, context)
                 email_request = EmailRequest(
                     recipient_email=person.email,
                     subject=STATUS_CHANGE_SUBJECT,
                     body=template
                 )
+
+        case PersonStatus.verified:
+            if person.status == PersonStatus.pending:
+                ticket_sent = False
+
+                if next_event:
+                    intent = await get_confirmed_payment_intent(person.id, next_event.id)
+                    if intent:
+                        existing_payment = await get_payment(intent.order_id)
+                        event_ticket = EventTicket(
+                            person_id=person.id,
+                            event_id=existing_payment.event_id,
+                            payment_order_id=existing_payment.order_id
+                        )
+                        await create_event_ticket(event_ticket)
+                        await send_event_ticket(event_ticket)
+                        await delete_payment_intent(intent.order_id, person.id)
+                        ticket_sent = True
+
+                if not ticket_sent:
+                    if next_event:
+                        context["event_name"] = next_event.name
+                        context["event_url"] = f"{APP_BASE_URL}/buy-ticket?event_id={next_event.id}&utm_source=email&utm_medium=transactional&utm_campaign=account_approved&utm_content=buy_ticket_cta"
+
+                    template = await generate_template(APPROVED_TEMPLATE, context)
+                    email_request = EmailRequest(
+                        recipient_email=person.email,
+                        subject=STATUS_CHANGE_SUBJECT,
+                        body=template
+                    )
 
     if email_request:
         await send_email(email_request)
