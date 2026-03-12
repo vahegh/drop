@@ -26,7 +26,7 @@ export default function Home() {
   const { data: nextEvent } = useNextEvent()
   const { data: events } = useEvents()
   const { data: tickets } = useTickets()
-  const { data: stats, isLoading: statsLoading } = usePeopleStats()
+  const { data: stats } = usePeopleStats()
   const { data: allPhotos, isLoading: photosLoading } = useAllPhotos()
 
   const now = new Date()
@@ -196,18 +196,7 @@ export default function Home() {
             Drop Dead Disco is a hand-picked community hosting dance parties in secret locations around Yerevan.
             Every guest has to pass <strong>verification</strong> before they're able to buy tickets and attend.
           </p>
-          {statsLoading ? (
-            <div className="flex gap-6 w-full mt-1">
-              <div className="flex flex-col gap-1.5">
-                <div className="skeleton h-7 w-8" />
-                <div className="skeleton h-2.5 w-14" />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <div className="skeleton h-7 w-8" />
-                <div className="skeleton h-2.5 w-14" />
-              </div>
-            </div>
-          ) : stats && (
+          {stats && (
             <div className="flex gap-6 w-full mt-1">
               {stats['member'] != null && (
                 <div className="flex flex-col gap-0.5">
