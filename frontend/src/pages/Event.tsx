@@ -103,7 +103,7 @@ export default function Event() {
                 style={descOverflows && !descExpanded ? { height: '8em', maskImage: 'linear-gradient(black 0%, black 30%, transparent 100%)' } : undefined}
               >
                 <div ref={descRef} className="w-full text-sm text-white/80 leading-relaxed prose prose-invert prose-sm max-w-none">
-                  <ReactMarkdown>{event.description.replace(/\n/g, '\n\n')}</ReactMarkdown>
+                  <ReactMarkdown>{event.description}</ReactMarkdown>
                 </div>
               </div>
               {descOverflows && (
