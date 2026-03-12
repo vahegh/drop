@@ -116,7 +116,7 @@ export default function Home() {
                   <span className="text-sm text-white/70">🔥 {me.events_attended}</span>
                 )}
                 {me.referral_count > 0 && (
-                  <span className="text-sm text-white/70">👥 {me.referral_count} referred</span>
+                  <span className="text-sm text-white/70">👥 {me.referral_count}</span>
                 )}
               </div>
             </div>

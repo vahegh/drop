@@ -106,7 +106,7 @@ export default function Layout({ children, heroBg, showFooter = true }: LayoutPr
                       <p className="text-xs text-white/45">🔥 {me.events_attended}</p>
                     )}
                     {me.referral_count > 0 && (
-                      <p className="text-xs text-white/45">👥 {me.referral_count} referred</p>
+                      <p className="text-xs text-white/45">👥 {me.referral_count}</p>
                     )}
                   </div>
                   <Link to="/profile" onClick={() => setMenuOpen(false)} className="btn-primary text-sm text-center">
