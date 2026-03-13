@@ -90,3 +90,6 @@ export const adminUpdateTier = (eventId: string, tierId: string, body: Record<st
 
 export const adminDeleteTier = (eventId: string, tierId: string) =>
   adminClient.delete(`/events/${eventId}/tiers/${tierId}`)
+
+export const adminGetStats = () =>
+  adminClient.get('/stats').then(r => r.data)

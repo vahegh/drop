@@ -188,6 +188,10 @@ export function useAdminUpdateTier(eventId: string) {
   })
 }
 
+export function useAdminStats() {
+  return useQuery({ queryKey: ['admin', 'stats'], queryFn: api.adminGetStats })
+}
+
 export function useAdminDeleteTier(eventId: string) {
   const qc = useQueryClient()
   return useMutation({

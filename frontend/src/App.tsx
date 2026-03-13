@@ -26,6 +26,7 @@ import AdminVenueDetail from './pages/admin/VenueDetail'
 import AdminVenueForm from './pages/admin/VenueForm'
 import AdminPersonForm from './pages/admin/PersonForm'
 import AdminDrinks from './pages/admin/Drinks'
+import AdminStats from './pages/admin/Stats'
 
 export default function App() {
   return (
@@ -56,6 +57,7 @@ export default function App() {
           <Route path="venues/:id" element={<AdminVenueDetail />} />
           <Route path="venues/:id/edit" element={<AdminVenueForm />} />
           <Route path="drinks" element={<AdminDrinks />} />
+          <Route path="stats" element={<AdminStats />} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>
