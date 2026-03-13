@@ -424,6 +424,19 @@ class VPOSCancelPaymentResponse(BaseModel):
     Opaque: Optional[str]
 
 
+class VPOSRefundPaymentRequest(BaseModel):
+    Username: str
+    Password: str
+    PaymentID: UUID
+    Amount: float
+
+
+class VPOSRefundPaymentResponse(BaseModel):
+    ResponseCode: str
+    ResponseMessage: str
+    Opaque: Optional[str]
+
+
 # myameria
 class MyAmeriaCreateRequest(BaseModel):
     transactionAmount: float

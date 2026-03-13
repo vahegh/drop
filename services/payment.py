@@ -337,8 +337,8 @@ async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest, 
 
 async def refund_payment(payment: Payment):
     match payment.provider:
-        case PaymentProvider.VPOS | PaymentProvider.APPLEPAY | PaymentProvider.GOOGLEPAY:
-            await cancel_payment_vpos(payment.upstream_payment_id)
+        case PaymentProvider.VPOS | PaymentProvider.APPLEPAY | PaymentProvider.GOOGLEPAY | PaymentProvider.BINDING:
+            await cancel_payment_vpos(payment.upstream_payment_id, payment.amount)
 
         case PaymentProvider.MYAMERIA:
             await refund_payment_myameria(

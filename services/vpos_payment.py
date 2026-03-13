@@ -3,7 +3,8 @@ from api_models import (VPOSInitPaymentRequest, VPOSPaymentDetailsResponse,
                         VPOSPaymentDetailsRequest, VPOSBindingsRequest,
                         VPOSBindingsResponse, VPOSDeactivateBindingRequest,
                         VPOSMakeBindingPaymentRequest, VPOSMakeBindingPaymentResponse,
-                        VPOSCancelPaymentRequest, VPOSCancelPaymentResponse)
+                        VPOSCancelPaymentRequest, VPOSCancelPaymentResponse,
+                        VPOSRefundPaymentRequest, VPOSRefundPaymentResponse)
 from consts import APP_BASE_URL
 import os
 import logging
@@ -120,7 +121,30 @@ async def deactivate_binding_vpos(id):
         return response
 
 
-async def cancel_payment_vpos(id):
+async def refund_payment_vpos(id, amount):
+    async with httpx.AsyncClient() as client:
+        request = VPOSRefundPaymentRequest(
+            Username=vpos_username,
+            Password=vpos_password,
+            PaymentID=id,
+            Amount=amount
+        )
+        req_url = f"{VPOS_BASE_URL}/api/VPOS/RefundPayment"
+        try:
+            response = await client.post(req_url, json=request.model_dump(mode='json'))
+            response.raise_for_status()
+        except Exception as e:
+            logger.error(f"VPOS RefundPayment HTTP error for payment_id={id}: {e}")
+            raise HTTPException(500, f"VPOS RefundPayment failed: {e}")
+        response = VPOSRefundPaymentResponse(**response.json())
+        if response.ResponseCode != "00":
+            logger.error(
+                f"VPOS RefundPayment failed: code={response.ResponseCode} message={response.ResponseMessage} payment_id={id}")
+            raise HTTPException(400, response.ResponseMessage)
+        return response
+
+
+async def cancel_payment_vpos(id, amount=None):
     async with httpx.AsyncClient() as client:
         request = VPOSCancelPaymentRequest(
             Username=vpos_username,
@@ -128,11 +152,16 @@ async def cancel_payment_vpos(id):
             PaymentID=id
         )
         req_url = f"{VPOS_BASE_URL}/api/VPOS/CancelPayment"
-        response = await client.post(req_url, json=request.model_dump(mode='json'))
-        response.raise_for_status()
-        response = VPOSCancelPaymentResponse(**response.json())
-        if response.ResponseCode != "00":
-            logger.error(
-                f"VPOS CancelPayment failed: code={response.ResponseCode} message={response.ResponseMessage} payment_id={id}")
-            raise HTTPException(400, response.ResponseMessage)
-        return response
+        try:
+            response = await client.post(req_url, json=request.model_dump(mode='json'))
+            response.raise_for_status()
+            cancel_response = VPOSCancelPaymentResponse(**response.json())
+            if cancel_response.ResponseCode == "00":
+                return cancel_response
+            logger.warning(
+                f"VPOS CancelPayment failed (code={cancel_response.ResponseCode}), falling back to RefundPayment for payment_id={id}")
+        except Exception as e:
+            logger.warning(
+                f"VPOS CancelPayment error ({e}), falling back to RefundPayment for payment_id={id}")
+
+        return await refund_payment_vpos(id, amount)
