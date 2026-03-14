@@ -79,7 +79,7 @@
     margin: 0;
     min-width: 320px;
     min-height: 100svh;
-    font-family: 'Montserrat', system-ui, sans-serif;
+    font-family: var(--font-sans);
     background-color: var(--drop-bg);
     color: var(--foreground);
     -webkit-font-smoothing: antialiased;
@@ -133,7 +133,6 @@
   border-radius: 10px;
   background: var(--drop-primary);
   color: var(--drop-bg);
-  font-family: 'Montserrat', sans-serif;
   font-weight: 600;
   font-size: 0.875rem;
   text-decoration: none;
@@ -157,7 +156,6 @@
   border-radius: 10px;
   background: transparent;
   color: var(--foreground);
-  font-family: 'Montserrat', sans-serif;
   font-weight: 500;
   font-size: 0.875rem;
   text-decoration: none;
