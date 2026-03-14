@@ -1,6 +1,6 @@
 {% extends "base_email.html" %}
 {% block content %}
-<h1 style="text-align: center">{{ name }},</h1>
+<h1 style="text-align: center">{% if name %}{{ name }},{% else %}Hey,{% endif %}</h1>
 <p>
     <a href="{{ magic_link }}">Here's your link</a> to sign into Drop Dead Disco.
 </p>

@@ -146,7 +146,7 @@ async def send_magic_link(body: MagicLinkRequest):
     _magic_link_cooldowns[body.email] = now
 
     person = await get_person_by_email(body.email)
-    name = person.first_name if person else "there"
+    name = person.first_name if person else ""
     token = await create_jwt(body.email, expires_in=30)
     context = {
         "name": name,
