@@ -78,7 +78,7 @@
   body {
     margin: 0;
     min-width: 320px;
-    min-height: 100vh;
+    min-height: 100svh;
     font-family: 'Montserrat', system-ui, sans-serif;
     background-color: var(--drop-bg);
     color: var(--foreground);
