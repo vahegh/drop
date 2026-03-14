@@ -61,7 +61,10 @@ export default function Layout({ children, heroBg, showFooter = true, showVideo 
           }}
         />
       ) : showVideo ? (
-        <video autoPlay muted loop playsInline id="bg-video">
+        <video
+          autoPlay muted loop playsInline id="bg-video"
+          onCanPlay={e => (e.currentTarget as HTMLVideoElement).classList.add('ready')}
+        >
           <source src="/static/images/bg_video.webm" type="video/webm" />
           <source src="/static/images/bg_video.mp4" type="video/mp4" />
         </video>
@@ -77,7 +80,7 @@ export default function Layout({ children, heroBg, showFooter = true, showVideo 
       {/* Navbar */}
       <nav
         style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
-        className="fixed top-0 left-0 right-0 h-14 px-4 flex items-center justify-between z-50 bg-black/20"
+        className="fixed top-0 left-0 right-0 h-14 px-4 flex items-center justify-between z-50 "
       >
         {location.pathname === '/' ? (
           <button type="button" onClick={() => document.documentElement.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center" aria-label="Scroll to top">

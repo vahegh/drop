@@ -98,6 +98,12 @@
   transform: scale(1.05);
   z-index: -1;
   pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+
+#bg-video.ready {
+  opacity: 1;
 }
 
 /* Drop card - matches ui.card.default_classes('rounded-3xl') */
