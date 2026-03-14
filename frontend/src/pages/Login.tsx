@@ -108,6 +108,7 @@ export default function Login() {
                 value={email}
                 onChange={e => { setEmail(e.target.value); setEmailError('') }}
                 className="drop-input"
+                autoComplete="email"
                 required
               />
               {emailError && <p className="text-xs text-center" style={{ color: 'var(--drop-negative)' }}>{emailError}</p>}

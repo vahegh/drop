@@ -90,6 +90,7 @@ export default function Signup() {
             placeholder="First name"
             value={firstName}
             onChange={e => setFirstName(e.target.value)}
+            autoComplete="given-name"
             required
           />
           <input
@@ -97,6 +98,7 @@ export default function Signup() {
             placeholder="Last name"
             value={lastName}
             onChange={e => setLastName(e.target.value)}
+            autoComplete="family-name"
             required
           />
           <input
