@@ -5,7 +5,7 @@ import { useTickets } from '../hooks/useTickets'
 import Layout from '../components/Layout'
 import Section from '../components/Section'
 import { STATUS_COLORS } from '../components/Layout'
-import GoogleButton from '../components/GoogleButton'
+import LoginBlock from '../components/LoginBlock'
 import MemberPassCard from '../components/MemberPassCard'
 import EventTicketCard from '../components/EventTicketCard'
 import AlbumCarousel from '../components/AlbumCarousel'
@@ -91,7 +91,7 @@ export default function Home() {
       {/* Guest: sign up CTA */}
       {!me && (
         <Section title="Apply for access" subtitle="Sign up to get verified">
-          <GoogleButton text="Continue with Google" variant="primary" redirectUrl="/" style={{ maxWidth: 'none' }} />
+          <LoginBlock redirectUrl="/" />
         </Section>
       )}
 
