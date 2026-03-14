@@ -43,7 +43,7 @@ export default function Login() {
 
   if (token) {
     return (
-      <Layout showFooter={false}>
+      <Layout showFooter={false} showVideo>
         <Section className="pt-10">
           {tokenError ? (
             <>
@@ -73,7 +73,7 @@ export default function Login() {
   }
 
   return (
-    <Layout showFooter={false}>
+    <Layout showFooter={false} showVideo>
       <div className="flex flex-col gap-4 flex-1 w-full max-w-96 items-center justify-center px-4 py-6">
         <Section className="pb-2">
           <div className="flex flex-col items-center gap-3 text-center w-full">

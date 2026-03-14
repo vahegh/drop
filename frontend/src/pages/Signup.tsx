@@ -59,10 +59,10 @@ export default function Signup() {
     }
   }
 
-  if (!pending) return <Layout showFooter />
+  if (!pending) return <Layout showFooter showVideo />
 
   return (
-    <Layout showFooter>
+    <Layout showFooter showVideo>
       <Section className="pt-10">
         <h1 className="text-3xl font-bold text-center">Almost there</h1>
       </Section>
