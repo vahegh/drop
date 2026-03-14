@@ -127,14 +127,8 @@ export default function Home() {
 
       {/* Pending: under review */}
       {me?.status === 'pending' && (
-        <Section title="Review in progress" sep>
-          <div className="drop-card p-5 flex flex-col items-center gap-3 text-center">
+        <Section title="Your review is in progress" subtitle="We'll get back to you ASAP." sep>
             <img src="/static/images/review.gif" alt="reviewing" className="w-80 rounded-sm" />
-            <p className="text-sm text-white/70 leading-relaxed">
-              We're working day and night to review your application!<br />
-              We'll get back to you ASAP via email.
-            </p>
-          </div>
         </Section>
       )}
 
@@ -221,7 +215,7 @@ export default function Home() {
             )}
           </div>
         )}
-        <p className="text-xs text-white/40 leading-relaxed w-full mt-1">
+        <p className="text-sm text-white/40 leading-relaxed w-full mt-1">
           Drop Dead Disco is a hand-picked community hosting dance parties in secret locations around Yerevan.
           Every guest passes <strong className="text-white/60">verification</strong> before they can attend.
         </p>
