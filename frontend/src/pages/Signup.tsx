@@ -1,80 +1,42 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import Layout from '../components/Layout'
 import Section from '../components/Section'
-import { signupWithGoogle, signupWithEmail } from '../api/auth'
-
-interface PendingSignup {
-  access_token: string
-  email: string
-  first_name: string
-  last_name: string
-  avatar_url: string | null
-}
+import { signup } from '../api/auth'
 
 export default function Signup() {
   const [searchParams] = useSearchParams()
-  const redirectUrl = searchParams.get('redirect_url') ?? '/'
-  const emailParam = searchParams.get('email')
-  const isEmailMode = !!emailParam
   const navigate = useNavigate()
 
-  const [pending, setPending] = useState<PendingSignup | null>(null)
-  const [firstName, setFirstName] = useState('')
-  const [lastName, setLastName] = useState('')
+  const token = searchParams.get('token')
+  const displayEmail = searchParams.get('email') ?? ''
+
+  const [firstName, setFirstName] = useState(searchParams.get('first_name') ?? '')
+  const [lastName, setLastName] = useState(searchParams.get('last_name') ?? '')
   const [instagram, setInstagram] = useState('')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
   document.title = 'Sign Up | Drop Dead Disco'
 
-  useEffect(() => {
-    if (isEmailMode) return
-    const raw = sessionStorage.getItem('drop_signup')
-    if (!raw) {
-      navigate('/login')
-      return
-    }
-    const data: PendingSignup = JSON.parse(raw)
-    setPending(data)
-    setFirstName(data.first_name)
-    setLastName(data.last_name)
-  }, [navigate, isEmailMode])
+  if (!token) {
+    navigate('/login')
+    return <Layout showFooter showVideo />
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
     setSubmitting(true)
     try {
-      if (isEmailMode) {
-        await signupWithEmail({
-          email: emailParam!,
-          first_name: firstName,
-          last_name: lastName,
-          instagram_handle: instagram,
-        })
-        window.location.href = '/'
-      } else {
-        if (!pending) return
-        await signupWithGoogle({
-          access_token: pending.access_token,
-          first_name: firstName,
-          last_name: lastName,
-          instagram_handle: instagram,
-        })
-        sessionStorage.removeItem('drop_signup')
-        window.location.href = redirectUrl
-      }
+      await signup({ token: token!, first_name: firstName, last_name: lastName, instagram_handle: instagram })
+      window.location.href = '/'
     } catch {
       setError('Something went wrong. Please try again.')
     } finally {
       setSubmitting(false)
     }
   }
-
-  if (!isEmailMode && !pending) return <Layout showFooter showVideo />
-
-  const displayEmail = isEmailMode ? emailParam! : pending?.email ?? ''
 
   return (
     <Layout showFooter showVideo>

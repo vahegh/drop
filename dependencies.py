@@ -1,7 +1,7 @@
 from fastapi import Request, HTTPException, Depends
 from starlette.middleware.base import BaseHTTPMiddleware
 from services.user import user_info
-from routes.auth import refresh, logout
+from services.auth import refresh_session, logout_session
 
 
 def logged_in(request: Request) -> bool:
@@ -25,9 +25,9 @@ class AuthMiddleware(BaseHTTPMiddleware):
         async def silent_refresh():
             if refresh_token:
                 try:
-                    return await refresh(request)
+                    return await refresh_session(request)
                 except HTTPException:
-                    return await logout(refresh_token)
+                    return await logout_session(refresh_token)
             else:
                 return await call_next(request)
 

@@ -22,7 +22,8 @@ export default function LoginBlock({ redirectUrl = '/' }: LoginBlockProps) {
     try {
       const result = await sendMagicLink(email)
       if (result.status === 'new_user') {
-        navigate(`/signup?email=${encodeURIComponent(result.email)}`)
+        const params = new URLSearchParams({ token: result.token, email: result.email })
+        navigate(`/signup?${params}`)
       } else {
         setEmailSent(true)
       }

@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 from db_models import Person
-from services.auth import create_token
+from services.auth import create_session_token
 from consts import admins, google_client_id
 
 router = APIRouter(tags=["Admin Auth"], prefix="/auth")
@@ -36,7 +36,7 @@ async def admin_google_login(db: AsyncSession, body: GoogleLoginRequest):
     if not person:
         raise HTTPException(404, "Person not found")
 
-    access_token = await create_token(str(person.id), expires_in=60 * 24 * 7)
+    access_token = await create_session_token(str(person.id), expires_in=60 * 24 * 7)
     return {"access_token": access_token}
 
 

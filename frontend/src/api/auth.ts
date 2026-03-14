@@ -12,7 +12,7 @@ export async function logout(): Promise<void> {
 
 export type GoogleAuthResponse =
   | { status: 'ok' }
-  | { status: 'new_user'; email: string; first_name: string; last_name: string; avatar_url: string | null }
+  | { status: 'new_user'; token: string; email: string; first_name: string; last_name: string }
 
 export async function googleAuth(access_token: string): Promise<GoogleAuthResponse> {
   const res = await client.post<GoogleAuthResponse>('/auth/google', { access_token })
@@ -21,29 +21,19 @@ export async function googleAuth(access_token: string): Promise<GoogleAuthRespon
 
 export type MagicLinkResponse =
   | { status: 'ok' }
-  | { status: 'new_user'; email: string }
+  | { status: 'new_user'; token: string; email: string }
 
 export async function sendMagicLink(email: string): Promise<MagicLinkResponse> {
   const res = await client.post<MagicLinkResponse>('/auth/magic-link', { email })
   return res.data
 }
 
-export async function signupWithGoogle(data: {
-  access_token: string
+export async function signup(data: {
+  token: string
   first_name: string
   last_name: string
   instagram_handle: string
 }): Promise<{ status: 'ok' }> {
   const res = await client.post<{ status: 'ok' }>('/auth/signup', data)
-  return res.data
-}
-
-export async function signupWithEmail(data: {
-  email: string
-  first_name: string
-  last_name: string
-  instagram_handle: string
-}): Promise<{ status: 'ok' }> {
-  const res = await client.post<{ status: 'ok' }>('/auth/signup/email', data)
   return res.data
 }

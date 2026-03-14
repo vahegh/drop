@@ -28,15 +28,13 @@ export default function GoogleButton({ text, variant, redirectUrl = '/', loginHi
         if (result.status === 'ok') {
           window.location.href = redirectUrl
         } else {
-          const pending = {
-            access_token: tokenResponse.access_token,
+          const params = new URLSearchParams({
+            token: result.token,
             email: result.email,
             first_name: result.first_name,
             last_name: result.last_name,
-            avatar_url: result.avatar_url,
-          }
-          sessionStorage.setItem('drop_signup', JSON.stringify(pending))
-          navigate(`/signup?redirect_url=${encodeURIComponent(redirectUrl)}`)
+          })
+          navigate(`/signup?${params}`)
         }
       } catch (err: any) {
         if (err?.response?.status === 403) {
