@@ -62,7 +62,7 @@ export default function Layout({ children, heroBg, showFooter = true, showVideo 
             backgroundImage: `url('${heroBg}')`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            filter: 'blur(8px) brightness(50%)',
+            filter: 'blur(8px) brightness(25%)',
             transform: 'scale(1.05)',
             zIndex: -1,
           }}
@@ -73,6 +73,7 @@ export default function Layout({ children, heroBg, showFooter = true, showVideo 
           autoPlay muted loop playsInline id="bg-video"
           onCanPlay={e => (e.currentTarget as HTMLVideoElement).classList.add('ready')}
           onLoadedData={e => (e.currentTarget as HTMLVideoElement).classList.add('ready')}
+          className='brightness-50'
         >
           <source src="/static/images/bg_video.webm" type="video/webm" />
           <source src="/static/images/bg_video.mp4" type="video/mp4" />

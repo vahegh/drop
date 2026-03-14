@@ -42,7 +42,7 @@ export default function Home() {
     <Layout showFooter showVideo>
       {/* Guest hero */}
       {!me && (
-        <Section className="pt-2">
+        <Section className="pt-4">
           <div className="flex flex-col items-center gap-1 text-center w-full">
             <h1 className="text-4xl font-bold tracking-tight">Drop Dead Disco</h1>
             <p className="text-sm text-white/55 leading-relaxed max-w-80">
