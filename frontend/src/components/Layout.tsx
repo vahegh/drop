@@ -154,7 +154,7 @@ export default function Layout({ children, heroBg, showFooter = true, showVideo 
       </nav>
 
       {/* Page content */}
-      <div className="flex flex-col items-center gap-4 px-4 pt-14 pb-8 min-h-screen w-full">
+      <div className="flex flex-col items-center gap-4 px-4 pt-14 pb-8 min-h-[100svh] w-full">
         {children}
       </div>
 
