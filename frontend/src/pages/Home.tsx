@@ -87,50 +87,11 @@ export default function Home() {
         </Section>
       )}
 
-      {/* Guest: stats */}
-      {!me && (statsLoading || stats) && (
-        <Section sep>
-          {statsLoading ? (
-            <div className="flex gap-8 w-full">
-              <div className="flex flex-col gap-1.5">
-                <div className="skeleton h-9 w-10" />
-                <div className="skeleton h-2.5 w-16" />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <div className="skeleton h-9 w-10" />
-                <div className="skeleton h-2.5 w-16" />
-              </div>
-            </div>
-          ) : stats && (
-            <div className="flex gap-8 w-full">
-              {stats['member'] != null && (
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-3xl font-bold">{stats['member']}</span>
-                  <span className="text-xs text-white/40 uppercase tracking-widest">Members</span>
-                </div>
-              )}
-              {stats['verified'] != null && (
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-3xl font-bold">{stats['verified']}</span>
-                  <span className="text-xs text-white/40 uppercase tracking-widest">Verified</span>
-                </div>
-              )}
-            </div>
-          )}
-          <p className="text-xs text-white/40 leading-relaxed w-full mt-1">
-            Drop Dead Disco is a hand-picked community hosting dance parties in secret locations around Yerevan.
-            Every guest passes <strong className="text-white/60">verification</strong> before they can attend.
-          </p>
-        </Section>
-      )}
 
       {/* Guest: sign up CTA */}
       {!me && (
         <Section title="Apply for access" subtitle="Sign up to get verified">
-          <div className="flex gap-2 w-full">
-            <GoogleButton text="Sign up" variant="primary" redirectUrl="/" className="flex-1" style={{ maxWidth: 'none' }} />
-            <GoogleButton text="Log in" variant="outline" redirectUrl="/" className="flex-1" style={{ maxWidth: 'none' }} />
-          </div>
+          <GoogleButton text="Continue with Google" variant="primary" redirectUrl="/" style={{ maxWidth: 'none' }} />
         </Section>
       )}
 
@@ -168,7 +129,7 @@ export default function Home() {
       {me?.status === 'pending' && (
         <Section title="Review in progress" sep>
           <div className="drop-card p-5 flex flex-col items-center gap-3 text-center">
-            <img src="/static/images/review.gif" alt="reviewing" className="w-32 rounded-xl" />
+            <img src="/static/images/review.gif" alt="reviewing" className="w-80 rounded-sm" />
             <p className="text-sm text-white/70 leading-relaxed">
               We're working day and night to review your application!<br />
               We'll get back to you ASAP via email.
@@ -231,42 +192,40 @@ export default function Home() {
         </Section>
       )}
 
-      {/* Logged-in: community blurb */}
-      {me && (
-        <Section sep>
-          <p className="text-sm text-white/70 leading-relaxed w-full">
-            Drop Dead Disco is a hand-picked community hosting dance parties in secret locations around Yerevan.
-            Every guest has to pass <strong>verification</strong> before they're able to buy tickets and attend.
-          </p>
-          {statsLoading ? (
-            <div className="flex gap-6 w-full mt-1">
-              <div className="flex flex-col gap-1.5">
-                <div className="skeleton h-7 w-8" />
-                <div className="skeleton h-2.5 w-14" />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <div className="skeleton h-7 w-8" />
-                <div className="skeleton h-2.5 w-14" />
-              </div>
+      {/* Community blurb */}
+      <Section sep>
+        {statsLoading ? (
+          <div className="flex gap-8 w-full">
+            <div className="flex flex-col gap-1.5">
+              <div className="skeleton h-9 w-10" />
+              <div className="skeleton h-2.5 w-16" />
             </div>
-          ) : stats && (
-            <div className="flex gap-6 w-full mt-1">
-              {stats['member'] != null && (
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-xl font-bold">{stats['member']}</span>
-                  <span className="text-xs text-white/40 uppercase tracking-widest">Members</span>
-                </div>
-              )}
-              {stats['verified'] != null && (
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-xl font-bold">{stats['verified']}</span>
-                  <span className="text-xs text-white/40 uppercase tracking-widest">Verified</span>
-                </div>
-              )}
+            <div className="flex flex-col gap-1.5">
+              <div className="skeleton h-9 w-10" />
+              <div className="skeleton h-2.5 w-16" />
             </div>
-          )}
-        </Section>
-      )}
+          </div>
+        ) : stats && (
+          <div className="flex gap-8 w-full">
+            {stats['member'] != null && (
+              <div className="flex flex-col gap-0.5">
+                <span className="text-3xl font-bold">{stats['member']}</span>
+                <span className="text-xs text-white/40 uppercase tracking-widest">Members</span>
+              </div>
+            )}
+            {stats['verified'] != null && (
+              <div className="flex flex-col gap-0.5">
+                <span className="text-3xl font-bold">{stats['verified']}</span>
+                <span className="text-xs text-white/40 uppercase tracking-widest">Verified</span>
+              </div>
+            )}
+          </div>
+        )}
+        <p className="text-xs text-white/40 leading-relaxed w-full mt-1">
+          Drop Dead Disco is a hand-picked community hosting dance parties in secret locations around Yerevan.
+          Every guest passes <strong className="text-white/60">verification</strong> before they can attend.
+        </p>
+      </Section>
 
       {/* Logged-in: photo carousel */}
       {me && (photosLoading || (Array.isArray(allPhotos) && allPhotos.length > 0)) && (

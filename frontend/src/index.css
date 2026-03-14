@@ -140,6 +140,7 @@
   border: none;
   cursor: pointer;
   transition: opacity 0.15s;
+  overflow: hidden;
 }
 
 .btn-primary:hover { opacity: 0.9; }
