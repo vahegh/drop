@@ -77,9 +77,9 @@ export default function Login() {
       <div className="flex flex-col gap-4 flex-1 w-full max-w-96 items-center justify-center px-4 py-6">
         <Section className="pb-2">
           <div className="flex flex-col items-center gap-3 text-center w-full">
-            <h1 className="text-4xl font-bold tracking-tight">Get in.</h1>
+            <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '3.5rem', lineHeight: 1 }}>Get in.</h1>
             <p className="text-sm text-white/55 leading-relaxed max-w-80">
-              Sign up to see Drop from the inside.
+              Experience the Drop from the inside.
             </p>
           </div>
         </Section>
