@@ -28,6 +28,12 @@ auth_secret = os.environ['auth_secret']
 router = APIRouter(tags=['Auth'], prefix="/api/auth")
 
 
+def safe_redirect_url(url: str) -> str:
+    if url and url.startswith('/') and not url.startswith('//'):
+        return url
+    return '/'
+
+
 @with_db
 async def generate_and_set_tokens(db: AsyncSession, person_id: str, refresh_expiry: int = 7*24*60, redirect_url='/'):
     access = await create_token(str(person_id))
@@ -36,7 +42,7 @@ async def generate_and_set_tokens(db: AsyncSession, person_id: str, refresh_expi
     db.add(RefreshToken(token=refresh, person_id=person_id))
     await db.commit()
 
-    response = RedirectResponse(redirect_url, 302)
+    response = RedirectResponse(safe_redirect_url(redirect_url), 302)
 
     response.set_cookie(
         "access_token", access,

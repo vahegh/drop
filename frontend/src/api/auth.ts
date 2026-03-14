@@ -32,3 +32,13 @@ export async function signupWithGoogle(data: {
   const res = await client.post<{ status: 'ok' }>('/auth/signup', data)
   return res.data
 }
+
+export async function signupWithEmail(data: {
+  token: string
+  first_name: string
+  last_name: string
+  instagram_handle: string
+}): Promise<{ status: 'ok' }> {
+  const res = await client.post<{ status: 'ok' }>('/auth/signup/email', data)
+  return res.data
+}

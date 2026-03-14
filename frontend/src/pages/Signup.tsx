@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import Layout from '../components/Layout'
 import Section from '../components/Section'
-import { signupWithGoogle } from '../api/auth'
+import { signupWithGoogle, signupWithEmail } from '../api/auth'
 
 interface PendingSignup {
   access_token: string
@@ -15,6 +15,9 @@ interface PendingSignup {
 export default function Signup() {
   const [searchParams] = useSearchParams()
   const redirectUrl = searchParams.get('redirect_url') ?? '/'
+  const emailToken = searchParams.get('token')
+  const emailParam = searchParams.get('email')
+  const isEmailMode = !!emailToken && !!emailParam
   const navigate = useNavigate()
 
   const [pending, setPending] = useState<PendingSignup | null>(null)
@@ -27,6 +30,7 @@ export default function Signup() {
   document.title = 'Sign Up | Drop Dead Disco'
 
   useEffect(() => {
+    if (isEmailMode) return
     const raw = sessionStorage.getItem('drop_signup')
     if (!raw) {
       navigate('/login')
@@ -36,22 +40,32 @@ export default function Signup() {
     setPending(data)
     setFirstName(data.first_name)
     setLastName(data.last_name)
-  }, [navigate])
+  }, [navigate, isEmailMode])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!pending) return
     setError('')
     setSubmitting(true)
     try {
-      await signupWithGoogle({
-        access_token: pending.access_token,
-        first_name: firstName,
-        last_name: lastName,
-        instagram_handle: instagram,
-      })
-      sessionStorage.removeItem('drop_signup')
-      window.location.href = redirectUrl
+      if (isEmailMode) {
+        await signupWithEmail({
+          token: emailToken!,
+          first_name: firstName,
+          last_name: lastName,
+          instagram_handle: instagram,
+        })
+        window.location.href = '/'
+      } else {
+        if (!pending) return
+        await signupWithGoogle({
+          access_token: pending.access_token,
+          first_name: firstName,
+          last_name: lastName,
+          instagram_handle: instagram,
+        })
+        sessionStorage.removeItem('drop_signup')
+        window.location.href = redirectUrl
+      }
     } catch {
       setError('Something went wrong. Please try again.')
     } finally {
@@ -59,7 +73,9 @@ export default function Signup() {
     }
   }
 
-  if (!pending) return <Layout showFooter showVideo />
+  if (!isEmailMode && !pending) return <Layout showFooter showVideo />
+
+  const displayEmail = isEmailMode ? emailParam! : pending?.email ?? ''
 
   return (
     <Layout showFooter showVideo>
@@ -67,7 +83,7 @@ export default function Signup() {
         <h1 className="text-3xl font-bold text-center">Almost there</h1>
       </Section>
 
-      <Section title="Complete your profile" subtitle={pending.email} sep>
+      <Section title="Complete your profile" subtitle={displayEmail} sep>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-full">
           <input
             className="drop-input"

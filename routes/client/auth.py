@@ -1,9 +1,10 @@
 import os
+import time
 import jwt as pyjwt
 import httpx
 from sqlalchemy import select
 from fastapi import APIRouter, Request, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel
 from decorators import with_db
 from decorators import verify_user_token
@@ -17,6 +18,8 @@ from services.templating import generate_template
 from api_models import PersonCreate
 from routes.auth import generate_and_set_tokens
 from consts import APP_BASE_URL
+
+_magic_link_cooldowns: dict[str, float] = {}
 
 GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo"
 
@@ -136,19 +139,25 @@ class MagicLinkRequest(BaseModel):
 
 @router.post("/magic-link")
 async def send_magic_link(body: MagicLinkRequest):
+    now = time.time()
+    last = _magic_link_cooldowns.get(body.email, 0)
+    if now - last < 60:
+        return JSONResponse({"status": "ok"})
+    _magic_link_cooldowns[body.email] = now
+
     person = await get_person_by_email(body.email)
-    if person:
-        token = await create_jwt(person.email, expires_in=30)
-        context = {
-            "name": person.first_name,
-            "magic_link": f"{APP_BASE_URL}/login?token={token}",
-        }
-        template = await generate_template("magic_link.html", context)
-        await send_email(EmailRequest(
-            recipient_email=body.email,
-            subject="Your Signin Link",
-            body=template,
-        ))
+    name = person.first_name if person else "there"
+    token = await create_jwt(body.email, expires_in=30)
+    context = {
+        "name": name,
+        "magic_link": f"{APP_BASE_URL}/api/client/auth/magic-link/verify?token={token}",
+    }
+    template = await generate_template("magic_link.html", context)
+    await send_email(EmailRequest(
+        recipient_email=body.email,
+        subject="Your Signin Link",
+        body=template,
+    ))
     return JSONResponse({"status": "ok"})
 
 
@@ -161,14 +170,53 @@ async def verify_magic_link(token: str):
     except pyjwt.InvalidTokenError:
         raise HTTPException(401, "Invalid link")
 
-    person = await get_person_by_email(payload["email"])
+    email = payload["email"]
+    person = await get_person_by_email(email)
     if not person:
-        raise HTTPException(404, "Person not found")
+        return RedirectResponse(f"/signup?token={token}&email={email}", 302)
 
     if person.status == 'rejected':
         raise HTTPException(403, "Account rejected")
 
     return await generate_and_set_tokens(person.id, redirect_url="/")
+
+
+class EmailSignupRequest(BaseModel):
+    token: str
+    first_name: str
+    last_name: str
+    instagram_handle: str
+
+
+@router.post("/signup/email")
+async def signup_with_email(body: EmailSignupRequest):
+    try:
+        payload = pyjwt.decode(body.token, auth_secret, algorithms=["HS256"])
+    except pyjwt.ExpiredSignatureError:
+        raise HTTPException(401, "Link expired")
+    except pyjwt.InvalidTokenError:
+        raise HTTPException(401, "Invalid link")
+
+    email = payload["email"]
+    try:
+        person = await create_person(PersonCreate(
+            first_name=body.first_name,
+            last_name=body.last_name,
+            email=email,
+            instagram_handle=body.instagram_handle,
+        ))
+    except HTTPException:
+        raise
+
+    if not person:
+        raise HTTPException(400, "Signup failed")
+
+    redirect_resp = await generate_and_set_tokens(person.id, redirect_url="/")
+    json_resp = JSONResponse({"status": "ok"})
+    for key, val in redirect_resp.raw_headers:
+        if key == b"set-cookie":
+            json_resp.raw_headers.append((key, val))
+    return json_resp
 
 
 @router.post("/signup")

@@ -26,7 +26,10 @@ export default function Login() {
     fetch(`/api/client/auth/magic-link/verify?token=${encodeURIComponent(token)}`)
       .then(async (res) => {
         if (res.ok || res.redirected) {
-          window.location.href = redirectUrl
+          const dest = new URL(res.url)
+          window.location.href = dest.pathname.startsWith('/signup')
+            ? dest.pathname + dest.search
+            : redirectUrl
         } else {
           const body = await res.json().catch(() => ({}))
           setTokenError(body.detail ?? 'Invalid or expired link')
@@ -76,8 +79,8 @@ export default function Login() {
     <Layout showFooter={false} showVideo>
       <div className="flex flex-col gap-4 flex-1 w-full max-w-96 items-center justify-center px-4 py-6">
         <Section className="pb-2">
-          <div className="flex flex-col items-center gap-3 text-center w-full">
-            <h1 className="text-6xl font-semibold tracking-tight">Get in.</h1>
+          <div className="flex flex-col items-center gap-1 text-center w-full">
+            <h1 className="text-7xl font-semibold tracking-tight">Get in.</h1>
             <p className="text-sm text-white/55 leading-relaxed max-w-80">
               Experience the Drop from the inside.
             </p>
