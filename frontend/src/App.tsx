@@ -33,7 +33,11 @@ export default function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
-      <Suspense>
+      <Suspense fallback={
+        <div className="fixed inset-0 flex items-center justify-center bg-black">
+          <img src="/static/images/logo_white.png" alt="Drop Dead Disco" className="w-32 animate-pulse" />
+        </div>
+      }>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/event/:id" element={<Event />} />
