@@ -112,7 +112,7 @@
   width: 100%;
   height: 40px;
   padding: 0 1rem;
-  border-radius: 9999px;
+  border-radius: 10px;
   background: var(--drop-card);
   color: #fff;
   font-size: 0.875rem;
@@ -130,7 +130,7 @@
   height: 40px;
   width: 100%;
   max-width: 100%;
-  border-radius: 9999px;
+  border-radius: 10px;
   background: var(--drop-primary);
   color: var(--drop-bg);
   font-family: 'Montserrat', sans-serif;
@@ -154,7 +154,7 @@
   height: 40px;
   width: 100%;
   max-width: 100%;
-  border-radius: 9999px;
+  border-radius: 10px;
   background: transparent;
   color: var(--foreground);
   font-family: 'Montserrat', sans-serif;
