@@ -75,20 +75,27 @@ export default function Login() {
   return (
     <Layout showFooter={false}>
       <div className="flex flex-col gap-4 w-full max-w-96 items-center justify-center px-4 py-6">
-        <img src="/static/images/logo_gray.png" alt="Drop Dead Disco" className="w-24 h-12 object-contain" />
+        <Section className="pb-2">
+          <div className="flex flex-col items-center gap-3 text-center w-full">
+            <h1 className="text-4xl font-bold tracking-tight">Drop Dead Disco</h1>
+            <p className="text-sm text-white/55 leading-relaxed max-w-80">
+              Dance parties in secret locations in and around Yerevan. Verification required.
+            </p>
+          </div>
+        </Section>
 
-        <Section title="Sign in with Google" subtitle="You must be verified to purchase tickets.">
+        <Section>
           <GoogleButton text="Continue with Google" variant="primary" redirectUrl={redirectUrl} style={{ maxWidth: 'none' }} />
         </Section>
 
-        <Section title="Or use your email" subtitle="We'll send you a magic link" sep>
+        <Section>
           {emailSent ? (
             <p className="text-sm text-white/60 text-center">Check your inbox — a magic link is on its way.</p>
           ) : (
             <form onSubmit={handleEmailSubmit} className="flex flex-col gap-3 w-full">
               <input
                 type="email"
-                placeholder="your@email.com"
+                placeholder="Enter your email"
                 value={email}
                 onChange={e => { setEmail(e.target.value); setEmailError('') }}
                 className="drop-input"
