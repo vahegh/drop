@@ -1,16 +1,24 @@
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 
 export default function AlbumCarousel({ photos }: { photos: string[] }) {
   const [active, setActive] = useState(0)
   const [animKey, setAnimKey] = useState(0)
   const [dir, setDir] = useState<'left' | 'right'>('left')
   const [fullscreen, setFullscreen] = useState(false)
+  const [fsClosing, setFsClosing] = useState(false)
+
+  function closeFullscreen() {
+    setFsClosing(true)
+    setTimeout(() => { setFullscreen(false); setFsClosing(false) }, 200)
+  }
   const touchStartX = useRef<number | null>(null)
+
 
   useEffect(() => {
     if (!fullscreen) return
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') setFullscreen(false)
+      if (e.key === 'Escape') closeFullscreen()
       if (e.key === 'ArrowLeft') prev()
       if (e.key === 'ArrowRight') next()
     }
@@ -27,14 +35,23 @@ export default function AlbumCarousel({ photos }: { photos: string[] }) {
   function prev() { go((active - 1 + photos.length) % photos.length, 'right') }
   function next() { go((active + 1) % photos.length, 'left') }
 
+  const touchStartY = useRef<number | null>(null)
+
   function handleTouchStart(e: React.TouchEvent) {
     touchStartX.current = e.touches[0].clientX
+    touchStartY.current = e.touches[0].clientY
   }
 
   function handleTouchEnd(e: React.TouchEvent) {
     if (touchStartX.current === null) return
     const dx = e.changedTouches[0].clientX - touchStartX.current
+    const dy = e.changedTouches[0].clientY - (touchStartY.current ?? 0)
     touchStartX.current = null
+    touchStartY.current = null
+    if (fullscreen && Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 40) {
+      closeFullscreen()
+      return
+    }
     if (Math.abs(dx) < 30) return
     dx < 0 ? next() : prev()
   }
@@ -44,6 +61,7 @@ export default function AlbumCarousel({ photos }: { photos: string[] }) {
     : 'animate-in slide-in-from-left-4 fade-in duration-200'
 
   return (
+    <>
     <div className="w-full max-w-96 md:max-w-full space-y-2">
       {/* Preload all images for instant switching */}
       <div className="hidden">
@@ -100,45 +118,49 @@ export default function AlbumCarousel({ photos }: { photos: string[] }) {
         </div>
       )}
 
-      {/* Fullscreen lightbox */}
-      {fullscreen && (
-        <div
-          className="fixed inset-0 z-50 bg-black flex items-center justify-center"
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-          onClick={() => setFullscreen(false)}
-        >
-          <img
-            src={`${photos[active]}=w1600`}
-            alt={`Photo ${active + 1}`}
-            className="max-w-full max-h-full object-contain"
-            draggable={false}
-            onClick={e => e.stopPropagation()}
-          />
-          {photos.length > 1 && (
-            <>
-              <button
-                onClick={e => { e.stopPropagation(); prev() }}
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 flex items-center justify-center text-white text-lg"
-                aria-label="Previous"
-              >‹</button>
-              <button
-                onClick={e => { e.stopPropagation(); next() }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 flex items-center justify-center text-white text-lg"
-                aria-label="Next"
-              >›</button>
-              <span className="absolute bottom-4 right-4 text-sm text-white/60 tabular-nums">
-                {active + 1} / {photos.length}
-              </span>
-            </>
-          )}
-          <button
-            onClick={() => setFullscreen(false)}
-            className="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/60 flex items-center justify-center text-white text-lg"
-            aria-label="Close"
-          >✕</button>
-        </div>
-      )}
     </div>
+
+    {/* Fullscreen lightbox — portalled to body to avoid parent reflow */}
+    {fullscreen && createPortal(
+      <div
+        className={`fixed inset-0 z-50 bg-black flex items-center justify-center duration-200 touch-none ${fsClosing ? 'animate-out fade-out' : 'animate-in fade-in'}`}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        onClick={closeFullscreen}
+      >
+        <img
+          key={animKey}
+          src={`${photos[active]}=w800`}
+          alt={`Photo ${active + 1}`}
+          className={`max-w-full max-h-full object-contain duration-200 ${fsClosing ? 'animate-out zoom-out-95 fade-out' : `animate-in zoom-in-95 ${slideIn}`}`}
+          draggable={false}
+          onClick={e => e.stopPropagation()}
+        />
+        {photos.length > 1 && (
+          <>
+            <button
+              onClick={e => { e.stopPropagation(); prev() }}
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 flex items-center justify-center text-white text-lg"
+              aria-label="Previous"
+            >‹</button>
+            <button
+              onClick={e => { e.stopPropagation(); next() }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 flex items-center justify-center text-white text-lg"
+              aria-label="Next"
+            >›</button>
+            <span className="absolute bottom-4 right-4 text-sm text-white/60 tabular-nums">
+              {active + 1} / {photos.length}
+            </span>
+          </>
+        )}
+        <button
+          onClick={closeFullscreen}
+          className="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/60 flex items-center justify-center text-white text-lg"
+          aria-label="Close"
+        >✕</button>
+      </div>,
+      document.body
+    )}
+    </>
   )
 }
