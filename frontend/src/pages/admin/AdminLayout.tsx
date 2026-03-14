@@ -54,7 +54,7 @@ export default function AdminLayout() {
 
   return (
     <div className="flex flex-col min-h-screen bg-black text-white">
-      {/* Top navbar — same as regular pages */}
+      {/* Top navbar - same as regular pages */}
       <nav
         style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
         className="fixed top-0 left-0 right-0 h-14 px-4 flex items-center justify-between z-50 bg-black/80 border-b border-[#1a1a1a]"

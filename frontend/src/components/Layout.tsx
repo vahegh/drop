@@ -16,7 +16,7 @@ interface LayoutProps {
   /** Per-page blurred bg override (event pages) - replaces the video */
   heroBg?: string
   showFooter?: boolean
-  /** Only true on the Home page — loads the background video */
+  /** Only true on the Home page - loads the background video */
   showVideo?: boolean
 }
 

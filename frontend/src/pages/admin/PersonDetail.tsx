@@ -94,7 +94,7 @@ export default function AdminPersonDetail() {
 
   // Payments indexed by order_id for inline display in tickets
   const paymentByOrderId = new Map<any, any>(payments.map((p: any) => [p.order_id, p]))
-  // Order IDs linked to tickets — excluded from the standalone payments section
+  // Order IDs linked to tickets - excluded from the standalone payments section
   const ticketOrderIds = new Set(tickets.map((t: any) => t.payment_order_id).filter(Boolean))
   const unlinkedPayments = payments.filter((p: any) => !ticketOrderIds.has(p.order_id))
 

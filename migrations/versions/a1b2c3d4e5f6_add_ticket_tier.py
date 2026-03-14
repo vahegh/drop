@@ -19,7 +19,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # Phase A — DDL
+    # Phase A - DDL
 
     op.create_table(
         'ticket_tier',
@@ -42,7 +42,7 @@ def upgrade() -> None:
     op.add_column('payment_intent', sa.Column('tier_id', postgresql.UUID(as_uuid=True), sa.ForeignKey('ticket_tier.id'), nullable=True))
     op.add_column('payment_intent', sa.Column('tier_price', sa.Integer(), nullable=True))
 
-    # Phase B — Seed tiers from existing flat Event columns
+    # Phase B - Seed tiers from existing flat Event columns
     op.execute("""
         INSERT INTO ticket_tier (event_id, name, price, required_person_status, sort_order, is_active, ecrm_good_code, ecrm_good_name)
         SELECT

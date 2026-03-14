@@ -68,7 +68,7 @@ export default function Event() {
       {/* Two-column layout at lg: image left, details right */}
       <div className="w-full max-w-96 md:max-w-2xl lg:max-w-3xl mt-4 lg:flex lg:gap-8 lg:items-start">
 
-        {/* Left column: event image — sticky on desktop */}
+        {/* Left column: event image - sticky on desktop */}
         <div className="lg:w-80 lg:flex-none lg:sticky lg:top-4">
           <EventCard
             event={event}
@@ -138,7 +138,7 @@ export default function Event() {
         </div>
       </div>
 
-      {/* YouTube — full width below columns */}
+      {/* YouTube - full width below columns */}
       {event.video_url && (
         <Section sep>
           <iframe
@@ -152,7 +152,7 @@ export default function Event() {
         </Section>
       )}
 
-      {/* Photo album carousel — full width below columns */}
+      {/* Photo album carousel - full width below columns */}
       {(photosLoading && !!event?.album_url || Array.isArray(photos) && photos.length > 0) && (
         <Section sep>
           <p className="text-xs uppercase tracking-wider text-white/40 w-full mb-3">Photos</p>

@@ -90,8 +90,8 @@ async def early_bird_end(db: AsyncSession, event_id: UUID):
     context = {
         "event_name": event.name,
         "event_day_of_week": starts_at_local.strftime("%A"),
-        "early_bird_price": f"{early_bird_tier.price} AMD" if early_bird_tier else "—",
-        "standard_price": f"{ga_tier.price} AMD" if ga_tier else "—",
+        "early_bird_price": f"{early_bird_tier.price} AMD" if early_bird_tier else "-",
+        "standard_price": f"{ga_tier.price} AMD" if ga_tier else "-",
         "event_url": f"{APP_BASE_URL}/event/{event.id}",
         "event_date": starts_at_local.strftime("%A %d %B"),
         "start_time": starts_at_local.strftime("%H:%M"),
@@ -143,10 +143,10 @@ async def event_announcement(db: AsyncSession, event_id: UUID):
         "event_date": event.starts_at.astimezone().strftime("%A, %d %B"),
         "start_time": starts_at_local.strftime("%H:%M"),
         "end_time": ends_at_local.strftime("%H:%M"),
-        "early_bird_date": early_bird_tier.available_until.astimezone().strftime("%d.%m") if early_bird_tier else "—",
-        "early_bird_price": f"{early_bird_tier.price} AMD" if early_bird_tier else "—",
-        "standard_price": f"{ga_tier.price} AMD" if ga_tier else "—",
-        "member_price": f"{member_tier.price} AMD" if member_tier else "—",
+        "early_bird_date": early_bird_tier.available_until.astimezone().strftime("%d.%m") if early_bird_tier else "-",
+        "early_bird_price": f"{early_bird_tier.price} AMD" if early_bird_tier else "-",
+        "standard_price": f"{ga_tier.price} AMD" if ga_tier else "-",
+        "member_price": f"{member_tier.price} AMD" if member_tier else "-",
         "event_url": f"{APP_BASE_URL}/event/{event.id}?utm_source=email&utm_medium=marketing&utm_campaign=announcement_{event.id}",
     }
 

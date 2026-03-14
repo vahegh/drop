@@ -527,7 +527,7 @@ export default function BuyTicket() {
 
           {addStep === 'create' && (
             <div className="drop-card p-4 w-full flex flex-col gap-3">
-              <p className="text-sm font-semibold">Not found — enter their details</p>
+              <p className="text-sm font-semibold">Not found - enter their details</p>
               <p className="text-xs text-white/45">{addEmail}</p>
               <div className="flex gap-2">
                 <div className="flex flex-col gap-1 flex-1">
@@ -555,7 +555,7 @@ export default function BuyTicket() {
         </Section>
       )}
 
-      {/* Payment method — gated by showPayment */}
+      {/* Payment method - gated by showPayment */}
       {showPayment && (
         <Section title="Payment method">
           <PaymentProviderSelector
@@ -574,7 +574,7 @@ export default function BuyTicket() {
         </p>
       )}
 
-      {/* Pay button — gated by showPayment */}
+      {/* Pay button - gated by showPayment */}
       {showPayment && (
         <div className="w-full pb-4">
           <button
@@ -588,7 +588,7 @@ export default function BuyTicket() {
         </div>
       )}
 
-      {/* Sign-in alternative — guest only */}
+      {/* Sign-in alternative - guest only */}
       {!me && (
         <>
           <div className="w-full flex items-center gap-3 text-white/20 text-xs px-1">

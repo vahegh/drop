@@ -28,7 +28,7 @@ export function useEventPhotos(id: string, enabled: boolean) {
     queryKey: ['events', id, 'photos'],
     queryFn: () => getEventPhotos(id),
     enabled: !!id && enabled,
-    staleTime: 1000 * 60 * 50, // 50 min — URLs expire in ~1h
+    staleTime: 1000 * 60 * 50, // 50 min - URLs expire in ~1h
   })
 }
 

@@ -27,7 +27,7 @@ def upgrade() -> None:
     op.alter_column('venue', 'latitude', nullable=False)
     op.alter_column('venue', 'longitude', nullable=False)
 
-    # Add area to event (nullable — existing events won't have it)
+    # Add area to event (nullable - existing events won't have it)
     op.add_column('event', sa.Column('area', sa.String(), nullable=True))
 
 

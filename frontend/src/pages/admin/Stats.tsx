@@ -228,7 +228,7 @@ export default function AdminStats() {
               <div style={{ color: '#555', fontSize: 13, textAlign: 'center', padding: '32px 0' }}>No ticket sales recorded yet</div>
             )}
 
-            {/* Capacity fill — single event only */}
+            {/* Capacity fill - single event only */}
             {!isComparing && singleEvent && singleEvent.max_capacity > 0 && (
               <div style={{ marginTop: 12 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
@@ -301,7 +301,7 @@ export default function AdminStats() {
         </div>
       )}
 
-      {/* Revenue by provider — bottom */}
+      {/* Revenue by provider - bottom */}
       {(data?.by_provider ?? []).length > 0 && (
         <div>
           <div style={{ color: '#555', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>Revenue by Provider</div>

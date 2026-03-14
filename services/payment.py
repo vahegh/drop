@@ -324,7 +324,7 @@ async def confirm_payment(db: AsyncSession, transaction: PaymentConfirmRequest, 
 
     confirm_response = await verify_provider_status(transaction, payment, ticket_holders)
 
-    # Persist status before side effects — concurrent requests will now see CONFIRMED
+    # Persist status before side effects - concurrent requests will now see CONFIRMED
     db.add(payment)
     await db.commit()
 

@@ -112,7 +112,7 @@ export default function AlbumCarousel({ photos }: { photos: string[] }) {
         </div>
       )}
 
-      {/* Fullscreen lightbox — showModal() puts this in browser top layer, no layout impact */}
+      {/* Fullscreen lightbox - showModal() puts this in browser top layer, no layout impact */}
       <dialog
         ref={dialogRef}
         className={`m-0 p-0 w-screen h-screen max-w-none max-h-none bg-black border-none outline-none touch-none duration-200 ${fsClosing ? 'animate-out fade-out' : fsOpen ? 'animate-in fade-in' : ''}`}
