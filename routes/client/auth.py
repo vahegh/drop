@@ -146,10 +146,12 @@ async def send_magic_link(body: MagicLinkRequest):
     _magic_link_cooldowns[body.email] = now
 
     person = await get_person_by_email(body.email)
-    name = person.first_name if person else ""
+    if not person:
+        return JSONResponse({"status": "new_user", "email": body.email})
+
     token = await create_jwt(body.email, expires_in=30)
     context = {
-        "name": name,
+        "name": person.first_name,
         "magic_link": f"{APP_BASE_URL}/api/client/auth/magic-link/verify?token={token}",
     }
     template = await generate_template("magic_link.html", context)
@@ -173,7 +175,7 @@ async def verify_magic_link(token: str):
     email = payload["email"]
     person = await get_person_by_email(email)
     if not person:
-        return RedirectResponse(f"/signup?token={token}&email={email}", 302)
+        return RedirectResponse(f"/signup?email={email}", 302)
 
     if person.status == 'rejected':
         raise HTTPException(403, "Account rejected")
@@ -182,7 +184,7 @@ async def verify_magic_link(token: str):
 
 
 class EmailSignupRequest(BaseModel):
-    token: str
+    email: str
     first_name: str
     last_name: str
     instagram_handle: str
@@ -190,24 +192,12 @@ class EmailSignupRequest(BaseModel):
 
 @router.post("/signup/email")
 async def signup_with_email(body: EmailSignupRequest):
-    try:
-        payload = pyjwt.decode(body.token, auth_secret, algorithms=["HS256"])
-    except pyjwt.ExpiredSignatureError:
-        raise HTTPException(401, "Link expired")
-    except pyjwt.InvalidTokenError:
-        raise HTTPException(401, "Invalid link")
-
-    email = payload["email"]
-    try:
-        person = await create_person(PersonCreate(
-            first_name=body.first_name,
-            last_name=body.last_name,
-            email=email,
-            instagram_handle=body.instagram_handle,
-        ))
-    except HTTPException:
-        raise
-
+    person = await create_person(PersonCreate(
+        first_name=body.first_name,
+        last_name=body.last_name,
+        email=body.email,
+        instagram_handle=body.instagram_handle,
+    ))
     if not person:
         raise HTTPException(400, "Signup failed")
 

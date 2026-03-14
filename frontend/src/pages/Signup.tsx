@@ -15,9 +15,8 @@ interface PendingSignup {
 export default function Signup() {
   const [searchParams] = useSearchParams()
   const redirectUrl = searchParams.get('redirect_url') ?? '/'
-  const emailToken = searchParams.get('token')
   const emailParam = searchParams.get('email')
-  const isEmailMode = !!emailToken && !!emailParam
+  const isEmailMode = !!emailParam
   const navigate = useNavigate()
 
   const [pending, setPending] = useState<PendingSignup | null>(null)
@@ -49,7 +48,7 @@ export default function Signup() {
     try {
       if (isEmailMode) {
         await signupWithEmail({
-          token: emailToken!,
+          email: emailParam!,
           first_name: firstName,
           last_name: lastName,
           instagram_handle: instagram,

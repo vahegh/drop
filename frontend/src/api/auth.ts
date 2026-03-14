@@ -19,8 +19,13 @@ export async function googleAuth(access_token: string): Promise<GoogleAuthRespon
   return res.data
 }
 
-export async function sendMagicLink(email: string): Promise<void> {
-  await client.post('/auth/magic-link', { email })
+export type MagicLinkResponse =
+  | { status: 'ok' }
+  | { status: 'new_user'; email: string }
+
+export async function sendMagicLink(email: string): Promise<MagicLinkResponse> {
+  const res = await client.post<MagicLinkResponse>('/auth/magic-link', { email })
+  return res.data
 }
 
 export async function signupWithGoogle(data: {
@@ -34,7 +39,7 @@ export async function signupWithGoogle(data: {
 }
 
 export async function signupWithEmail(data: {
-  token: string
+  email: string
   first_name: string
   last_name: string
   instagram_handle: string

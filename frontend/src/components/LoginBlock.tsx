@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import GoogleButton from './GoogleButton'
 import Section from './Section'
 import { sendMagicLink } from '../api/auth'
@@ -8,6 +9,7 @@ interface LoginBlockProps {
 }
 
 export default function LoginBlock({ redirectUrl = '/' }: LoginBlockProps) {
+  const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [emailSent, setEmailSent] = useState(false)
   const [emailError, setEmailError] = useState('')
@@ -18,8 +20,12 @@ export default function LoginBlock({ redirectUrl = '/' }: LoginBlockProps) {
     setEmailError('')
     setEmailSubmitting(true)
     try {
-      await sendMagicLink(email)
-      setEmailSent(true)
+      const result = await sendMagicLink(email)
+      if (result.status === 'new_user') {
+        navigate(`/signup?email=${encodeURIComponent(result.email)}`)
+      } else {
+        setEmailSent(true)
+      }
     } catch {
       setEmailError('Something went wrong. Please try again.')
     } finally {
@@ -41,7 +47,7 @@ export default function LoginBlock({ redirectUrl = '/' }: LoginBlockProps) {
 
       <Section>
         {emailSent ? (
-          <p className="text-sm text-white/60 text-center">Check your inbox — a magic link is on its way.</p>
+          <p className="text-sm text-white/60 text-center">Check your inbox - a magic link is on its way.</p>
         ) : (
           <form onSubmit={handleEmailSubmit} className="flex flex-col gap-3 w-full">
             <input
