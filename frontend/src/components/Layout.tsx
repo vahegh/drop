@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { useMe } from '../hooks/useMe'
 import { logout } from '../api/auth'
 import { loginUrl } from '../lib/loginUrl'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 export const STATUS_COLORS: Record<string, string> = {
   verified: '#00c951',
@@ -27,6 +27,13 @@ export default function Layout({ children, heroBg, showFooter = true, showVideo 
   const [menuClosing, setMenuClosing] = useState(false)
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [loggingOut, setLoggingOut] = useState(false)
+  const videoRef = useRef<HTMLVideoElement>(null)
+
+  useEffect(() => {
+    const v = videoRef.current
+    if (!v) return
+    if (v.readyState >= 2) v.classList.add('ready')
+  }, [showVideo])
 
   function openMenu() { setMenuOpen(true); setMenuClosing(false) }
   function closeMenu() {
@@ -62,8 +69,10 @@ export default function Layout({ children, heroBg, showFooter = true, showVideo 
         />
       ) : showVideo ? (
         <video
+          ref={videoRef}
           autoPlay muted loop playsInline id="bg-video"
           onCanPlay={e => (e.currentTarget as HTMLVideoElement).classList.add('ready')}
+          onLoadedData={e => (e.currentTarget as HTMLVideoElement).classList.add('ready')}
         >
           <source src="/static/images/bg_video.webm" type="video/webm" />
           <source src="/static/images/bg_video.mp4" type="video/mp4" />
