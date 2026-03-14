@@ -88,6 +88,12 @@ export default function Login() {
           <GoogleButton text="Continue with Google" variant="primary" redirectUrl={redirectUrl} style={{ maxWidth: 'none' }} />
         </Section>
 
+        <div className="flex items-center gap-3 w-full">
+          <div className="flex-1 h-px bg-white/10" />
+          <span className="text-xs text-white/30 uppercase tracking-widest">or</span>
+          <div className="flex-1 h-px bg-white/10" />
+        </div>
+
         <Section>
           {emailSent ? (
             <p className="text-sm text-white/60 text-center">Check your inbox — a magic link is on its way.</p>
