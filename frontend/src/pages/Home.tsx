@@ -59,7 +59,7 @@ export default function Home() {
           <img
             src="/static/images/logo_white.png"
             alt="Drop Dead Disco"
-            className="w-32 transition-all duration-500"
+            className="w-32 animate-pulse transition-all duration-500"
             style={{
               opacity: splashVisible ? 0.9 : 0,
               transform: splashVisible ? 'scale(1)' : 'scale(0.95)',
@@ -70,8 +70,8 @@ export default function Home() {
       {!meLoading && <>
       {/* Guest hero */}
       {!me && (
-        <Section className="pt-6 pb-2">
-          <div className="flex flex-col items-center gap-3 text-center w-full">
+        <Section className="pt-2">
+          <div className="flex flex-col items-center gap-1 text-center w-full">
             <h1 className="text-4xl font-bold tracking-tight">Drop Dead Disco</h1>
             <p className="text-sm text-white/55 leading-relaxed max-w-80">
               Dance parties in secret locations in and around Yerevan. Verification required.
