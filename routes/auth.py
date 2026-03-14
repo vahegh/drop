@@ -114,7 +114,7 @@ async def refresh(db: AsyncSession, request: Request):
 
     await db.delete(stored)
 
-    return await generate_and_set_tokens(payload['person_id'], redirect_url=request.url)
+    return await generate_and_set_tokens(payload['person_id'], redirect_url=str(request.url))
 
 
 @with_db
