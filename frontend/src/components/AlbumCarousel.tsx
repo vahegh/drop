@@ -1,10 +1,22 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 export default function AlbumCarousel({ photos }: { photos: string[] }) {
   const [active, setActive] = useState(0)
   const [animKey, setAnimKey] = useState(0)
   const [dir, setDir] = useState<'left' | 'right'>('left')
+  const [fullscreen, setFullscreen] = useState(false)
   const touchStartX = useRef<number | null>(null)
+
+  useEffect(() => {
+    if (!fullscreen) return
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setFullscreen(false)
+      if (e.key === 'ArrowLeft') prev()
+      if (e.key === 'ArrowRight') next()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [fullscreen, active])
 
   function go(next: number, direction: 'left' | 'right') {
     setDir(direction)
@@ -40,7 +52,7 @@ export default function AlbumCarousel({ photos }: { photos: string[] }) {
 
       {/* Main image */}
       <div
-        className="relative w-full rounded-sm overflow-hidden bg-black/30 select-none"
+        className="relative w-full overflow-hidden bg-black/30 select-none"
         style={{ aspectRatio: '3/2' }}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
@@ -49,8 +61,9 @@ export default function AlbumCarousel({ photos }: { photos: string[] }) {
           key={animKey}
           src={`${photos[active]}=w800`}
           alt={`Photo ${active + 1}`}
-          className={`w-full h-full object-contain ${slideIn}`}
+          className={`w-full h-full object-contain cursor-zoom-in ${slideIn}`}
           draggable={false}
+          onClick={() => setFullscreen(true)}
         />
         {photos.length > 1 && (
           <>
@@ -78,12 +91,52 @@ export default function AlbumCarousel({ photos }: { photos: string[] }) {
             <button
               key={i}
               onClick={() => go(i, i > active ? 'left' : 'right')}
-              className="flex-none w-14 h-14 rounded-xs overflow-hidden transition-opacity"
+              className="flex-none size-10 rounded-xs overflow-hidden transition-opacity"
               style={{ opacity: i === active ? 1 : 0.45 }}
             >
               <img src={`${url}=w120`} alt="" className="w-full h-full object-cover" />
             </button>
           ))}
+        </div>
+      )}
+
+      {/* Fullscreen lightbox */}
+      {fullscreen && (
+        <div
+          className="fixed inset-0 z-50 bg-black flex items-center justify-center"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          onClick={() => setFullscreen(false)}
+        >
+          <img
+            src={`${photos[active]}=w1600`}
+            alt={`Photo ${active + 1}`}
+            className="max-w-full max-h-full object-contain"
+            draggable={false}
+            onClick={e => e.stopPropagation()}
+          />
+          {photos.length > 1 && (
+            <>
+              <button
+                onClick={e => { e.stopPropagation(); prev() }}
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 flex items-center justify-center text-white text-lg"
+                aria-label="Previous"
+              >‹</button>
+              <button
+                onClick={e => { e.stopPropagation(); next() }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 flex items-center justify-center text-white text-lg"
+                aria-label="Next"
+              >›</button>
+              <span className="absolute bottom-4 right-4 text-sm text-white/60 tabular-nums">
+                {active + 1} / {photos.length}
+              </span>
+            </>
+          )}
+          <button
+            onClick={() => setFullscreen(false)}
+            className="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/60 flex items-center justify-center text-white text-lg"
+            aria-label="Close"
+          >✕</button>
         </div>
       )}
     </div>
